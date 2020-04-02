@@ -61,10 +61,20 @@ const (
 type MMModemStateFailedReason uint32 // Power state of the modem.
 //go:generate stringer -type=MMModemStateFailedReason
 const (
-	MmModemPowerStateUnknown MMModemStateFailedReason = 0 // Unknown power state.
-	MmModemPowerStateOff     MMModemStateFailedReason = 1 // Off.
-	MmModemPowerStateLow     MMModemStateFailedReason = 2 // Low-power mode.
-	MmModemPowerStateOn      MMModemStateFailedReason = 3 // Full power mode.
+	MmModemStateFailedReasonNone       MMModemStateFailedReason = 0 // No error.
+	MmModemStateFailedReasonUnknown    MMModemStateFailedReason = 1 // Unknown error.
+	MmModemStateFailedReasonSimMissing MMModemStateFailedReason = 2 // SIM is required but missing.
+	MmModemStateFailedReasonSimError   MMModemStateFailedReason = 3 // SIM is available, but unusable (e.g. permanently locked).
+
+)
+
+type MMModemPowerState uint32 // Power state of the modem.
+//go:generate stringer -type=MMModemPowerState
+const (
+	MmModemPowerStateUnknown MMModemPowerState = 0 // Unknown power state.
+	MmModemPowerStateOff     MMModemPowerState = 1 // Off.
+	MmModemPowerStateLow     MMModemPowerState = 2 // Low-power mode.
+	MmModemPowerStateOn      MMModemPowerState = 3 // Full power mode.
 
 )
 
@@ -801,5 +811,23 @@ const (
 	MmModemFirmwareUpdateMethodNone     MMModemFirmwareUpdateMethod = 0      // No method specified.
 	MmModemFirmwareUpdateMethodFastboot MMModemFirmwareUpdateMethod = 1 << 0 // Device supports fastboot-based update.
 	MmModemFirmwareUpdateMethodQmiPdc   MMModemFirmwareUpdateMethod = 1 << 1 // Device supports QMI PDC based update.
+
+)
+
+type MMLoggingLevel string // Logging Level of ModemManager
+
+const (
+	MMLoggingLevelError   MMLoggingLevel = "ERR"   // logging level error.
+	MMLoggingLevelWarning MMLoggingLevel = "WARN"  // logging level warning.
+	MMLoggingLevelDebug   MMLoggingLevel = "DEBUG" // logging level debug.
+
+)
+
+type MMKernelPropertyAction string // The type of action, given as a string value (signature "s"). This parameter is MANDATORY.
+
+const (
+	MMKernelPropertyActionAdd   MMKernelPropertyAction = "add"   // 	A new kernel device has been added.
+	MMKernelPropertyActionRemove MMKernelPropertyAction = "remove"  // An existing kernel device has been removed.
+
 
 )
