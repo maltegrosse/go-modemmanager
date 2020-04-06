@@ -321,8 +321,8 @@ func (m modem) CreateBearer(property BearerProperty) (Bearer, error) {
 }
 
 func (m modem) DeleteBearer(bearer Bearer) error {
-	// todo: not implemented - ModemDeleteBearer
-	panic("implement me")
+	// todo: untested
+	return m.call(ModemDeleteBearer, bearer.GetObjectPath())
 }
 
 func (m modem) Reset() error {
