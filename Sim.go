@@ -16,7 +16,8 @@ const (
 
 type Sim interface {
 	/* METHODS */
-
+	// Returns object path
+	GetObjectPath() dbus.ObjectPath
 	//MarshalJSON() ([]byte, error)
 }
 
@@ -27,4 +28,7 @@ func NewSim(objectPath dbus.ObjectPath) (Sim, error) {
 
 type  sim struct {
 	dbusBase
+}
+func (sm sim) GetObjectPath() dbus.ObjectPath {
+	return sm.obj.Path()
 }

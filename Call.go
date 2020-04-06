@@ -16,13 +16,17 @@ const (
 
 type Call interface {
 	/* METHODS */
-
+	// Returns object path
+	GetObjectPath() dbus.ObjectPath
 	//MarshalJSON() ([]byte, error)
 }
 
 func NewCall(objectPath dbus.ObjectPath) (Call, error) {
 	var ca call
 	return &ca, ca.init(CallInterface, objectPath)
+}
+func (ca call) GetObjectPath() dbus.ObjectPath {
+	return ca.obj.Path()
 }
 
 type  call struct {

@@ -1,10 +1,9 @@
 package go_modemmanager
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/godbus/dbus/v5"
+	"reflect"
 )
 
 // The Modem interface controls the status and actions in a given modem object.
@@ -69,6 +68,11 @@ const (
 type Modem interface {
 	/* METHODS */
 
+	// Returns object path
+	GetObjectPath() dbus.ObjectPath
+
+	// Return ModemSimple Object
+	GetSimpleModem() (ModemSimple,error)
 	// Enables the Modem: When enabled, the modem's radio is powered on and data sessions, voice calls,
 	// location services, and Short Message Service may be available.
 	Enable() error
@@ -124,6 +128,7 @@ type Modem interface {
 	Subscribe() <-chan *dbus.Signal
 	Unsubscribe()
 
+
 	/* METHODS to get Properties */
 	// The path of the SIM object available in this device, if any.
 	GetSim() (Sim, error)
@@ -134,7 +139,10 @@ type Modem interface {
 
 	// List of MMModemCapability values, specifying the combinations of generic family of access technologies the modem supports.
 	// If the modem doesn't allow changing the current capabilities, a single entry with MM_MODEM_CAPABILITY_ANY will be given.
-	GetSupportedCapabilities() ([]MMModemCapability, error)
+	// It's an array of bitmasks because the modem may support different combinations
+	// (E.g. "gsm/umts+lte" or "cdma/evdo+lte" or "gsm/umts+cdma/evdo+lte".
+	// This property gives you the list of combinations supported, Then, you have CurrentCapabilities, which gives you the actual combination in use currently.
+	GetSupportedCapabilities() ([][]MMModemCapability, error)
 
 	// Bitmask of MMModemCapability values, specifying the generic family of access technologies the modem currently supports without a firmware reload or reinitialization.
 	GetCurrentCapabilities() ([]MMModemCapability, error)
@@ -205,14 +213,14 @@ type Modem interface {
 	// A dictionary in which the keys are MMModemLock flags, and the values are integers giving the number of PIN tries
 	// remaining before the code becomes blocked (requiring a PUK) or permanently blocked. Dictionary entries exist
 	// only for the codes for which the modem is able to report retry counts.
-	GetUnlockRetries() (map[MMModemLock]uint32, error)
+	GetUnlockRetries() ([]Pair, error)
 
 	// Overall state of the modem, given as a MMModemState value.
 	// If the device's state cannot be determined, MM_MODEM_STATE_UNKNOWN will be reported.
 	GetState() (MMModemState, error)
 
 	// Error specifying why the modem is in MM_MODEM_STATE_FAILED state, given as a MMModemStateFailedReason value.
-	GetStateFailedReason(MMModemStateFailedReason, error)
+	GetStateFailedReason() (MMModemStateFailedReason, error)
 
 	// Bitmask of MMModemAccessTechnology values, specifying the current network access technologies used by the device
 	// to communicate with the network.
@@ -232,7 +240,11 @@ type Modem interface {
 	// This property exposes the supported mode combinations, given as an array of unsigned integer pairs, where:
 	// The first integer is a bitmask of MMModemMode values, specifying the allowed modes.
 	// The second integer is a single MMModemMode, which specifies the preferred access technology, among the ones defined in the allowed modes.
-	GetSupportedModes() (MMModemMode, error)
+	GetSupportedModes() ([]Mode, error)
+
+	// A pair of MMModemMode values, where the first one is a bitmask specifying the access technologies (eg 2G/3G/4G) the device is currently allowed to use when connecting to a network, and the second one is the preferred mode of those specified as allowed.
+	// The pair must be one of those specified in "SupportedModes".
+	GetCurrentModes() (Mode, error)
 
 	// List of MMModemBand values, specifying the radio frequency and technology bands supported by the device.
 	// For POTS devices, only the MM_MODEM_BAND_ANY mode will be returned.
@@ -262,6 +274,17 @@ type Port struct {
 	PortName string          // Port Name or Path
 	PortType MMModemPortType // Modem Port Type
 }
+type Mode struct {
+	AllowedModes  []MMModemMode
+	PreferredMode MMModemMode
+}
+func (m modem) GetObjectPath() dbus.ObjectPath {
+	return m.obj.Path()
+}
+
+func (m modem) GetSimpleModem()(ModemSimple,error){
+	return NewModemSimple(m.obj.Path())
+}
 
 func (m modem) Enable() error {
 	err := m.call(ModemEnable, true)
@@ -274,13 +297,27 @@ func (m modem) Disable() error {
 }
 
 func (m modem) CreateBearer(property BearerProperty) (Bearer, error) {
-	// todo: not implemented - ModemCreateBearer
-	data, err := json.Marshal(property)
+	// untested
+	v := reflect.ValueOf(property)
+	st := reflect.TypeOf(property)
+	type dynMap interface{}
+	var myMap map[string]dynMap
+	myMap = make(map[string]dynMap)
+	for i := 0; i < v.NumField(); i++ {
+		field := st.Field(i)
+		tag := field.Tag.Get("json")
+		value := v.Field(i).Interface()
+		if v.Field(i).IsZero() {
+			continue
+		}
+		myMap[tag] = value
+	}
+	var path dbus.ObjectPath
+	err := m.callWithReturn(&path, ModemCreateBearer, &myMap)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(data)
-	panic("implement me")
+	return NewBearer(path)
 }
 
 func (m modem) DeleteBearer(bearer Bearer) error {
@@ -289,48 +326,43 @@ func (m modem) DeleteBearer(bearer Bearer) error {
 }
 
 func (m modem) Reset() error {
-	err := m.call(ModemReset)
-	return err
+	return m.call(ModemReset)
 }
 
 func (m modem) FactoryReset(code string) error {
-	// untested
-	err := m.call(ModemFactoryReset, code)
-	return err
+	// todo: untested
+	return m.call(ModemFactoryReset, code)
 }
 
 func (m modem) SetPowerState(state MMModemPowerState) error {
-	// handle with care
-	err := m.call(ModemSetPowerState, state)
-	return err
+	// handle with care ...
+	return m.call(ModemSetPowerState, state)
 }
 
 func (m modem) SetCurrentCapabilities(capabilities []MMModemCapability) error {
 	// todo: untested
-	err := m.call(ModemSetCurrentCapabilities, capabilities)
+	var caps MMModemCapability
+	err := m.call(ModemSetCurrentCapabilities, caps.SliceToBitmask(capabilities))
 	return err
 }
 
 func (m modem) SetCurrentModes(property SupportedModesProperty) error {
-	// todo: implement
-	data, err := json.Marshal(property)
-	if err != nil {
-		return err
-	}
-	fmt.Println(data)
-	panic("implement me")
+	// todo: untested
+	var mode MMModemMode
+	var resSlice = []uint32{mode.SliceToBitmask(property.AllowedModes),
+		mode.SliceToBitmask([]MMModemMode{property.PreferredMode})}
+	return m.call(ModemSetCurrentModes, resSlice)
 }
 
 func (m modem) SetCurrentBands(bands []MMModemBand) error {
 	// todo: untested
-	err := m.call(ModemSetCurrentBands, bands)
-	return err
+	return m.call(ModemSetCurrentBands, bands)
 }
 
 func (m modem) Command(cmd string, timeout uint32) (response string, err error) {
+	// untested - only works in debug mode
 	err = m.callWithReturn(&response, ModemCommand, cmd, timeout)
 	return
-
 }
 
 func (m modem) GetSim() (Sim, error) {
@@ -357,29 +389,27 @@ func (m modem) GetBearers() ([]Bearer, error) {
 	return bearers, nil
 }
 
-func (m modem) GetSupportedCapabilities() (capabilities []MMModemCapability, err error) {
-	// todo: []bitmask
+func (m modem) GetSupportedCapabilities() (capabilities [][]MMModemCapability, err error) {
 	caps, err := m.getSliceUint32Property(ModemPropertySupportedCapabilities)
-
 	if err != nil {
 		return nil, err
 	}
-	for idx := range caps {
-		capabilities = append(capabilities, MMModemCapability(caps[idx]))
+	var capability MMModemCapability
+	for _, c := range caps {
+		capabilities = append(capabilities, capability.BitmaskToSlice(c))
+
 	}
 	return
 
 }
 
 func (m modem) GetCurrentCapabilities() (capabilities []MMModemCapability, err error) {
-	// todo: bistmask
-	caps, err := m.getUint32Property(ModemPropertyCurrentCapabilities)
-
+	res, err := m.getUint32Property(ModemPropertyCurrentCapabilities)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(caps)
-	return
+	var capability MMModemCapability
+	return capability.BitmaskToSlice(res), nil
 }
 
 func (m modem) GetMaxBearers() (maxBearers uint32, err error) {
@@ -460,7 +490,7 @@ func (m modem) GetEquipmentIdentifier() (string, error) {
 }
 
 func (m modem) GetUnlockRequired() (MMModemLock, error) {
-	// todo remove prefix from enum
+
 	res, err := m.getUint32Property(ModemPropertyUnlockRequired)
 	if err != nil {
 		return MmModemLockUnknown, err
@@ -468,48 +498,126 @@ func (m modem) GetUnlockRequired() (MMModemLock, error) {
 	return MMModemLock(res), nil
 }
 
-func (m modem) GetUnlockRetries() (map[MMModemLock]uint32, error) {
-	panic("implement me")
+func (m modem) GetUnlockRetries() (values []Pair, err error) {
+	res, err := m.getMapUint32Uint32Property(ModemPropertyUnlockRetries)
+	if err != nil {
+		return nil, err
+	}
+	for key, element := range res {
+		values = append(values, Pair{a: MMModemLock(key), b: element})
+	}
+	return values, nil
 }
 
 func (m modem) GetState() (MMModemState, error) {
-	panic("implement me")
+
+	res, err := m.getInt32Property(ModemPropertyState)
+	if err != nil {
+		return MmModemStateUnknown, err
+	}
+	return MMModemState(res), nil
 }
 
-func (m modem) GetStateFailedReason(MMModemStateFailedReason, error) {
-	panic("implement me")
+func (m modem) GetStateFailedReason() (MMModemStateFailedReason, error) {
+	res, err := m.getUint32Property(ModemPropertyStateFailedReason)
+	if err != nil {
+		return MmModemStateFailedReasonUnknown, err
+	}
+
+	return MMModemStateFailedReason(res), nil
 }
 
-func (m modem) GetAccessTechnologies() ([]MMModemAccessTechnology, error) {
-	panic("implement me")
+func (m modem) GetAccessTechnologies() (result []MMModemAccessTechnology, err error) {
+	res, err := m.getUint32Property(ModemPropertyAccessTechnologies)
+	if err != nil {
+		return nil, err
+	}
+	var tmp MMModemAccessTechnology
+
+	return tmp.BitmaskToSlice(res), nil
 }
 
 func (m modem) GetSignalQuality() (percent uint32, recent bool, err error) {
-	panic("implement me")
+	res, err := m.getPairProperty(ModemPropertySignalQuality)
+	if err != nil {
+		return
+	}
+	return res.a.(uint32), res.b.(bool), nil
 }
 
 func (m modem) GetOwnNumbers() ([]string, error) {
-	panic("implement me")
+	return m.getSliceStringProperty(ModemPropertyOwnNumbers)
+
 }
 
 func (m modem) GetPowerState() (MMModemPowerState, error) {
-	panic("implement me")
+	res, err := m.getUint32Property(ModemPropertyPowerState)
+	if err != nil {
+		return MmModemPowerStateUnknown, err
+	}
+	return MMModemPowerState(res), nil
 }
 
-func (m modem) GetSupportedModes() (MMModemMode, error) {
-	panic("implement me")
+func (m modem) GetSupportedModes() (modes []Mode, err error) {
+
+	res, err := m.getSliceSlicePairProperty(ModemPropertySupportedModes)
+
+	if err != nil {
+		return nil, err
+	}
+	var tmp MMModemMode
+	for _, x := range res {
+		modes = append(modes, Mode{AllowedModes: tmp.BitmaskToSlice(x.a.(uint32)), PreferredMode: MMModemMode(x.b.(uint32))})
+
+	}
+	return
+
+}
+func (m modem) GetCurrentModes() (mode Mode, err error) {
+	res, err := m.getPairProperty(ModemPropertyCurrentModes)
+	if err != nil {
+		return mode, err
+	}
+	var tmp MMModemMode
+	mode.PreferredMode = MMModemMode(res.b.(uint32))
+	mode.AllowedModes = tmp.BitmaskToSlice(res.a.(uint32))
+
+	return
 }
 
-func (m modem) GetSupportedBands() ([]MMModemBand, error) {
-	panic("implement me")
+func (m modem) GetSupportedBands() (bands []MMModemBand, err error) {
+	res, err := m.getSliceUint32Property(ModemPropertySupportedBands)
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range res {
+		bands = append(bands, MMModemBand(x))
+
+	}
+	return
+
 }
 
-func (m modem) GetCurrentBands() ([]MMModemBand, error) {
-	panic("implement me")
+func (m modem) GetCurrentBands() (bands []MMModemBand, err error) {
+	res, err := m.getSliceUint32Property(ModemPropertyCurrentBands)
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range res {
+		bands = append(bands, MMModemBand(x))
+
+	}
+	return
 }
 
 func (m modem) GetSupportedIpFamilies() ([]MMBearerIpFamily, error) {
-	panic("implement me")
+	res, err := m.getUint32Property(ModemPropertySupportedIpFamilies)
+	if err != nil {
+		return nil, err
+	}
+	var ipFam MMBearerIpFamily
+
+	return ipFam.BitmaskToSlice(res), nil
 }
 
 func (m modem) Subscribe() <-chan *dbus.Signal {
@@ -530,9 +638,11 @@ func (m modem) Unsubscribe() {
 }
 
 func (m modem) MarshalJSON() ([]byte, error) {
+	// todo: not implemented yet
 	panic("implement me")
 }
 
+// todo duplicate
 type SupportedModesProperty struct {
 	AllowedModes  []MMModemMode // the first one is a bitmask of allowed modes
 	PreferredMode MMModemMode   // the second one the preferred mode, if any

@@ -1,5 +1,7 @@
 package go_modemmanager
 
+import "reflect"
+
 const (
 	ModemManagerInterface = "org.freedesktop.ModemManager1"
 
@@ -34,7 +36,7 @@ type ModemManager interface {
 	// This method is only available if udev is not being used to report kernel events.
 	// The properties dictionary is composed of key/value string pairs. The possible keys are:
 	// see EventProperty and MMKernelPropertyAction
-	ReportKernelEvent([]EventProperty) error
+	ReportKernelEvent(EventProperties) error
 
 	// org.freedesktop.ModemManager1.Modem:Device property. inhibit: TRUE to inhibit the modem and FALSE to uninhibit it.
 	// Inhibit or uninhibit the device.
@@ -58,7 +60,7 @@ func NewModemManager() (ModemManager, error) {
 type modemManager struct {
 	dbusBase
 }
-type EventProperty struct {
+type EventProperties struct {
 	Action MMKernelPropertyAction `json:"action"` // The type of action, given as a string value (signature "s"). This parameter is MANDATORY.
 	Name string `json:"name"` // The device name, given as a string value (signature "s"). This parameter is MANDATORY.
 	Subsystem string `json:"subsystem"` // The device subsystem, given as a string value (signature "s"). This parameter is MANDATORY.
@@ -75,7 +77,6 @@ func (mm modemManager) ListDevices() (modems []Modem, err error) {
 			return nil, err
 		}
 		modems = append(modems, modem)
-
 	}
 	return
 }
@@ -90,13 +91,27 @@ func (mm modemManager) SetLogging(level MMLoggingLevel) error {
 	return err
 }
 
-func (mm modemManager) ReportKernelEvent([]EventProperty) error {
-	// todo missing
-	panic("implement me")
+func (mm modemManager) ReportKernelEvent(properties EventProperties) error {
+	// untested
+	v := reflect.ValueOf(properties)
+	st := reflect.TypeOf(properties)
+	type dynMap interface{}
+	var myMap map[string]dynMap
+	myMap = make(map[string]dynMap)
+	for i := 0; i < v.NumField(); i++ {
+		field := st.Field(i)
+		tag := field.Tag.Get("json")
+		value := v.Field(i).Interface()
+		if v.Field(i).IsZero() {
+			continue
+		}
+		myMap[tag] = value
+	}
+	return mm.call(ModemManagerReportKernelEvent, &myMap)
 }
 
 func (mm modemManager) InhibitDevice(uid string, inhibit bool) error {
-	// todo untested
+	// untested
 	err := mm.call(ModemManagerInhibitDevice, &uid, &inhibit)
 	return err
 }
@@ -107,5 +122,6 @@ func (mm modemManager) GetVersion() (string, error) {
 }
 
 func (mm modemManager) MarshalJSON() ([]byte, error) {
+	// todo: not implemented yet
 	panic("implement me")
 }

@@ -16,7 +16,8 @@ const (
 
 type Sms interface {
 	/* METHODS */
-
+	// Returns object path
+	GetObjectPath() dbus.ObjectPath
 	//MarshalJSON() ([]byte, error)
 }
 
@@ -27,4 +28,7 @@ func NewSms(objectPath dbus.ObjectPath) (Sms, error) {
 
 type  sms struct {
 	dbusBase
+}
+func (ss sms) GetObjectPath() dbus.ObjectPath {
+	return ss.obj.Path()
 }

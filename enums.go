@@ -1,24 +1,51 @@
 package go_modemmanager
 
-// todo errors ?  https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/blob/master/include/ModemManager-errors.h
-
 // ref https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/blob/master/include/ModemManager-enums.h
+
 type MMModemCapability uint32 //  Flags describing one or more of the general access technology families that a modem supports.
 
-//go:generate stringer -type=MMModemCapability
+//go:generate stringer -type=MMModemCapability -trimprefix=MmModemCapability
 const (
 	MmModemCapabilityNone        MMModemCapability = 0          // Modem has no capabilities.
-	MmModemCapabilityPots        MMModemCapability = 1 << 0     //  Modem supports the analog wired telephone network (ie 56k dialup) and does not have wireless/cellular capabilities.
-	MmModemCapabilityCdmaEvdo    MMModemCapability = 1 << 1     // Modem supports at least one of CDMA 1xRTT, EVDO revision 0, EVDO revision A, or EVDO revision B.
-	MmModemCapabilityGsmUmts     MMModemCapability = 1 << 2     // Modem supports at least one of GSM, GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability.
-	MmModemCapabilityLte         MMModemCapability = 1 << 3     // Modem has LTE data capability.
-	MmModemCapabilityLteAdvanced MMModemCapability = 1 << 4     // Modem has LTE Advanced data capability.
-	MmModemCapabilityIridium     MMModemCapability = 1 << 5     //Modem has Iridium capabilities.
+	MmModemCapabilityPots        MMModemCapability = 1 << 0 // Modem supports the analog wired telephone network (ie 56k dialup) and does not have wireless/cellular capabilities.
+	MmModemCapabilityCdmaEvdo    MMModemCapability = 1 << 1 // Modem supports at least one of CDMA 1xRTT, EVDO revision 0, EVDO revision A, or EVDO revision B.
+	MmModemCapabilityGsmUmts     MMModemCapability = 1 << 2 // Modem supports at least one of GSM, GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability.
+	MmModemCapabilityLte         MMModemCapability = 1 << 3 // Modem has LTE data capability.
+	MmModemCapabilityLteAdvanced MMModemCapability = 1 << 4 // Modem has LTE Advanced data capability.
+	MmModemCapabilityIridium     MMModemCapability = 1 << 5 //Modem has Iridium capabilities.
 	MmModemCapabilityAny         MMModemCapability = 0xFFFFFFFF // Mask specifying all capabilities.
 )
+func (c MMModemCapability) GetAllCapabilities() []MMModemCapability {
+	return []MMModemCapability{MmModemCapabilityPots, MmModemCapabilityCdmaEvdo,MmModemCapabilityGsmUmts,MmModemCapabilityLte,
+		MmModemCapabilityLteAdvanced,MmModemCapabilityIridium,
+	}
+}
+
+func (c MMModemCapability) BitmaskToSlice(bitmask uint32) (capabilities []MMModemCapability) {
+	if bitmask == 0 {
+		return
+	}
+	for idx, x := range c.GetAllCapabilities() {
+		if bitmask&(1<<idx) > 0 {
+			capabilities = append(capabilities, x)
+		}
+	}
+	return
+}
+func (c MMModemCapability) SliceToBitmask(capabilities []MMModemCapability) (bitmask uint32) {
+	bitmask = 0
+	for idx, x := range c.GetAllCapabilities() {
+		for _, y := range capabilities {
+			if x == y {
+				bitmask = bitmask | (1 << idx)
+			}
+		}
+	}
+	return bitmask
+}
 
 type MMModemLock uint32 // Possible lock reasons.
-//go:generate stringer -type=MMModemLock
+//go:generate stringer -type=MMModemLock -trimprefix=MmModemLock
 const (
 	MmModemLockUnknown     MMModemLock = 0  // Lock reason unknown.
 	MmModemLockNone        MMModemLock = 1  // Modem is unlocked.
@@ -40,7 +67,7 @@ const (
 )
 
 type MMModemState int32 // Possible modem states.
-//go:generate stringer -type=MMModemState
+//go:generate stringer -type=MMModemState -trimprefix=MmModemState
 const (
 	MmModemStateFailed        MMModemState = -1 // The modem is unusable.
 	MmModemStateUnknown       MMModemState = 0  // State unknown or not reportable.
@@ -59,7 +86,7 @@ const (
 )
 
 type MMModemStateFailedReason uint32 // Power state of the modem.
-//go:generate stringer -type=MMModemStateFailedReason
+//go:generate stringer -type=MMModemStateFailedReason -trimprefix=MmModemStateFailedReason
 const (
 	MmModemStateFailedReasonNone       MMModemStateFailedReason = 0 // No error.
 	MmModemStateFailedReasonUnknown    MMModemStateFailedReason = 1 // Unknown error.
@@ -69,7 +96,7 @@ const (
 )
 
 type MMModemPowerState uint32 // Power state of the modem.
-//go:generate stringer -type=MMModemPowerState
+//go:generate stringer -type=MMModemPowerState -trimprefix=MmModemPowerState
 const (
 	MmModemPowerStateUnknown MMModemPowerState = 0 // Unknown power state.
 	MmModemPowerStateOff     MMModemPowerState = 1 // Off.
@@ -79,7 +106,7 @@ const (
 )
 
 type MMModemStateChangeReason uint32 // Possible reasons to have changed the modem state.
-//go:generate stringer -type=MMModemStateChangeReason
+//go:generate stringer -type=MMModemStateChangeReason -trimprefix=MmModemStateChangeReason
 const (
 	MmModemStateChangeReasonUnknown       MMModemStateChangeReason = 0 // Reason unknown or not reportable.
 	MmModemStateChangeReasonUserRequested MMModemStateChangeReason = 1 // State change was requested by an interface user.
@@ -90,30 +117,61 @@ const (
 
 type MMModemAccessTechnology uint32 // Describes various access technologies that a device uses when registered with or connected to a network.
 
-//go:generate stringer -type=MMModemAccessTechnology
+//go:generate stringer -type=MMModemAccessTechnology  -trimprefix=MmModemAccessTechnology
 const (
 	MmModemAccessTechnologyUnknown    MMModemAccessTechnology = 0          // The access technology used is unknown.
-	MmModemAccessTechnologyPots       MMModemAccessTechnology = 1 << 0     // Analog wireline telephone.
-	MmModemAccessTechnologyGsm        MMModemAccessTechnology = 1 << 1     // GSM.
-	MmModemAccessTechnologyGsmCompact MMModemAccessTechnology = 1 << 2     // Compact GSM.
-	MmModemAccessTechnologyGprs       MMModemAccessTechnology = 1 << 3     // GPRS.
-	MmModemAccessTechnologyEdge       MMModemAccessTechnology = 1 << 4     // EDGE (ETSI 27.007: "GSM w/EGPRS").
-	MmModemAccessTechnologyUmts       MMModemAccessTechnology = 1 << 5     // UMTS (ETSI 27.007: "UTRAN").
-	MmModemAccessTechnologyHsdpa      MMModemAccessTechnology = 1 << 6     // HSDPA (ETSI 27.007: "UTRAN w/HSDPA").
-	MmModemAccessTechnologyHsupa      MMModemAccessTechnology = 1 << 7     // HSUPA (ETSI 27.007: "UTRAN w/HSUPA").
-	MmModemAccessTechnologyHspa       MMModemAccessTechnology = 1 << 8     // HSPA (ETSI 27.007: "UTRAN w/HSDPA and HSUPA").
-	MmModemAccessTechnologyHspaPlus   MMModemAccessTechnology = 1 << 9     // HSPA+ (ETSI 27.007: "UTRAN w/HSPA+").
-	MmModemAccessTechnology1xrtt      MMModemAccessTechnology = 1 << 10    // CDMA2000 1xRTT.
-	MmModemAccessTechnologyEvdo0      MMModemAccessTechnology = 1 << 11    // CDMA2000 EVDO revision 0.
-	MmModemAccessTechnologyEvdoa      MMModemAccessTechnology = 1 << 12    // CDMA2000 EVDO revision A.
-	MmModemAccessTechnologyEvdob      MMModemAccessTechnology = 1 << 13    // CDMA2000 EVDO revision B.
-	MmModemAccessTechnologyLte        MMModemAccessTechnology = 1 << 14    // LTE (ETSI 27.007: "E-UTRAN")
+	MmModemAccessTechnologyPots       MMModemAccessTechnology = 1 << 0  // Analog wireline telephone.
+	MmModemAccessTechnologyGsm        MMModemAccessTechnology = 1 << 1  // GSM.
+	MmModemAccessTechnologyGsmCompact MMModemAccessTechnology = 1 << 2  // Compact GSM.
+	MmModemAccessTechnologyGprs       MMModemAccessTechnology = 1 << 3  // GPRS.
+	MmModemAccessTechnologyEdge       MMModemAccessTechnology = 1 << 4  // EDGE (ETSI 27.007: "GSM w/EGPRS").
+	MmModemAccessTechnologyUmts       MMModemAccessTechnology = 1 << 5  // UMTS (ETSI 27.007: "UTRAN").
+	MmModemAccessTechnologyHsdpa      MMModemAccessTechnology = 1 << 6  // HSDPA (ETSI 27.007: "UTRAN w/HSDPA").
+	MmModemAccessTechnologyHsupa      MMModemAccessTechnology = 1 << 7  // HSUPA (ETSI 27.007: "UTRAN w/HSUPA").
+	MmModemAccessTechnologyHspa       MMModemAccessTechnology = 1 << 8  // HSPA (ETSI 27.007: "UTRAN w/HSDPA and HSUPA").
+	MmModemAccessTechnologyHspaPlus   MMModemAccessTechnology = 1 << 9  // HSPA+ (ETSI 27.007: "UTRAN w/HSPA+").
+	MmModemAccessTechnology1xrtt      MMModemAccessTechnology = 1 << 10 // CDMA2000 1xRTT.
+	MmModemAccessTechnologyEvdo0      MMModemAccessTechnology = 1 << 11 // CDMA2000 EVDO revision 0.
+	MmModemAccessTechnologyEvdoa      MMModemAccessTechnology = 1 << 12 // CDMA2000 EVDO revision A.
+	MmModemAccessTechnologyEvdob      MMModemAccessTechnology = 1 << 13 // CDMA2000 EVDO revision B.
+	MmModemAccessTechnologyLte        MMModemAccessTechnology = 1 << 14 // LTE (ETSI 27.007: "E-UTRAN")
 	MmModemAccessTechnologyAny        MMModemAccessTechnology = 0xFFFFFFFF // Mask specifying all access technologies.
 )
 
+func (t MMModemAccessTechnology) GetAllTechnologies() []MMModemAccessTechnology {
+	var technologies = []MMModemAccessTechnology{MmModemAccessTechnologyPots, MmModemAccessTechnologyGsm, MmModemAccessTechnologyGsmCompact,
+		MmModemAccessTechnologyGprs, MmModemAccessTechnologyEdge, MmModemAccessTechnologyUmts, MmModemAccessTechnologyHsdpa, MmModemAccessTechnologyHsupa, MmModemAccessTechnologyHspa,
+		MmModemAccessTechnologyHspaPlus, MmModemAccessTechnology1xrtt, MmModemAccessTechnologyEvdo0, MmModemAccessTechnologyEvdoa, MmModemAccessTechnologyEvdob, MmModemAccessTechnologyLte,
+	}
+	return technologies
+}
+
+func (t MMModemAccessTechnology) BitmaskToSlice(bitmask uint32) (technologies []MMModemAccessTechnology) {
+	if bitmask == 0 {
+		return
+	}
+	for idx, x := range t.GetAllTechnologies() {
+		if bitmask&(1<<idx) > 0 {
+			technologies = append(technologies, x)
+		}
+	}
+	return technologies
+}
+func (t MMModemAccessTechnology) SliceToBitmask(technologies []MMModemAccessTechnology) (bitmask uint32) {
+	bitmask = 0
+	for idx, x := range t.GetAllTechnologies() {
+		for _, y := range technologies {
+			if x == y {
+				bitmask = bitmask | (1 << idx)
+			}
+		}
+	}
+	return bitmask
+}
+
 type MMModemMode uint32 // Bitfield to indicate which access modes are supported, allowed or preferred in a given device.
 
-//go:generate stringer -type=MMModemMode
+//go:generate stringer -type=MMModemMode -trimprefix=MmModemMode
 const (
 	MmModemModeNone MMModemMode = 0          // None
 	MmModemModeCs   MMModemMode = 1 << 0     // CSD, GSM, and other circuit-switched technologies.
@@ -124,8 +182,34 @@ const (
 
 )
 
+func (m MMModemMode) GetAllModes() []MMModemMode {
+	return []MMModemMode{MmModemModeCs,MmModemMode2g,MmModemMode3g,MmModemMode4g}
+}
+
+func (m MMModemMode) BitmaskToSlice(bitmask uint32) (modes []MMModemMode) {
+	if bitmask == 0 {
+		return
+	}
+	for idx, x := range m.GetAllModes() {
+		if bitmask&(1<<idx) > 0 {
+			modes = append(modes, x)
+		}
+	}
+	return
+}
+func (m MMModemMode) SliceToBitmask(modes []MMModemMode) (bitmask uint32) {
+	bitmask = 0
+	for idx, x := range m.GetAllModes() {
+		for _, y := range modes {
+			if x == y {
+				bitmask = bitmask | (1 << idx)
+			}
+		}
+	}
+	return bitmask
+}
 type MMModemBand uint32 // Radio bands supported by the device when connecting to a mobile network.
-//go:generate stringer -type=MMModemBand
+//go:generate stringer -type=MMModemBand -trimprefix=MmModemBand
 const (
 	MmModemBandUnknown MMModemBand = 0 // Unknown or invalid band.
 	/* GSM/UMTS bands */
@@ -262,7 +346,7 @@ const (
 )
 
 type MMModemPortType uint32 // Type of modem port.
-//go:generate stringer -type=MMModemPortType
+//go:generate stringer -type=MMModemPortType -trimprefix=MmModemPortType
 const (
 	MmModemPortTypeUnknown MMModemPortType = 1 // Unknown.
 	MmModemPortTypeNet     MMModemPortType = 2 // Net port.
@@ -276,7 +360,7 @@ const (
 )
 
 type MMSmsPduType uint32 // Type of PDUs used in the SMS.
-//go:generate stringer -type=MMSmsPduType
+//go:generate stringer -type=MMSmsPduType -trimprefix=MmSmsPduType
 const (
 	MmSmsPduTypeUnknown                     MMSmsPduType = 0  // Unknown type.
 	MmSmsPduTypeDeliver                     MMSmsPduType = 1  // 3GPP Mobile-Terminated (MT) message.
@@ -292,7 +376,7 @@ const (
 )
 
 type MMSmsState uint32 // State of a given SMS.
-//go:generate stringer -type=MMSmsState
+//go:generate stringer -type=MMSmsState -trimprefix=MmSmsState
 const (
 	MmSmsStateUnknown   MMSmsState = 0 // State unknown or not reportable.
 	MmSmsStateStored    MMSmsState = 1 // The message has been neither received nor yet sent.
@@ -305,7 +389,7 @@ const (
 
 type MMSmsDeliveryState uint32 // Known SMS delivery states as defined in 3GPP TS 03.40 and  3GPP2 N.S0005-O, section 6.5.2.125. States out of the known ranges may also be valid (either reserved or SC-specific).
 
-//go:generate stringer -type=MMSmsDeliveryState
+//go:generate stringer -type=MMSmsDeliveryState -trimprefix=MmSmsDeliveryState
 const (
 	/* Completed deliveries */
 	MmSmsDeliveryStateCompletedReceived             MMSmsDeliveryState = 0x00 // Delivery completed, message received by the SME.
@@ -415,7 +499,7 @@ const (
 
 type MMSmsStorage uint32 // Storage for SMS messages.
 
-//go:generate stringer -type=MMSmsStorage
+//go:generate stringer -type=MMSmsStorage -trimprefix=MmSmsStorage
 const (
 	MmSmsStorageUnknown MMSmsStorage = 0 // Storage unknown.
 	MmSmsStorageSm      MMSmsStorage = 1 // SIM card storage area.
@@ -429,7 +513,7 @@ const (
 
 type MMSmsValidityType uint32 // Type of SMS validity value.
 
-//go:generate stringer -type=MMSmsValidityType
+//go:generate stringer -type=MMSmsValidityType -trimprefix=MmSmsValidityType
 const (
 	MmSmsValidityTypeUnknown  MMSmsValidityType = 0 // Validity type unknown.
 	MmSmsValidityTypeRelative MMSmsValidityType = 1 // Relative validity.
@@ -440,7 +524,7 @@ const (
 
 type MMSmsCdmaTeleserviceId uint32 // Teleservice IDs supported for CDMA SMS, as defined in 3GPP2 X.S0004-550-E (section 2.256) and 3GPP2 C.S0015-B (section 3.4.3.1).
 
-//go:generate stringer -type=MMSmsCdmaTeleserviceId
+//go:generate stringer -type=MMSmsCdmaTeleserviceId -trimprefix=MmSmsCdmaTeleserviceId
 const (
 	MmSmsCdmaTeleserviceIdUnknown MMSmsCdmaTeleserviceId = 0x0000 // Unknown.
 	MmSmsCdmaTeleserviceIdCmt91   MMSmsCdmaTeleserviceId = 0x1000 // IS-91 Extended Protocol Enhanced Services.
@@ -456,7 +540,7 @@ const (
 
 type MMSmsCdmaServiceCategory uint32 // Service category for CDMA SMS, as defined in 3GPP2 C.R1001-D (section 9.3).
 
-//go:generate stringer -type=MMSmsCdmaServiceCategory
+//go:generate stringer -type=MMSmsCdmaServiceCategory -trimprefix=MmSmsCdmaServiceCategory
 const (
 	MmSmsCdmaServiceCategoryUnknown                        MMSmsCdmaServiceCategory = 0x0000 // Unknown.
 	MmSmsCdmaServiceCategoryEmergencyBroadcast             MMSmsCdmaServiceCategory = 0x0001 // Emergency broadcast.
@@ -500,7 +584,7 @@ const (
 
 type MMModemLocationSource uint32 // Sources of location information supported by the modem.
 
-//go:generate stringer -type=MMModemLocationSource
+//go:generate stringer -type=MMModemLocationSource -trimprefix=MmModemLocationSource
 const (
 	MmModemLocationSourceNone         MMModemLocationSource = 0      // None.
 	MmModemLocationSource3gppLacCi    MMModemLocationSource = 1 << 0 //  Location Area Code and Cell ID.
@@ -515,7 +599,7 @@ const (
 
 type MMModemLocationAssistanceDataType uint32 // Type of assistance data that may be injected to the GNSS module.
 
-//go:generate stringer -type=MMModemLocationAssistanceDataType
+//go:generate stringer -type=MMModemLocationAssistanceDataType -trimprefix=MmModemLocationAssistanceDataType
 const (
 	MmModemLocationAssistanceDataTypeNone MMModemLocationAssistanceDataType = 0      // None.
 	MmModemLocationAssistanceDataTypeXtra MMModemLocationAssistanceDataType = 1 << 0 // Qualcomm gpsOneXTRA.
@@ -523,7 +607,7 @@ const (
 
 type MMModemContactsStorage uint32 // Specifies different storage locations for contact information.
 
-//go:generate stringer -type=MMModemContactsStorage
+//go:generate stringer -type=MMModemContactsStorage -trimprefix=MmModemContactsStorage
 const (
 	MmModemContactsStorageUnknown MMModemContactsStorage = 0 // Unknown location.
 	MmModemContactsStorageMe      MMModemContactsStorage = 1 // Device's local memory.
@@ -534,7 +618,7 @@ const (
 
 type MMBearerType uint32 // Type of context (2G/3G) or bearer (4G).
 
-//go:generate stringer -type=MMBearerType
+//go:generate stringer -type=MMBearerType -trimprefix=MmBearerType
 const (
 	MmBearerTypeUnknown       MMBearerType = 0 // Unknown bearer.
 	MmBearerTypeDefault       MMBearerType = 1 // Primary context (2G/3G) or default bearer (4G), defined by the user of the API.
@@ -544,7 +628,7 @@ const (
 
 type MMBearerIpMethod uint32 // Type of IP method configuration to be used in a given Bearer.
 
-//go:generate stringer -type=MMBearerIpMethod
+//go:generate stringer -type=MMBearerIpMethod -trimprefix=MmBearerIpMethod
 const (
 	MmBearerIpMethodUnknown MMBearerIpMethod = 0 // Unknown method.
 	MmBearerIpMethodPpp     MMBearerIpMethod = 1 //  Use PPP to get IP addresses and DNS information. For IPv6, use PPP to retrieve the 64-bit Interface Identifier, use the IID to construct an IPv6 link-local address by following RFC 5072, and then run DHCP over the PPP link to retrieve DNS settings.
@@ -555,7 +639,7 @@ const (
 
 type MMBearerIpFamily uint32 // Type of IP family to be used in a given Bearer.
 
-//go:generate stringer -type=MMBearerIpFamily
+//go:generate stringer -type=MMBearerIpFamily -trimprefix=MmBearerIpFamily
 const (
 	MmBearerIpFamilyNone   MMBearerIpFamily = 0          // None or unknown.
 	MmBearerIpFamilyIpv4   MMBearerIpFamily = 1 << 0     // IPv4.
@@ -564,10 +648,38 @@ const (
 	MmBearerIpFamilyAny    MMBearerIpFamily = 0xFFFFFFFF // Mask specifying all IP families.
 
 )
+func (i MMBearerIpFamily) GetAllIPFamilies() []MMBearerIpFamily {
+
+	return []MMBearerIpFamily{MmBearerIpFamilyIpv4, MmBearerIpFamilyIpv6,
+		MmBearerIpFamilyIpv4v6,}
+}
+
+func (i MMBearerIpFamily) BitmaskToSlice(bitmask uint32) (ipFamilies []MMBearerIpFamily) {
+	if bitmask == 0 {
+		return
+	}
+	for idx, x := range i.GetAllIPFamilies() {
+		if bitmask&(1<<idx) > 0 {
+			ipFamilies = append(ipFamilies, x)
+		}
+	}
+	return ipFamilies
+}
+func (i MMBearerIpFamily) SliceToBitmask(ipFamilies []MMBearerIpFamily) (bitmask uint32) {
+	bitmask = 0
+	for idx, x := range i.GetAllIPFamilies() {
+		for _, y := range ipFamilies {
+			if x == y {
+				bitmask = bitmask | (1 << idx)
+			}
+		}
+	}
+	return bitmask
+}
 
 type MMBearerAllowedAuth uint32 // Allowed authentication methods when authenticating with the network.
 
-//go:generate stringer -type=MMBearerAllowedAuth
+//go:generate stringer -type=MMBearerAllowedAuth -trimprefix=MmBearerAllowedAuth
 const (
 	MmBearerAllowedAuthUnknown MMBearerAllowedAuth = 0 // Unknown.
 	/* bits 0..4 order match Ericsson device bitmap */
@@ -582,7 +694,7 @@ const (
 
 type MMModemCdmaRegistrationState uint32 // Registration state of a CDMA modem.
 
-//go:generate stringer -type=MMModemCdmaRegistrationState
+//go:generate stringer -type=MMModemCdmaRegistrationState -trimprefix=MmModemCdmaRegistrationState
 const (
 	MmModemCdmaRegistrationStateUnknown    MMModemCdmaRegistrationState = 0 // Registration status is unknown or the device is not registered.
 	MmModemCdmaRegistrationStateRegistered MMModemCdmaRegistrationState = 1 // Registered, but roaming status is unknown or cannot be provided by the device. The device may or may not be roaming.
@@ -593,7 +705,7 @@ const (
 
 type MMModemCdmaActivationState uint32 // Activation state of a CDMA modem.
 
-//go:generate stringer -type=MMModemCdmaActivationState
+//go:generate stringer -type=MMModemCdmaActivationState -trimprefix=MmModemCdmaActivationState
 const (
 	MmModemCdmaActivationStateUnknown            MMModemCdmaActivationState = 0 // Unknown activation state.
 	MmModemCdmaActivationStateNotActivated       MMModemCdmaActivationState = 1 // Device is not activated
@@ -605,7 +717,7 @@ const (
 
 type MMModemCdmaRmProtocol uint32 // Protocol of the Rm interface in modems with CDMA capabilities.
 
-//go:generate stringer -type=MMModemCdmaRmProtocol
+//go:generate stringer -type=MMModemCdmaRmProtocol -trimprefix=MmModemCdmaRmProtocol
 const (
 	MmModemCdmaRmProtocolUnknown           MMModemCdmaRmProtocol = 0 // Unknown protocol.
 	MmModemCdmaRmProtocolAsync             MMModemCdmaRmProtocol = 1 // Asynchronous data or fax.
@@ -618,7 +730,7 @@ const (
 
 type MMModem3gppRegistrationState uint32 // GSM registration code as defined in 3GPP TS 27.007.
 
-//go:generate stringer -type=MMModem3gppRegistrationState
+//go:generate stringer -type=MMModem3gppRegistrationState -trimprefix=MmModem3gppRegistrationState
 const (
 	MmModem3gppRegistrationStateIdle                    MMModem3gppRegistrationState = 0  // Not registered, not searching for new operator to register.
 	MmModem3gppRegistrationStateHome                    MMModem3gppRegistrationState = 1  // Registered on home network.
@@ -636,7 +748,7 @@ const (
 
 type MMModem3gppFacility uint32 // A bitfield describing which facilities have a lock enabled, i.e., requires a pin or unlock code. The facilities include the personalizations (device locks) described in 3GPP spec TS 22.022, and the PIN and PIN2 locks, which are SIM locks.
 
-//go:generate stringer -type=MMModem3gppFacility
+//go:generate stringer -type=MMModem3gppFacility -trimprefix=MmModem3gppFacility
 const (
 	MmModem3gppFacilityNone         MMModem3gppFacility = 0      // No facility.
 	MmModem3gppFacilitySim          MMModem3gppFacility = 1 << 0 // SIM lock.
@@ -652,7 +764,7 @@ const (
 
 type MMModem3gppNetworkAvailability uint32 // Network availability status as defined in 3GPP TS 27.007 section 7.3.
 
-//go:generate stringer -type=MMModem3gppNetworkAvailability
+//go:generate stringer -type=MMModem3gppNetworkAvailability -trimprefix=MmModem3gppNetworkAvailability
 const (
 	MmModem3gppNetworkAvailabilityUnknown   MMModem3gppNetworkAvailability = 0 // Unknown availability.
 	MmModem3gppNetworkAvailabilityAvailable MMModem3gppNetworkAvailability = 1 // Network is available.
@@ -663,7 +775,7 @@ const (
 
 type MMModem3gppSubscriptionState uint32 // Describes the current subscription status of the SIM.  This value is only available after the modem attempts to register with the network.
 
-//go:generate stringer -type=MMModem3gppSubscriptionState
+//go:generate stringer -type=MMModem3gppSubscriptionState -trimprefix=MmModem3gppSubscriptionState
 const (
 	MmModem3gppSubscriptionStateUnknown       MMModem3gppSubscriptionState = 0 // The subscription state is unknown.
 	MmModem3gppSubscriptionStateUnprovisioned MMModem3gppSubscriptionState = 1 // The account is unprovisioned.
@@ -674,7 +786,7 @@ const (
 
 type MMModem3gppUssdSessionState uint32 // State of a USSD session.
 
-//go:generate stringer -type=MMModem3gppUssdSessionState
+//go:generate stringer -type=MMModem3gppUssdSessionState -trimprefix=MmModem3gppUssdSessionState
 const (
 	MmModem3gppUssdSessionStateUnknown      MMModem3gppUssdSessionState = 0 // Unknown state.
 	MmModem3gppUssdSessionStateIdle         MMModem3gppUssdSessionState = 1 // No active session.
@@ -685,7 +797,7 @@ const (
 
 type MMModem3gppEpsUeModeOperation uint32 // UE mode of operation for EPS, as per 3GPP TS 24.301.
 
-//go:generate stringer -type=MMModem3gppEpsUeModeOperation
+//go:generate stringer -type=MMModem3gppEpsUeModeOperation -trimprefix=MmModem3gppEpsUeModeOperation
 const (
 	MmModem3gppEpsUeModeOperationUnknown MMModem3gppEpsUeModeOperation = 0 //  Unknown or not applicable.
 	MmModem3gppEpsUeModeOperationPs1     MMModem3gppEpsUeModeOperation = 1 // PS mode 1 of operation: EPS only, voice-centric.
@@ -697,7 +809,7 @@ const (
 
 type MMFirmwareImageType uint32 // Type of firmware image.
 
-//go:generate stringer -type=MMFirmwareImageType
+//go:generate stringer -type=MMFirmwareImageType  -trimprefix=MmFirmwareImageType
 const (
 	MmFirmwareImageTypeUnknown MMFirmwareImageType = 0 // Unknown firmware type.
 	MmFirmwareImageTypeGeneric MMFirmwareImageType = 1 // Generic firmware image.
@@ -707,7 +819,7 @@ const (
 
 type MMOmaFeature uint32 // Features that can be enabled or disabled in the OMA device management support.
 
-//go:generate stringer -type=MMOmaFeature
+//go:generate stringer -type=MMOmaFeature -trimprefix=MmOmaFeature
 const (
 	MmOmaFeatureNone                MMOmaFeature = 0      // None.
 	MmOmaFeatureDeviceProvisioning  MMOmaFeature = 1 << 0 // Device provisioning service.
@@ -718,7 +830,7 @@ const (
 
 type MMOmaSessionType uint32 // Type of OMA device management session.
 
-//go:generate stringer -type=MMOmaSessionType
+//go:generate stringer -type=MMOmaSessionType -trimprefix=MmOmaSessionType
 const (
 	MmOmaSessionTypeUnknown                            MMOmaSessionType = 0  // Unknown session type.
 	MmOmaSessionTypeClientInitiatedDeviceConfigure     MMOmaSessionType = 10 // Client-initiated device configure.
@@ -733,7 +845,7 @@ const (
 
 type MMOmaSessionState int32 // State of the OMA device management session.
 
-//go:generate stringer -type=MMOmaSessionState
+//go:generate stringer -type=MMOmaSessionState -trimprefix=MmOmaSessionState
 const (
 	MmOmaSessionStateFailed               MMOmaSessionState = -1 // Failed.
 	MmOmaSessionStateUnknown              MMOmaSessionState = 0  // Unknown.
@@ -752,7 +864,7 @@ const (
 
 type MMOmaSessionStateFailedReason uint32 // Reason of failure in the OMA device management session.
 
-//go:generate stringer -type=MMOmaSessionStateFailedReason
+//go:generate stringer -type=MMOmaSessionStateFailedReason -trimprefix=MmOmaSessionStateFailedReason
 const (
 	MmOmaSessionStateFailedReasonUnknown              MMOmaSessionStateFailedReason = 0 // No reason or unknown.
 	MmOmaSessionStateFailedReasonNetworkUnavailable   MMOmaSessionStateFailedReason = 1 // Network unavailable.
@@ -765,7 +877,7 @@ const (
 
 type MMCallState uint32 // State of Call.
 
-//go:generate stringer -type=MMCallState
+//go:generate stringer -type=MMCallState  -trimprefix=MmCallState
 const (
 	MmCallStateUnknown    MMCallState = 0 // default state for a new outgoing call.
 	MmCallStateDialing    MMCallState = 1 // outgoing call started. Wait for free channel.
@@ -780,7 +892,7 @@ const (
 
 type MMCallStateReason uint32 // Reason for the state change in the call.
 
-//go:generate stringer -type=MMCallStateReason
+//go:generate stringer -type=MMCallStateReason -trimprefix=MmCallStateReason
 const (
 	MmCallStateReasonUnknown          MMCallStateReason = 0 // Default value for a new outgoing call.
 	MmCallStateReasonOutgoingStarted  MMCallStateReason = 1 // Outgoing call is started.
@@ -796,7 +908,7 @@ const (
 
 type MMCallDirection uint32 // Direction of the call.
 
-//go:generate stringer -type=MMCallDirection
+//go:generate stringer -type=MMCallDirection -trimprefix=MmCallDirection
 const (
 	MmCallDirectionUnknown  MMCallDirection = 0 // unknown.
 	MmCallDirectionIncoming MMCallDirection = 1 // call from network.
@@ -806,7 +918,7 @@ const (
 
 type MMModemFirmwareUpdateMethod uint32 // Type of firmware update method supported by the module.
 
-//go:generate stringer -type=MMModemFirmwareUpdateMethod
+//go:generate stringer -type=MMModemFirmwareUpdateMethod -trimprefix=MmModemFirmwareUpdateMethod
 const (
 	MmModemFirmwareUpdateMethodNone     MMModemFirmwareUpdateMethod = 0      // No method specified.
 	MmModemFirmwareUpdateMethodFastboot MMModemFirmwareUpdateMethod = 1 << 0 // Device supports fastboot-based update.
@@ -826,8 +938,6 @@ const (
 type MMKernelPropertyAction string // The type of action, given as a string value (signature "s"). This parameter is MANDATORY.
 
 const (
-	MMKernelPropertyActionAdd   MMKernelPropertyAction = "add"   // 	A new kernel device has been added.
-	MMKernelPropertyActionRemove MMKernelPropertyAction = "remove"  // An existing kernel device has been removed.
-
-
+	MMKernelPropertyActionAdd    MMKernelPropertyAction = "add"    // 	A new kernel device has been added.
+	MMKernelPropertyActionRemove MMKernelPropertyAction = "remove" // An existing kernel device has been removed.
 )

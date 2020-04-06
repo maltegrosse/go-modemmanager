@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	 "github.com/maltegrosse/go-modemmanager"
+	"github.com/maltegrosse/go-modemmanager"
 	"log"
 )
 
@@ -16,7 +16,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	fmt.Println("MM Version: ",version)
+	fmt.Println("ModemManager Version: ",version)
 	err = mmgr.ScanDevices()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -30,8 +30,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	fmt.Println(modems)
+	fmt.Println("found ",len(modems) ," modem(s) ")
 	for _,modem := range modems {
+		fmt.Println("ObjectPath: ", modem.GetObjectPath())
 
 		//err = modem.Enable()
 		//if err != nil {
@@ -42,24 +43,24 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println(sim)
+		fmt.Println("Found Sim: ",sim.GetObjectPath())
 		bearers, err := modem.GetBearers()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 		for _,bearer := range bearers {
-			fmt.Println(bearer)
+			fmt.Println("Found bearer:", bearer.GetObjectPath())
 		}
 		supportedCapabilites, err :=modem.GetSupportedCapabilities()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println(supportedCapabilites)
+		fmt.Println("SupportedCapabilities: ",supportedCapabilites)
 		currentCapabilites, err :=modem.GetCurrentCapabilities()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println(currentCapabilites)
+		fmt.Println("CurrentCapabilities: ",currentCapabilites)
 
 		maxBearers, err :=modem.GetMaxBearers()
 		if err != nil {
@@ -155,7 +156,104 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Print("UnlockRequired: ",unlockReq)
+		fmt.Println("UnlockRequired: ",unlockReq)
+
+		capabilities, err := modem.GetCurrentCapabilities()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Current Capabilities: ",capabilities)
+
+		unlockRetries, err := modem.GetUnlockRetries()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("UnlockRetries: ",unlockRetries)
+
+		state, err := modem.GetState()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("State: ",state)
+
+		fstate, err := modem.GetStateFailedReason()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("FailedState: ",fstate)
+
+		tecs, err := modem.GetAccessTechnologies()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("AccessTechnologies: ",tecs)
+
+		signalQuality, recent, err := modem.GetSignalQuality()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("SignalQuality: ",signalQuality, recent)
+
+		numbers, err := modem.GetOwnNumbers()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Numbers: ",numbers)
+
+		pState, err := modem.GetPowerState()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("PowerState: ",pState)
+
+		sModes, err := modem.GetSupportedModes()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("SupportedModes: ",sModes)
+
+		cModes, err := modem.GetCurrentModes()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("CurrentModes: ",cModes)
+
+		sbands, err := modem.GetSupportedBands()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("SupportedBands: ",sbands)
+
+		cbands, err := modem.GetCurrentBands()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("CurrentBands: ",cbands)
+
+		ipFams, err := modem.GetSupportedIpFamilies()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("SupportedIpFamilies: ",ipFams)
+
+		/*// listen to modem updates, e.g SignalQuality
+		c := modem.Subscribe()
+		for v := range c {
+			fmt.Println(v)
+		}*/
+
+		/*tmpBearer := go_modemmanager.BearerProperty{APN:"test.apn.com"}
+		newBearer, err := modem.CreateBearer(tmpBearer)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("New Bearer: ",newBearer)*/
+
+		modemSimple, err := modem.GetSimpleModem()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("ModemSimple at: ",modemSimple.GetObjectPath())
 
 
 

@@ -56,6 +56,29 @@ const (
 type Pair struct {
 	a, b interface{}
 }
+func (p Pair)GetLeft()(interface{}){
+	return p.a
+}
+func (p Pair)GetRight()(interface{}){
+	return p.b
+}
+func (p Pair)SetLeft(left interface{})(){
+	p.a = left
+}
+func (p Pair)SetRight(right interface{})(){
+	p.b = right
+}
+func (p Pair)String()string{
+	return fmt.Sprint(p.a) + " : " + fmt.Sprint(p.b)
+}
+func (p Pair)PairToSlice() []interface{}{
+	var sl []interface{}
+	sl = append(sl, p.a)
+	sl = append(sl, p.b)
+	return sl
+}
+
+
 
 type dbusBase struct {
 	conn *dbus.Conn
@@ -186,6 +209,27 @@ func (d *dbusBase) getSliceSliceByteProperty(iface string) (value [][]byte, err 
 	}
 	return
 }
+func (d *dbusBase) getPairProperty(iface string) (value Pair, err error) {
+	prop, err := d.getProperty(iface)
+	if err != nil {
+		return
+	}
+	values, ok := prop.([]interface{})
+	if !ok {
+		err = makeErrVariantType(iface)
+		return
+	}
+	for idy, val := range values {
+		if idy == 0 {
+			value.a = val
+		}
+		if idy == 1 {
+			value.b = val
+		}
+	}
+	return
+}
+
 func (d *dbusBase) getSliceSlicePairProperty(iface string) (value []Pair, err error) {
 	prop, err := d.getProperty(iface)
 	if err != nil {
@@ -215,6 +259,7 @@ func (d *dbusBase) getSliceSlicePairProperty(iface string) (value []Pair, err er
 
 func (d *dbusBase) getMapStringVariantProperty(iface string) (value map[string]dbus.Variant, err error) {
 	prop, err := d.getProperty(iface)
+
 	if err != nil {
 		return
 	}
@@ -225,6 +270,20 @@ func (d *dbusBase) getMapStringVariantProperty(iface string) (value map[string]d
 	}
 	return
 }
+
+func (d *dbusBase) getMapUint32Uint32Property(iface string) (value map[uint32]uint32, err error) {
+	prop, err := d.getProperty(iface)
+	if err != nil {
+		return
+	}
+	value, ok := prop.(map[uint32]uint32)
+	if !ok {
+		err = makeErrVariantType(iface)
+		return
+	}
+	return
+}
+
 func (d *dbusBase) getTimestampProperty(iface string) (value time.Time, err error) {
 	prop, err := d.getProperty(iface)
 	if err != nil {
@@ -278,6 +337,23 @@ func (d *dbusBase) getUint32Property(iface string) (value uint32, err error) {
 		return
 	}
 	value, ok := prop.(uint32)
+	if !ok {
+		err = makeErrVariantType(iface)
+		return
+	}
+	return
+}
+
+func (d *dbusBase) getInterfaceProperty(iface string) (value interface{}, err error) {
+	return d.getProperty(iface)
+}
+
+func (d *dbusBase) getInt32Property(iface string) (value int32, err error) {
+	prop, err := d.getProperty(iface)
+	if err != nil {
+		return
+	}
+	value, ok := prop.(int32)
 	if !ok {
 		err = makeErrVariantType(iface)
 		return
@@ -341,6 +417,7 @@ func (d *dbusBase) getSliceUint32Property(iface string) (value []uint32, err err
 	if err != nil {
 		return
 	}
+
 	value, ok := prop.([]uint32)
 	if !ok {
 		err = makeErrVariantType(iface)
@@ -401,7 +478,6 @@ func ip4ToString(ip uint32) string {
 func (d *dbusBase) getManagedObjects(iface string, path dbus.ObjectPath) ([]dbus.ObjectPath, error) {
 	var managedObjectPaths []dbus.ObjectPath
 
-	// interface{} is hiding  -->  map[dbus.ObjectPath]map[string]map[string]dbus.Variant
 	managedObjects := make(map[dbus.ObjectPath]interface{})
 
 	busObject := d.conn.Object(iface, path)
@@ -415,4 +491,17 @@ func (d *dbusBase) getManagedObjects(iface string, path dbus.ObjectPath) ([]dbus
 		managedObjectPaths = append(managedObjectPaths, path)
 	}
 	return managedObjectPaths, nil
+}
+
+func SliceToBitmask(inputSlice []interface{}, possibilities []interface{}) (bitmask int) {
+	bitmask = 0
+	for idx, x := range possibilities {
+		for _, y := range inputSlice {
+
+			if x == y {
+				bitmask = bitmask | (1 << idx)
+			}
+		}
+	}
+	return
 }
