@@ -7,17 +7,18 @@ type MMModemCapability uint32 //  Flags describing one or more of the general ac
 //go:generate stringer -type=MMModemCapability -trimprefix=MmModemCapability
 const (
 	MmModemCapabilityNone        MMModemCapability = 0          // Modem has no capabilities.
-	MmModemCapabilityPots        MMModemCapability = 1 << 0 // Modem supports the analog wired telephone network (ie 56k dialup) and does not have wireless/cellular capabilities.
-	MmModemCapabilityCdmaEvdo    MMModemCapability = 1 << 1 // Modem supports at least one of CDMA 1xRTT, EVDO revision 0, EVDO revision A, or EVDO revision B.
-	MmModemCapabilityGsmUmts     MMModemCapability = 1 << 2 // Modem supports at least one of GSM, GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability.
-	MmModemCapabilityLte         MMModemCapability = 1 << 3 // Modem has LTE data capability.
-	MmModemCapabilityLteAdvanced MMModemCapability = 1 << 4 // Modem has LTE Advanced data capability.
-	MmModemCapabilityIridium     MMModemCapability = 1 << 5 //Modem has Iridium capabilities.
+	MmModemCapabilityPots        MMModemCapability = 1 << 0     // Modem supports the analog wired telephone network (ie 56k dialup) and does not have wireless/cellular capabilities.
+	MmModemCapabilityCdmaEvdo    MMModemCapability = 1 << 1     // Modem supports at least one of CDMA 1xRTT, EVDO revision 0, EVDO revision A, or EVDO revision B.
+	MmModemCapabilityGsmUmts     MMModemCapability = 1 << 2     // Modem supports at least one of GSM, GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability.
+	MmModemCapabilityLte         MMModemCapability = 1 << 3     // Modem has LTE data capability.
+	MmModemCapabilityLteAdvanced MMModemCapability = 1 << 4     // Modem has LTE Advanced data capability.
+	MmModemCapabilityIridium     MMModemCapability = 1 << 5     //Modem has Iridium capabilities.
 	MmModemCapabilityAny         MMModemCapability = 0xFFFFFFFF // Mask specifying all capabilities.
 )
+
 func (c MMModemCapability) GetAllCapabilities() []MMModemCapability {
-	return []MMModemCapability{MmModemCapabilityPots, MmModemCapabilityCdmaEvdo,MmModemCapabilityGsmUmts,MmModemCapabilityLte,
-		MmModemCapabilityLteAdvanced,MmModemCapabilityIridium,
+	return []MMModemCapability{MmModemCapabilityPots, MmModemCapabilityCdmaEvdo, MmModemCapabilityGsmUmts, MmModemCapabilityLte,
+		MmModemCapabilityLteAdvanced, MmModemCapabilityIridium,
 	}
 }
 
@@ -120,21 +121,21 @@ type MMModemAccessTechnology uint32 // Describes various access technologies tha
 //go:generate stringer -type=MMModemAccessTechnology  -trimprefix=MmModemAccessTechnology
 const (
 	MmModemAccessTechnologyUnknown    MMModemAccessTechnology = 0          // The access technology used is unknown.
-	MmModemAccessTechnologyPots       MMModemAccessTechnology = 1 << 0  // Analog wireline telephone.
-	MmModemAccessTechnologyGsm        MMModemAccessTechnology = 1 << 1  // GSM.
-	MmModemAccessTechnologyGsmCompact MMModemAccessTechnology = 1 << 2  // Compact GSM.
-	MmModemAccessTechnologyGprs       MMModemAccessTechnology = 1 << 3  // GPRS.
-	MmModemAccessTechnologyEdge       MMModemAccessTechnology = 1 << 4  // EDGE (ETSI 27.007: "GSM w/EGPRS").
-	MmModemAccessTechnologyUmts       MMModemAccessTechnology = 1 << 5  // UMTS (ETSI 27.007: "UTRAN").
-	MmModemAccessTechnologyHsdpa      MMModemAccessTechnology = 1 << 6  // HSDPA (ETSI 27.007: "UTRAN w/HSDPA").
-	MmModemAccessTechnologyHsupa      MMModemAccessTechnology = 1 << 7  // HSUPA (ETSI 27.007: "UTRAN w/HSUPA").
-	MmModemAccessTechnologyHspa       MMModemAccessTechnology = 1 << 8  // HSPA (ETSI 27.007: "UTRAN w/HSDPA and HSUPA").
-	MmModemAccessTechnologyHspaPlus   MMModemAccessTechnology = 1 << 9  // HSPA+ (ETSI 27.007: "UTRAN w/HSPA+").
-	MmModemAccessTechnology1xrtt      MMModemAccessTechnology = 1 << 10 // CDMA2000 1xRTT.
-	MmModemAccessTechnologyEvdo0      MMModemAccessTechnology = 1 << 11 // CDMA2000 EVDO revision 0.
-	MmModemAccessTechnologyEvdoa      MMModemAccessTechnology = 1 << 12 // CDMA2000 EVDO revision A.
-	MmModemAccessTechnologyEvdob      MMModemAccessTechnology = 1 << 13 // CDMA2000 EVDO revision B.
-	MmModemAccessTechnologyLte        MMModemAccessTechnology = 1 << 14 // LTE (ETSI 27.007: "E-UTRAN")
+	MmModemAccessTechnologyPots       MMModemAccessTechnology = 1 << 0     // Analog wireline telephone.
+	MmModemAccessTechnologyGsm        MMModemAccessTechnology = 1 << 1     // GSM.
+	MmModemAccessTechnologyGsmCompact MMModemAccessTechnology = 1 << 2     // Compact GSM.
+	MmModemAccessTechnologyGprs       MMModemAccessTechnology = 1 << 3     // GPRS.
+	MmModemAccessTechnologyEdge       MMModemAccessTechnology = 1 << 4     // EDGE (ETSI 27.007: "GSM w/EGPRS").
+	MmModemAccessTechnologyUmts       MMModemAccessTechnology = 1 << 5     // UMTS (ETSI 27.007: "UTRAN").
+	MmModemAccessTechnologyHsdpa      MMModemAccessTechnology = 1 << 6     // HSDPA (ETSI 27.007: "UTRAN w/HSDPA").
+	MmModemAccessTechnologyHsupa      MMModemAccessTechnology = 1 << 7     // HSUPA (ETSI 27.007: "UTRAN w/HSUPA").
+	MmModemAccessTechnologyHspa       MMModemAccessTechnology = 1 << 8     // HSPA (ETSI 27.007: "UTRAN w/HSDPA and HSUPA").
+	MmModemAccessTechnologyHspaPlus   MMModemAccessTechnology = 1 << 9     // HSPA+ (ETSI 27.007: "UTRAN w/HSPA+").
+	MmModemAccessTechnology1xrtt      MMModemAccessTechnology = 1 << 10    // CDMA2000 1xRTT.
+	MmModemAccessTechnologyEvdo0      MMModemAccessTechnology = 1 << 11    // CDMA2000 EVDO revision 0.
+	MmModemAccessTechnologyEvdoa      MMModemAccessTechnology = 1 << 12    // CDMA2000 EVDO revision A.
+	MmModemAccessTechnologyEvdob      MMModemAccessTechnology = 1 << 13    // CDMA2000 EVDO revision B.
+	MmModemAccessTechnologyLte        MMModemAccessTechnology = 1 << 14    // LTE (ETSI 27.007: "E-UTRAN")
 	MmModemAccessTechnologyAny        MMModemAccessTechnology = 0xFFFFFFFF // Mask specifying all access technologies.
 )
 
@@ -183,7 +184,7 @@ const (
 )
 
 func (m MMModemMode) GetAllModes() []MMModemMode {
-	return []MMModemMode{MmModemModeCs,MmModemMode2g,MmModemMode3g,MmModemMode4g}
+	return []MMModemMode{MmModemModeCs, MmModemMode2g, MmModemMode3g, MmModemMode4g}
 }
 
 func (m MMModemMode) BitmaskToSlice(bitmask uint32) (modes []MMModemMode) {
@@ -208,6 +209,7 @@ func (m MMModemMode) SliceToBitmask(modes []MMModemMode) (bitmask uint32) {
 	}
 	return bitmask
 }
+
 type MMModemBand uint32 // Radio bands supported by the device when connecting to a mobile network.
 //go:generate stringer -type=MMModemBand -trimprefix=MmModemBand
 const (
@@ -648,6 +650,7 @@ const (
 	MmBearerIpFamilyAny    MMBearerIpFamily = 0xFFFFFFFF // Mask specifying all IP families.
 
 )
+
 func (i MMBearerIpFamily) GetAllIPFamilies() []MMBearerIpFamily {
 
 	return []MMBearerIpFamily{MmBearerIpFamilyIpv4, MmBearerIpFamilyIpv6,
@@ -761,6 +764,36 @@ const (
 	MmModem3gppFacilityCorpPers     MMModem3gppFacility = 1 << 7 // Corporate personalization.
 
 )
+
+func (f MMModem3gppFacility) GetAllFacilities() []MMModem3gppFacility {
+
+	return []MMModem3gppFacility{MmModem3gppFacilitySim,
+		MmModem3gppFacilityFixedDialing, MmModem3gppFacilityPhSim, MmModem3gppFacilityNetPers,
+		MmModem3gppFacilityNetSubPers, MmModem3gppFacilityProviderPers, MmModem3gppFacilityCorpPers}
+}
+
+func (f MMModem3gppFacility) BitmaskToSlice(bitmask uint32) (facilities []MMModem3gppFacility) {
+	if bitmask == 0 {
+		return
+	}
+	for idx, x := range f.GetAllFacilities() {
+		if bitmask&(1<<idx) > 0 {
+			facilities = append(facilities, x)
+		}
+	}
+	return facilities
+}
+func (f MMModem3gppFacility) SliceToBitmask(facilities []MMModem3gppFacility) (bitmask uint32) {
+	bitmask = 0
+	for idx, x := range f.GetAllFacilities() {
+		for _, y := range facilities {
+			if x == y {
+				bitmask = bitmask | (1 << idx)
+			}
+		}
+	}
+	return bitmask
+}
 
 type MMModem3gppNetworkAvailability uint32 // Network availability status as defined in 3GPP TS 27.007 section 7.3.
 

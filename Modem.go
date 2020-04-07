@@ -71,8 +71,12 @@ type Modem interface {
 	// Returns object path
 	GetObjectPath() dbus.ObjectPath
 
-	// Return ModemSimple Object
+	// Returns ModemSimple Object
 	GetSimpleModem() (ModemSimple,error)
+
+	// Returns Modem3gpp Object
+	GetModem3gpp() (Modem3gpp,error)
+
 	// Enables the Modem: When enabled, the modem's radio is powered on and data sessions, voice calls,
 	// location services, and Short Message Service may be available.
 	Enable() error
@@ -284,6 +288,9 @@ func (m modem) GetObjectPath() dbus.ObjectPath {
 
 func (m modem) GetSimpleModem()(ModemSimple,error){
 	return NewModemSimple(m.obj.Path())
+}
+func (m modem) GetModem3gpp()(Modem3gpp,error){
+	return NewModem3gpp(m.obj.Path())
 }
 
 func (m modem) Enable() error {

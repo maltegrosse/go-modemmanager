@@ -268,13 +268,98 @@ func main() {
 			log.Fatal(err.Error())
 		}
 		fmt.Println("SimpleStatus: ", status)
-/*
-		err = modemSimple.Disconnect(bearers[0])
+		/*
+			err = modemSimple.Disconnect(bearers[0])
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Disconnected Bearers: ")
+		*/
+		modem3gpp, err := modem.GetModem3gpp()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Disconnected Bearers: ")
-*/
+		fmt.Println("Modem3gpp: ", modem3gpp.GetObjectPath())
+
+		/*		// takes around 1 min
+				networks, err := modem3gpp.Scan()
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				fmt.Println("------- ")
+				fmt.Println("Scanned Networks: ", networks)
+				modem3gpp.RequestScan() //async, takes ~1min
+				fmt.Println("-----")
+				networkRes, err := modem3gpp.GetScanResults()
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				fmt.Println(networkRes)
+				time.Sleep(1*time.Minute)
+				fmt.Println("----- sleep 1 min ------")
+				networkRes2, err := modem3gpp.GetScanResults()
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				fmt.Println(networkRes2)
+		*/
+		imei, err := modem3gpp.GetImei()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Imei: ", imei)
+
+		regState, err := modem3gpp.GetRegistrationState()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("RegistrationState: ", regState)
+
+		opCode, err := modem3gpp.GetOperatorCode()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("OperatorCode: ", opCode)
+
+		mcc, err := modem3gpp.GetMcc()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Mcc: ", mcc)
+
+		mnc, err := modem3gpp.GetMnc()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Mnc: ", mnc)
+
+		opName, err := modem3gpp.GetOperatorName()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("OperatorName: ", opName)
+
+		facLocks, err := modem3gpp.GetEnabledFacilityLocks()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("EnabledFacilityLocks: ", facLocks)
+
+		epsMode, err := modem3gpp.GetEpsUeModeOperation()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("EpsUeModeOperation: ", epsMode)
+
+		pco, err := modem3gpp.GetPco()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Pco: ", pco)
+
+
+	
+
 	}
 
 }

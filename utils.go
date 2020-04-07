@@ -452,6 +452,19 @@ func (d *dbusBase) getSliceMapStringVariantProperty(iface string) (value []map[s
 	return
 }
 
+func (d *dbusBase) getSliceMapStringInterfaceProperty(iface string) (value []map[string]interface{}, err error) {
+	prop, err := d.getProperty(iface)
+	if err != nil {
+		return
+	}
+	value, ok := prop.([]map[string]interface{})
+	if !ok {
+		err = makeErrVariantType(iface)
+		return
+	}
+	return
+}
+
 func (d *dbusBase) getSliceByteProperty(iface string) (value []byte, err error) {
 	prop, err := d.getProperty(iface)
 	if err != nil {
@@ -493,15 +506,13 @@ func (d *dbusBase) getManagedObjects(iface string, path dbus.ObjectPath) ([]dbus
 	return managedObjectPaths, nil
 }
 
-func SliceToBitmask(inputSlice []interface{}, possibilities []interface{}) (bitmask int) {
-	bitmask = 0
-	for idx, x := range possibilities {
-		for _, y := range inputSlice {
 
-			if x == y {
-				bitmask = bitmask | (1 << idx)
-			}
+
+func (d *dbusBase) Contains(slice []string, val string) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
 		}
 	}
-	return
+	return false
 }
