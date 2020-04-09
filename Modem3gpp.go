@@ -89,7 +89,11 @@ type Modem3gpp interface {
 	// A MMModem3gppEpsUeModeOperation value representing the UE mode of operation for EPS, given as an unsigned integer (signature "u").
 	GetEpsUeModeOperation() (MMModem3gppEpsUeModeOperation, error)
 
-	// The raw PCOs received from the network.  a(ubay)
+	// The raw PCOs received from the network, given as array of PCO elements (signature "a(ubay)").
+	// Each PCO is defined as a sequence of 3 fields:
+	//	- The session ID associated with the PCO, given as an unsigned integer value (signature "u").
+	//	- The flag that indicates whether the PCO data contains the complete PCO structure received from the network, given as a boolean value (signature"b").
+	//	- The raw  PCO data, given as an array of bytes (signature "ay").
 	GetPco() ([][]interface{}, error)
 
 	// The object path for the initial default EPS bearer.
@@ -112,13 +116,39 @@ func NewModem3gpp(objectPath dbus.ObjectPath) (Modem3gpp, error) {
 type modem3gpp struct {
 	dbusBase
 }
+type NetworkScanResult struct {
+	Networks     []Network3Gpp
+	LastScan     time.Time
+	ScanDuration float64
+	Recent       bool
+}
+
+type Network3Gpp struct {
+	Status           MMModem3gppNetworkAvailability `json:"status"`         // A MMModem3gppNetworkAvailability value representing network availability status, given as an unsigned integer (signature "u"). This key will always be present.
+	OperatorLong     string                         `json:"operator-long"`  // Long-format name of operator, given as a string value (signature "s"). If the name is unknown, this field should not be present.
+	OperatorShort    string                         `json:"operator-short"` // Short-format name of operator, given as a string value (signature "s"). If the name is unknown, this field should not be present.
+	OperatorCode     string                         `json:"operator-code"`  // Mobile code of the operator, given as a string value (signature "s"). Returned in the format "MCCMNC", where MCC is the three-digit ITU E.212 Mobile Country Code and MNC is the two- or three-digit GSM Mobile Network Code. e.g. "31026" or "310260".
+	Mcc              uint32                         // parsed from OperatorCode
+	Mnc              uint32                         // parsed from OperatorCode
+	AccessTechnology MMModemAccessTechnology        `json:"access-technology"` // A MMModemAccessTechnology value representing the generic access technology used by this mobile network, given as an unsigned integer (signature "u").
+}
+
+func (n Network3Gpp) String() string {
+	return "Status: " + fmt.Sprint(n.Status) +
+		", OperatorLong: " + n.OperatorLong +
+		", OperatorShort: " + n.OperatorShort +
+		", OperatorCode: " + n.OperatorCode +
+		", Mcc: " + fmt.Sprint(n.Mcc) +
+		", Mnc: " + fmt.Sprint(n.Mnc) +
+		", AccessTechnology: " + fmt.Sprint(n.AccessTechnology)
+}
 
 func (m modem3gpp) GetObjectPath() dbus.ObjectPath {
 	return m.obj.Path()
 }
 
 func (m modem3gpp) GetUssd() (Ussd, error) {
-	panic("implement me")
+	return NewUssd(m.obj.Path())
 }
 
 func (m modem3gpp) Register(operatorId string) error {
@@ -307,7 +337,7 @@ func (m modem3gpp) GetEpsUeModeOperation() (MMModem3gppEpsUeModeOperation, error
 }
 
 func (m modem3gpp) GetPco() ([][]interface{}, error) {
-	// todo untested/unknown type
+	// todo untested/unknown type, perhaps char array
 	tmpRes, err := m.getInterfaceProperty(Modem3gppPropertyPco)
 	if err != nil {
 		return nil, err
@@ -337,7 +367,7 @@ func (m modem3gpp) GetInitialEpsBearerSettings() (property BearerProperty, err e
 	if err != nil {
 		return property, err
 	}
-	if len(tmpRes)<1{
+	if len(tmpRes) < 1 {
 		return property, errors.New("no initial bearer settings found")
 	}
 	for key, element := range tmpRes {
@@ -371,36 +401,9 @@ func (m modem3gpp) GetInitialEpsBearerSettings() (property BearerProperty, err e
 		}
 
 	}
-	return property,nil
+	return property, nil
 }
 
 func (m modem3gpp) MarshalJSON() ([]byte, error) {
 	panic("implement me")
-}
-
-type NetworkScanResult struct {
-	Networks     []Network3Gpp
-	LastScan     time.Time
-	ScanDuration float64
-	Recent       bool
-}
-
-type Network3Gpp struct {
-	Status           MMModem3gppNetworkAvailability `json:"status"`         // A MMModem3gppNetworkAvailability value representing network availability status, given as an unsigned integer (signature "u"). This key will always be present.
-	OperatorLong     string                         `json:"operator-long"`  // Long-format name of operator, given as a string value (signature "s"). If the name is unknown, this field should not be present.
-	OperatorShort    string                         `json:"operator-short"` // Short-format name of operator, given as a string value (signature "s"). If the name is unknown, this field should not be present.
-	OperatorCode     string                         `json:"operator-code"`  // Mobile code of the operator, given as a string value (signature "s"). Returned in the format "MCCMNC", where MCC is the three-digit ITU E.212 Mobile Country Code and MNC is the two- or three-digit GSM Mobile Network Code. e.g. "31026" or "310260".
-	Mcc              uint32                         // parsed from OperatorCode
-	Mnc              uint32                         // parsed from OperatorCode
-	AccessTechnology MMModemAccessTechnology        `json:"access-technology"` // A MMModemAccessTechnology value representing the generic access technology used by this mobile network, given as an unsigned integer (signature "u").
-}
-
-func (n Network3Gpp) String() string {
-	return "Status: " + fmt.Sprint(n.Status) +
-		", OperatorLong: " + n.OperatorLong +
-		", OperatorShort: " + n.OperatorShort +
-		", OperatorCode: " + n.OperatorCode +
-		", Mcc: " + fmt.Sprint(n.Mcc) +
-		", Mnc: " + fmt.Sprint(n.Mnc) +
-		", AccessTechnology: " + fmt.Sprint(n.AccessTechnology)
 }

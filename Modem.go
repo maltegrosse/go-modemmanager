@@ -71,11 +71,22 @@ type Modem interface {
 	// Returns object path
 	GetObjectPath() dbus.ObjectPath
 
+	// todo: add GetInterfacePath
+
 	// Returns ModemSimple Object
 	GetSimpleModem() (ModemSimple,error)
 
 	// Returns Modem3gpp Object
 	GetModem3gpp() (Modem3gpp,error)
+
+	// Return ModemCdma Object
+	GetModemCdma()(ModemCdma,error)
+
+	// Return ModemTime Object
+	GetModemTime()(ModemTime,error)
+
+	// Return ModemFirmware Object
+	GetModemFirmware()(ModemFirmware,error)
 
 	// Enables the Modem: When enabled, the modem's radio is powered on and data sessions, voice calls,
 	// location services, and Short Message Service may be available.
@@ -121,7 +132,8 @@ type Modem interface {
 	// List of MMModemBand values, to specify the bands to be used.
 	SetCurrentBands([]MMModemBand) error
 
-	// AT command for the Modem (operation only allowed in debug mode)
+	// AT command for the Modem:
+	// to enable either start mm in debug mode (ModemManager --debug) or with ModemManager --with-at-command-via-dbus
 	Command(cmd string, timeout uint32) (string, error)
 
 	// StateChanged (i old,	i new,	u reason);
@@ -292,6 +304,17 @@ func (m modem) GetSimpleModem()(ModemSimple,error){
 func (m modem) GetModem3gpp()(Modem3gpp,error){
 	return NewModem3gpp(m.obj.Path())
 }
+func (m modem) GetModemCdma()(ModemCdma,error){
+	return NewModemCdma(m.obj.Path())
+}
+
+func (m modem) GetModemTime()(ModemTime,error){
+	return NewModemTime(m.obj.Path())
+}
+
+func (m modem) GetModemFirmware()(ModemFirmware,error){
+	return NewModemFirmware(m.obj.Path())
+}
 
 func (m modem) Enable() error {
 	err := m.call(ModemEnable, true)
@@ -367,7 +390,6 @@ func (m modem) SetCurrentBands(bands []MMModemBand) error {
 }
 
 func (m modem) Command(cmd string, timeout uint32) (response string, err error) {
-	// untested - only works in debug mode
 	err = m.callWithReturn(&response, ModemCommand, cmd, timeout)
 	return
 }
@@ -628,6 +650,7 @@ func (m modem) GetSupportedIpFamilies() ([]MMBearerIpFamily, error) {
 }
 
 func (m modem) Subscribe() <-chan *dbus.Signal {
+	// todo: fix all subscribe methods
 	if m.sigChan != nil {
 		return m.sigChan
 	}

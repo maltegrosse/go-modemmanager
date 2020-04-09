@@ -357,8 +357,61 @@ func main() {
 		}
 		fmt.Println("Pco: ", pco)
 
+		// ussd untested as not available via qmi
+		ussd, err := modem3gpp.GetUssd()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Ussd for: ", ussd.GetObjectPath())
 
-	
+
+
+		// cdma untested as not available via qmi
+		mCdma, err := modem.GetModemCdma()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("ModemCdma for: ", mCdma.GetObjectPath())
+
+		modemTime, err := modem.GetModemTime()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("ModemTime for: ", modemTime.GetObjectPath())
+
+		modemNTime, err := modemTime.GetNetworkTime()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Current Network Time: ", modemNTime)
+
+		modemNTimeZone, err := modemTime.GetNetworkTimezone()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Current Network Time Zone: ", modemNTimeZone)
+
+		modemFirmware, err := modem.GetModemFirmware()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("ModemFirmware for: ", modemFirmware.GetObjectPath())
+
+		usedFirmware,allFirmware, err := modemFirmware.List()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("ModemFirmware: ", usedFirmware,allFirmware)
+
+		updateSettings, err := modemFirmware.GetUpdateSettings()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("ModemFirmware UpdateSettings: ", updateSettings)
+
+
+
+
 
 	}
 
