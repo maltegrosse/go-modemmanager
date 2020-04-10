@@ -73,20 +73,26 @@ type Modem interface {
 
 	// todo: add GetInterfacePath
 
-	// Returns ModemSimple Object
+	// Returns ModemSimple Interface
 	GetSimpleModem() (ModemSimple,error)
 
-	// Returns Modem3gpp Object
+	// Returns Modem3gpp Interface
 	GetModem3gpp() (Modem3gpp,error)
 
-	// Return ModemCdma Object
+	// Return ModemCdma Interface
 	GetModemCdma()(ModemCdma,error)
 
-	// Return ModemTime Object
+	// Return ModemTime Interface
 	GetModemTime()(ModemTime,error)
 
-	// Return ModemFirmware Object
+	// Return ModemFirmware Interface
 	GetModemFirmware()(ModemFirmware,error)
+
+	// Return ModemSignal Interface
+	GetModemSignal()(ModemSignal,error)
+
+	// Return ModemSignal Interface
+	GetModemOma()(ModemOma,error)
 
 	// Enables the Modem: When enabled, the modem's radio is powered on and data sessions, voice calls,
 	// location services, and Short Message Service may be available.
@@ -314,6 +320,14 @@ func (m modem) GetModemTime()(ModemTime,error){
 
 func (m modem) GetModemFirmware()(ModemFirmware,error){
 	return NewModemFirmware(m.obj.Path())
+}
+
+func (m modem) GetModemSignal()(ModemSignal,error){
+	return NewModemSignal(m.obj.Path())
+}
+
+func (m modem) GetModemOma()(ModemOma,error){
+	return NewModemOma(m.obj.Path())
 }
 
 func (m modem) Enable() error {

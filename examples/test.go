@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/maltegrosse/go-modemmanager"
 	"log"
+	"time"
 )
 
 func main() {
@@ -397,11 +398,12 @@ func main() {
 		}
 		fmt.Println("ModemFirmware for: ", modemFirmware.GetObjectPath())
 
-		usedFirmware,allFirmware, err := modemFirmware.List()
+		// functionality untested as my modem returns empty results
+		usedFirmware,err := modemFirmware.List()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("ModemFirmware: ", usedFirmware,allFirmware)
+		fmt.Println("ModemFirmware: ", usedFirmware)
 
 		updateSettings, err := modemFirmware.GetUpdateSettings()
 		if err != nil {
@@ -409,6 +411,55 @@ func main() {
 		}
 		fmt.Println("ModemFirmware UpdateSettings: ", updateSettings)
 
+		modemSignal, err := modem.GetModemSignal()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Modem Signal for: ", modemSignal.GetObjectPath())
+
+		err = modemSignal.Setup(1)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		time.Sleep(2*time.Second)
+
+		mSignalRate, err := modemSignal.GetRate()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Signal Ratea: ", mSignalRate)
+
+		mSignalCdma, err := modemSignal.GetCdma()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Signal Cdma: ", mSignalCdma)
+
+		mSignalEvdo, err := modemSignal.GetEvdo()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Signal Evdo: ", mSignalEvdo)
+
+		mSignalGsm, err := modemSignal.GetGsm()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Signal Gsm: ", mSignalGsm)
+
+		mSignalUmts, err := modemSignal.GetUmts()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Signal Umts: ", mSignalUmts)
+
+		mSignalLte, err := modemSignal.GetLte()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Signal Lte: ", mSignalLte)
+		// todo test by setting up rate
 
 
 

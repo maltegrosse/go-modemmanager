@@ -958,6 +958,34 @@ const (
 	MmModemFirmwareUpdateMethodQmiPdc   MMModemFirmwareUpdateMethod = 1 << 1 // Device supports QMI PDC based update.
 
 )
+func (fu MMModemFirmwareUpdateMethod) GetAllUpdateMethods() []MMModemFirmwareUpdateMethod {
+
+	return []MMModemFirmwareUpdateMethod{MmModemFirmwareUpdateMethodFastboot, MmModemFirmwareUpdateMethodQmiPdc,
+		}
+}
+
+func (fu MMModemFirmwareUpdateMethod) BitmaskToSlice(bitmask uint32) (ipFamilies []MMModemFirmwareUpdateMethod) {
+	if bitmask == 0 {
+		return
+	}
+	for idx, x := range fu.GetAllUpdateMethods() {
+		if bitmask&(1<<idx) > 0 {
+			ipFamilies = append(ipFamilies, x)
+		}
+	}
+	return ipFamilies
+}
+func (fu MMModemFirmwareUpdateMethod) SliceToBitmask(updateMethods []MMModemFirmwareUpdateMethod) (bitmask uint32) {
+	bitmask = 0
+	for idx, x := range fu.GetAllUpdateMethods() {
+		for _, y := range updateMethods {
+			if x == y {
+				bitmask = bitmask | (1 << idx)
+			}
+		}
+	}
+	return bitmask
+}
 
 type MMLoggingLevel string // Logging Level of ModemManager
 
@@ -973,4 +1001,16 @@ type MMKernelPropertyAction string // The type of action, given as a string valu
 const (
 	MMKernelPropertyActionAdd    MMKernelPropertyAction = "add"    // 	A new kernel device has been added.
 	MMKernelPropertyActionRemove MMKernelPropertyAction = "remove" // An existing kernel device has been removed.
+)
+
+type MMSignalPropertyType uint32 // SignalProperty Type
+
+//go:generate stringer -type=MMSignalPropertyType -trimprefix=MMSignalPropertyType
+const (
+	MMSignalPropertyTypeCdma  MMSignalPropertyType = 0 // Signal Type Cdma.
+	MMSignalPropertyTypeEvdo MMSignalPropertyType = 1 // Signal Type Evdo.
+	MMSignalPropertyTypeGsm MMSignalPropertyType = 2 // Signal Type Gsm.
+	MMSignalPropertyTypeUmts MMSignalPropertyType = 3 // Signal Type Umts.
+	MMSignalPropertyTypeLte MMSignalPropertyType = 4 // Signal Type Lte.
+
 )

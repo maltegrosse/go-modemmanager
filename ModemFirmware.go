@@ -1,9 +1,9 @@
 package go_modemmanager
 
 import (
+	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
-	"reflect"
 )
 
 // This interface provides access to perform different firmware-related operations in the modem,
@@ -17,12 +17,11 @@ const (
 	ModemFirmwareInterface = ModemInterface + ".Firmware"
 
 	/* Methods */
-	ModemFirmwareList = ModemFirmwareInterface + ".List"
+	ModemFirmwareList   = ModemFirmwareInterface + ".List"
 	ModemFirmwareSelect = ModemFirmwareInterface + ".Select"
 
 	/* Property */
 	ModemFirmwarePropertyUpdateSettings = ModemFirmwareInterface + ".UpdateSettings" // readable   (ua{sv})
-
 
 )
 
@@ -36,7 +35,7 @@ type ModemFirmware interface {
 	// Firmware slots and firmware images are identified by arbitrary opaque strings.
 	// 		List (OUT s      selected, OUT aa{sv} installed);
 
-	List()(string, []FirmwareProperty, error)
+	List() ([]FirmwareProperty, error)
 
 	// Selects a different firmware image to use, and immediately resets the modem so that it begins using the new firmware image.
 	// The method will fail if the identifier does not match any of the names returned by List(), or if the image could not be selected for some reason.
@@ -48,7 +47,7 @@ type ModemFirmware interface {
 
 	/* PROPERTIES */
 
-	GetUpdateSettings()(interface{}, error)
+	GetUpdateSettings() (UpdateSettingsProperty, error)
 }
 
 func NewModemFirmware(objectPath dbus.ObjectPath) (ModemFirmware, error) {
@@ -61,15 +60,16 @@ type modemFirmware struct {
 }
 
 type FirmwareProperty struct {
-	ImageType MMFirmwareImageType `json:"image-type"`    // (Required) Type of the firmware image, given as a MMFirmwareImageType value (signature "u"). Firmware images of type MM_FIRMWARE_IMAGE_TYPE_GENERIC will only expose only the mandatory properties.
-	UniqueId string `json:"unique-id"`    // (Required) A user-readable unique ID for the firmware image, given as a string value (signature "s").
-	GobiPriVersion string `json:"gobi-pri-version"`    // (Optional) The version of the PRI firmware image, in images of type MM_FIRMWARE_IMAGE_TYPE_GOBI, given as a string value (signature "s").
-	GobiPriInfo string `json:"gobi-pri-info"`    // (Optional) Additional information of the PRI image, in images of type MM_FIRMWARE_IMAGE_TYPE_GOBI, given as a string value (signature "s").
-	GobiBootVersion string `json:"gobi-boot-version"`    // (Optional) The boot version of the PRI firmware image, in images of type MM_FIRMWARE_IMAGE_TYPE_GOBI, given as a string value (signature "s").
-	GobiPriUniqueId string `json:"gobi-pri-unique-id"`    // (Optional) The unique ID of the PRI firmware image, in images of type MM_FIRMWARE_IMAGE_TYPE_GOBI, given as a string value (signature "s").
-	GobiModemUniqueId string `json:"gobi-modem-unique-id"`    // (Optional) The unique ID of the Modem firmware image, in images of type MM_FIRMWARE_IMAGE_TYPE_GOBI, given as a string value (signature "s").
-
+	ImageType         MMFirmwareImageType `json:"image-type"`           // (Required) Type of the firmware image, given as a MMFirmwareImageType value (signature "u"). Firmware images of type MM_FIRMWARE_IMAGE_TYPE_GENERIC will only expose only the mandatory properties.
+	UniqueId          string              `json:"unique-id"`            // (Required) A user-readable unique ID for the firmware image, given as a string value (signature "s").
+	GobiPriVersion    string              `json:"gobi-pri-version"`     // (Optional) The version of the PRI firmware image, in images of type MM_FIRMWARE_IMAGE_TYPE_GOBI, given as a string value (signature "s").
+	GobiPriInfo       string              `json:"gobi-pri-info"`        // (Optional) Additional information of the PRI image, in images of type MM_FIRMWARE_IMAGE_TYPE_GOBI, given as a string value (signature "s").
+	GobiBootVersion   string              `json:"gobi-boot-version"`    // (Optional) The boot version of the PRI firmware image, in images of type MM_FIRMWARE_IMAGE_TYPE_GOBI, given as a string value (signature "s").
+	GobiPriUniqueId   string              `json:"gobi-pri-unique-id"`   // (Optional) The unique ID of the PRI firmware image, in images of type MM_FIRMWARE_IMAGE_TYPE_GOBI, given as a string value (signature "s").
+	GobiModemUniqueId string              `json:"gobi-modem-unique-id"` // (Optional) The unique ID of the Modem firmware image, in images of type MM_FIRMWARE_IMAGE_TYPE_GOBI, given as a string value (signature "s").
+	Selected          bool                `json:"selected"`             // Shows if certain firmware is selected
 }
+
 func (fp FirmwareProperty) String() string {
 	return "ImageType: " + fmt.Sprint(fp.ImageType) +
 		", UniqueId: " + fp.UniqueId +
@@ -77,7 +77,22 @@ func (fp FirmwareProperty) String() string {
 		", GobiPriInfo: " + fp.GobiPriInfo +
 		", GobiBootVersion: " + fp.GobiBootVersion +
 		", GobiPriUniqueId: " + fp.GobiPriUniqueId +
-		", GobiModemUniqueId: " + fp.GobiModemUniqueId
+		", GobiModemUniqueId: " + fp.GobiModemUniqueId +
+		", Selected: " + fmt.Sprint(fp.Selected)
+}
+
+type UpdateSettingsProperty struct {
+	UpdateMethods []MMModemFirmwareUpdateMethod `json:"update-methods"` // The settings are given as a bitmask of MMModemFirmwareUpdateMethod values specifying the type of firmware update procedures
+	DeviceIds     []string                      `json:"device-ids"`     // (Required) This property exposes the list of device IDs associated to a given device, from most specific to least specific. (signature 'as'). E.g. a list containing: "USB\VID_413C&PID_81D7&REV_0001", "USB\VID_413C&PID_81D7" and "USB\VID_413C"
+	Version       string                        `json:"version"`        // (Required) This property exposes the current firmware version string of the module. If the module uses separate version numbers for firmware version and carrier configuration, this version string will be a combination of both, and so it may be different to the version string showed in the "Revision" property. (signature 's')
+	FastbootAt    string                        `json:"fastboot-at"`    // only if update method fastboot: (Required) This property exposes the AT command that should be sent to the module to trigger a reset into fastboot mode (signature 's')
+}
+
+func (us UpdateSettingsProperty) String() string {
+	return "UpdateMethods: " + fmt.Sprint(us.UpdateMethods) +
+		", DeviceIds: " + fmt.Sprint(us.DeviceIds) +
+		", Version: " + us.Version +
+		", FastbootAt: " + us.FastbootAt
 }
 
 func (fi modemFirmware) GetObjectPath() dbus.ObjectPath {
@@ -88,46 +103,102 @@ func (fi modemFirmware) Select(uid string) error {
 	return fi.call(ModemFirmwareSelect, uid)
 }
 
-func (fi modemFirmware) List() (string, []FirmwareProperty, error) {
-	//todo double check if call is correct, empty result
-	var myMap []map[string]dbus.Variant
+func (fi modemFirmware) List() (properties []FirmwareProperty, err error) {
+	var resMap []map[string]dbus.Variant
 	var tmpString string
-
-	err := fi.callWithReturn2(&tmpString,&myMap,ModemFirmwareList)
+	err = fi.callWithReturn2(&tmpString, &resMap, ModemFirmwareList)
 	if err != nil {
-		return "",nil, err
+		return
 	}
-	fmt.Println(tmpString)
-	fmt.Println(myMap)
-	return "",nil, nil
+	for _, el := range resMap {
+		var property FirmwareProperty
+		for key, element := range el {
+			switch key {
+			case "image-type":
+				tmpValue, ok := element.Value().(uint32)
+				if ok {
+					property.ImageType = MMFirmwareImageType(tmpValue)
+				}
+			case "unique-id":
+				tmpValue, ok := element.Value().(string)
+				if ok {
+					property.UniqueId = tmpValue
+					if tmpValue == tmpString {
+						property.Selected = true
+					} }
+			case "gobi-pri-version":
+				tmpValue, ok := element.Value().(string)
+				if ok {
+					property.GobiPriVersion = tmpValue
+
+				}
+			case "gobi-pri-info":
+				tmpValue, ok := element.Value().(string)
+				if ok {
+					property.GobiPriInfo = tmpValue
+
+				}
+			case "gobi-boot-version":
+				tmpValue, ok := element.Value().(string)
+				if ok {
+					property.GobiBootVersion = tmpValue
+				}
+			case "gobi-pri-unique-id":
+				tmpValue, ok := element.Value().(string)
+				if ok {
+					property.GobiPriUniqueId = tmpValue
+				}
+			case "gobi-modem-unique-id":
+				tmpValue, ok := element.Value().(string)
+				if ok {
+					property.GobiModemUniqueId = tmpValue
+				}
+			}
+		}
+		properties = append(properties, property)
+	}
+	return
 }
 
-
-
-
-
-func (fi modemFirmware) GetUpdateSettings() (interface{}, error) {
-	//todo finish
-	res, err := fi.getInterfaceProperty(ModemFirmwarePropertyUpdateSettings)
+func (fi modemFirmware) GetUpdateSettings() (property UpdateSettingsProperty, err error) {
+	res, err := fi.getPairProperty(ModemFirmwarePropertyUpdateSettings)
 	if err != nil {
-		return nil, err
+		return
 	}
-	values, ok := res.([]interface{})
+	var tmp MMModemFirmwareUpdateMethod
+	bitmask, ok := res.GetLeft().(uint32)
 	if !ok {
-		fmt.Println("wrong format")
+		return property, errors.New("wrong type")
 	}
-	for idx, v := range values {
-		fmt.Println("idx",idx)
-		fmt.Println(v)
-		fmt.Println(reflect.TypeOf(v))
-		fmt.Println("-----")
+	property.UpdateMethods = tmp.BitmaskToSlice(bitmask)
+	resMap, ok := res.GetRight().(map[string]dbus.Variant)
+	if !ok {
+		return property, errors.New("wrong type")
 	}
-	fmt.Println(reflect.TypeOf(res))
-	return res, nil
+	for key, element := range resMap {
+		switch key {
+		case "device-ids":
+			tmpValue, ok := element.Value().([]string)
+			if ok {
+				property.DeviceIds = tmpValue
+			}
+		case "version":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				property.Version = tmpValue
+			}
+		case "fastboot-at":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				property.FastbootAt = tmpValue
+			}
+		}
+
+	}
+	return
 
 }
 
 func (fi modemFirmware) MarshalJSON() ([]byte, error) {
 	panic("implement me")
 }
-

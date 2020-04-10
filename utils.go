@@ -259,7 +259,6 @@ func (d *dbusBase) getSliceSlicePairProperty(iface string) (value []Pair, err er
 
 func (d *dbusBase) getMapStringVariantProperty(iface string) (value map[string]dbus.Variant, err error) {
 	prop, err := d.getProperty(iface)
-
 	if err != nil {
 		return
 	}
