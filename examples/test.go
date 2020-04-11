@@ -421,14 +421,14 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-
+		fmt.Println("Set Signal rate to 1 sec, now wait 2 seconds....")
 		time.Sleep(2*time.Second)
 
 		mSignalRate, err := modemSignal.GetRate()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Signal Ratea: ", mSignalRate)
+		fmt.Println("Signal Rate: ", mSignalRate)
 
 		mSignalCdma, err := modemSignal.GetCdma()
 		if err != nil {
@@ -459,8 +459,25 @@ func main() {
 			log.Fatal(err.Error())
 		}
 		fmt.Println("Signal Lte: ", mSignalLte)
-		// todo test by setting up rate
 
+		currentSignal, err := modemSignal.GetCurrentSignal()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Current Signal: ", currentSignal)
+
+		err = modemSignal.Setup(0)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Set Signal rate to 0 sec, disabled...")
+
+		// OMA untested as not available via qmi
+		modemOma, err := modem.GetModemOma()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("ModemOMA at: ", modemOma.GetObjectPath())
 
 
 

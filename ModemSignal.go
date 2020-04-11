@@ -1,8 +1,10 @@
 package go_modemmanager
 
 import (
+	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
+	"reflect"
 )
 
 // This interface provides access to extended signal quality information.
@@ -38,6 +40,9 @@ type ModemSignal interface {
 	/* PROPERTIES */
 	//Refresh rate for the extended signal quality information updates, in seconds. A value of 0 disables the retrieval of the values.
 	GetRate() (rate uint32, err error)
+
+	// Returns one of cmda,evdo, gsm,umts or lte signal properties objects where rssi is set
+	GetCurrentSignal() (sp SignalProperty, err error)
 
 	// The CDMA1x access technology.
 	GetCdma() (SignalProperty, error)
@@ -78,17 +83,16 @@ type SignalProperty struct {
 
 func (sp SignalProperty) String() string {
 	return "Type: " + fmt.Sprint(sp.Type) +
-		" Rssi: " + fmt.Sprint(sp.Rssi) +
-		" Ecio: " + fmt.Sprint(sp.Ecio) +
-		" Sinr: " + fmt.Sprint(sp.Sinr) +
-		" Io: " + fmt.Sprint(sp.Io) +
-		" Rscp: " + fmt.Sprint(sp.Rscp) +
-		" Rsrq: " + fmt.Sprint(sp.Rsrq) +
-		" Rsrp: " + fmt.Sprint(sp.Rsrp) +
-		" Snr: " + fmt.Sprint(sp.Snr)
+		", Rssi: " + fmt.Sprint(sp.Rssi) +
+		", Ecio: " + fmt.Sprint(sp.Ecio) +
+		", Sinr: " + fmt.Sprint(sp.Sinr) +
+		", Io: " + fmt.Sprint(sp.Io) +
+		", Rscp: " + fmt.Sprint(sp.Rscp) +
+		", Rsrq: " + fmt.Sprint(sp.Rsrq) +
+		", Rsrp: " + fmt.Sprint(sp.Rsrp) +
+		", Snr: " + fmt.Sprint(sp.Snr)
 }
-
-func (sp SignalProperty) ReadMap(inputMap map[string]dbus.Variant, signalType MMSignalPropertyType) () {
+func convertMapToSignalProperty(inputMap map[string]dbus.Variant, signalType MMSignalPropertyType) (sp SignalProperty) {
 	sp.Type = signalType
 	for key, element := range inputMap {
 		switch key {
@@ -125,6 +129,7 @@ func (sp SignalProperty) ReadMap(inputMap map[string]dbus.Variant, signalType MM
 		case "rsrq":
 			tmpValue, ok := element.Value().(float64)
 			if ok {
+
 				sp.Rsrq = tmpValue
 			}
 
@@ -142,6 +147,7 @@ func (sp SignalProperty) ReadMap(inputMap map[string]dbus.Variant, signalType MM
 
 		}
 	}
+	return
 }
 
 func (si modemSignal) GetObjectPath() dbus.ObjectPath {
@@ -161,7 +167,7 @@ func (si modemSignal) GetCdma() (sp SignalProperty, err error) {
 	if err != nil {
 		return
 	}
-	sp.ReadMap(res, MMSignalPropertyTypeCdma)
+	sp = convertMapToSignalProperty(res, MMSignalPropertyTypeCdma)
 	return
 }
 
@@ -170,7 +176,7 @@ func (si modemSignal) GetEvdo() (sp SignalProperty, err error) {
 	if err != nil {
 		return
 	}
-	sp.ReadMap(res, MMSignalPropertyTypeEvdo)
+	sp = convertMapToSignalProperty(res, MMSignalPropertyTypeEvdo)
 	return
 }
 
@@ -179,7 +185,7 @@ func (si modemSignal) GetGsm() (sp SignalProperty, err error) {
 	if err != nil {
 		return
 	}
-	sp.ReadMap(res, MMSignalPropertyTypeGsm)
+	sp = convertMapToSignalProperty(res, MMSignalPropertyTypeGsm)
 	return
 }
 
@@ -188,7 +194,7 @@ func (si modemSignal) GetUmts() (sp SignalProperty, err error) {
 	if err != nil {
 		return
 	}
-	sp.ReadMap(res, MMSignalPropertyTypeUmts)
+	sp = convertMapToSignalProperty(res, MMSignalPropertyTypeUmts)
 	return
 }
 
@@ -197,8 +203,67 @@ func (si modemSignal) GetLte() (sp SignalProperty, err error) {
 	if err != nil {
 		return
 	}
-	sp.ReadMap(res, MMSignalPropertyTypeLte)
+
+	sp = convertMapToSignalProperty(res, MMSignalPropertyTypeLte)
 	return
+}
+func (si modemSignal) isRssiSet(sp SignalProperty) bool {
+	v := reflect.ValueOf(sp)
+	st := reflect.TypeOf(sp)
+	for i := 0; i < v.NumField(); i++ {
+		field := st.Field(i)
+		tag := field.Tag.Get("json")
+		if tag == "rssi" {
+			if !v.Field(i).IsZero() {
+				return true
+			}
+		}
+	}
+	return false
+
+}
+func (si modemSignal) GetCurrentSignal() (sp SignalProperty, err error) {
+	mSignalCdma, err := si.GetCdma()
+	if err != nil {
+		return sp, err
+	}
+	if si.isRssiSet(mSignalCdma) {
+		return mSignalCdma, nil
+	}
+
+	mSignalEvdo, err := si.GetEvdo()
+	if err != nil {
+		return sp, err
+	}
+	if si.isRssiSet(mSignalEvdo) {
+		return mSignalEvdo, nil
+	}
+
+	mSignalGsm, err := si.GetGsm()
+	if err != nil {
+		return sp, err
+	}
+	if si.isRssiSet(mSignalGsm) {
+		return mSignalGsm, nil
+	}
+
+	mSignalUmts, err := si.GetUmts()
+	if err != nil {
+		return sp, err
+	}
+	if si.isRssiSet(mSignalUmts) {
+		return mSignalUmts, nil
+	}
+
+	mSignalLte, err := si.GetLte()
+	if err != nil {
+		return sp, err
+	}
+	if si.isRssiSet(mSignalLte) {
+		return mSignalLte, nil
+	}
+	return sp, errors.New("no signal found")
+
 }
 
 func (si modemSignal) MarshalJSON() ([]byte, error) {

@@ -860,6 +860,34 @@ const (
 	MmOmaFeatureHandsFreeActivation MMOmaFeature = 1 << 2 // Hands free activation service.
 
 )
+func (mmo MMOmaFeature) GetAllFeatures() []MMOmaFeature {
+
+	return []MMOmaFeature{MmOmaFeatureDeviceProvisioning, MmOmaFeaturePrlUpdate,
+		MmOmaFeatureHandsFreeActivation,}
+}
+
+func (mmo MMOmaFeature) BitmaskToSlice(bitmask uint32) (features []MMOmaFeature) {
+	if bitmask == 0 {
+		return
+	}
+	for idx, x := range mmo.GetAllFeatures() {
+		if bitmask&(1<<idx) > 0 {
+			features = append(features, x)
+		}
+	}
+	return features
+}
+func (mmo MMOmaFeature) SliceToBitmask(features []MMOmaFeature) (bitmask uint32) {
+	bitmask = 0
+	for idx, x := range mmo.GetAllFeatures() {
+		for _, y := range features {
+			if x == y {
+				bitmask = bitmask | (1 << idx)
+			}
+		}
+	}
+	return bitmask
+}
 
 type MMOmaSessionType uint32 // Type of OMA device management session.
 

@@ -94,7 +94,8 @@ type Modem3gpp interface {
 	//	- The session ID associated with the PCO, given as an unsigned integer value (signature "u").
 	//	- The flag that indicates whether the PCO data contains the complete PCO structure received from the network, given as a boolean value (signature"b").
 	//	- The raw  PCO data, given as an array of bytes (signature "ay").
-	GetPco() ([][]interface{}, error)
+	//  Currently it's only implemented for MBIM modems that support "Microsoft Basic Connect Extensions" and for the Altair LTE plugin
+	GetPco() ([]rawPcoData, error)
 
 	// The object path for the initial default EPS bearer.
 	GetInitialEpsBearer() (Bearer, error)
@@ -123,6 +124,13 @@ type NetworkScanResult struct {
 	Recent       bool
 }
 
+func (nsr NetworkScanResult) String() string {
+	return "Networks: " + fmt.Sprint(nsr.Networks) +
+		", LastScan: " + fmt.Sprint(nsr.LastScan) +
+		", ScanDuration: " + fmt.Sprint(nsr.ScanDuration) +
+		", Recent: " + fmt.Sprint(nsr.Recent)
+}
+
 type Network3Gpp struct {
 	Status           MMModem3gppNetworkAvailability `json:"status"`         // A MMModem3gppNetworkAvailability value representing network availability status, given as an unsigned integer (signature "u"). This key will always be present.
 	OperatorLong     string                         `json:"operator-long"`  // Long-format name of operator, given as a string value (signature "s"). If the name is unknown, this field should not be present.
@@ -141,6 +149,12 @@ func (n Network3Gpp) String() string {
 		", Mcc: " + fmt.Sprint(n.Mcc) +
 		", Mnc: " + fmt.Sprint(n.Mnc) +
 		", AccessTechnology: " + fmt.Sprint(n.AccessTechnology)
+}
+
+type rawPcoData struct {
+	SessionId uint32 // The session ID associated with the PCO, given as an unsigned integer value (signature "u").
+	Complete  bool   // The flag that indicates whether the PCO data contains the complete PCO structure received from the network, given as a boolean value (signature"b").
+	RawData   []byte // The raw  PCO data, given as an array of bytes (signature "ay").
 }
 
 func (m modem3gpp) GetObjectPath() dbus.ObjectPath {
@@ -336,16 +350,31 @@ func (m modem3gpp) GetEpsUeModeOperation() (MMModem3gppEpsUeModeOperation, error
 	return MMModem3gppEpsUeModeOperation(res), nil
 }
 
-func (m modem3gpp) GetPco() ([][]interface{}, error) {
-	// todo untested/unknown type, perhaps char array
+func (m modem3gpp) GetPco() (data []rawPcoData, err error) {
+	// todo untested
 	tmpRes, err := m.getInterfaceProperty(Modem3gppPropertyPco)
 	if err != nil {
 		return nil, err
 	}
 	res, ok := tmpRes.([][]interface{})
 	if ok {
-		return res, nil
+		for _, seq := range res {
+			if len(seq) == 3 {
+				sessionId, ok := seq[0].(uint32)
+				if ok {
+					complete, ok := seq[1].(bool)
+					if ok {
+						rawData, ok := seq[2].([]byte)
+						if ok {
+							data = append(data, rawPcoData{SessionId: sessionId, Complete: complete, RawData: rawData})
+						}
+					}
+				}
+			}
+		}
+		return
 	}
+
 	return nil, errors.New("wrong type")
 }
 
@@ -362,7 +391,6 @@ func (m modem3gpp) GetInitialEpsBearer() (Bearer, error) {
 }
 
 func (m modem3gpp) GetInitialEpsBearerSettings() (property BearerProperty, err error) {
-
 	tmpRes, err := m.getMapStringVariantProperty(Modem3gppPropertyInitialEpsBearerSettings)
 	if err != nil {
 		return property, err

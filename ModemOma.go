@@ -1,6 +1,10 @@
 package go_modemmanager
 
-import "github.com/godbus/dbus/v5"
+import (
+	"errors"
+	"fmt"
+	"github.com/godbus/dbus/v5"
+)
 
 // This interface allows clients to handle device management operations as specified by the Open Mobile Alliance (OMA).
 // Device management sessions are either on-demand (client-initiated), or automatically initiated by either the device
@@ -12,15 +16,15 @@ const (
 	ModemOmaInterface = ModemInterface + ".Oma"
 
 	/* Methods */
-	ModemOmaSetup = ModemOmaInterface + ".Setup"
-	ModemOmaStartClientInitiatedSession = ModemOmaInterface + ".StartClientInitiatedSession"
+	ModemOmaSetup                         = ModemOmaInterface + ".Setup"
+	ModemOmaStartClientInitiatedSession   = ModemOmaInterface + ".StartClientInitiatedSession"
 	ModemOmaAcceptNetworkInitiatedSession = ModemOmaInterface + ".AcceptNetworkInitiatedSession"
-	ModemOmaCancelSession = ModemOmaInterface + ".CancelSession"
+	ModemOmaCancelSession                 = ModemOmaInterface + ".CancelSession"
 	/* Property */
-	ModemOmaPropertyFeatures =  ModemOmaInterface + ".Features" // readable   u
-	ModemOmaPropertyPendingNetworkInitiatedSessions =  ModemOmaInterface + ".PendingNetworkInitiatedSessions" // readable   a(uu)
-	ModemOmaPropertySessionType =  ModemOmaInterface + ".SessionType" // readable   u
-	ModemOmaPropertySessionState =  ModemOmaInterface + ".SessionState" // readable   i
+	ModemOmaPropertyFeatures                        = ModemOmaInterface + ".Features"                        // readable   u
+	ModemOmaPropertyPendingNetworkInitiatedSessions = ModemOmaInterface + ".PendingNetworkInitiatedSessions" // readable   a(uu)
+	ModemOmaPropertySessionType                     = ModemOmaInterface + ".SessionType"                     // readable   u
+	ModemOmaPropertySessionState                    = ModemOmaInterface + ".SessionState"                    // readable   i
 
 )
 
@@ -37,7 +41,7 @@ type ModemOma interface {
 
 	// Starts a client-initiated device management session.
 	// Type of client-initiated device management session,given as a MMModemOmaSessionType
-	StartClientInitiatedSession (sessionType MMOmaSessionType) error
+	StartClientInitiatedSession(sessionType MMOmaSessionType) error
 
 	// Accepts or rejects a network-initiated device management session.
 	// 		IN u session_id: Unique ID of the network-initiated device management session.
@@ -45,7 +49,7 @@ type ModemOma interface {
 	AcceptNetworkInitiatedSession(sessionId uint32, accept bool) error
 
 	// Cancels the current on-going device management session.
-	CancelSession () error
+	CancelSession() error
 
 	// The session state changed.
 	//		i old_session_state: Previous session state, given as a MMOmaSessionState.
@@ -56,8 +60,21 @@ type ModemOma interface {
 
 	/* PROPERTIES */
 
+	// Bitmask of MMModemOmaFeature flags, specifying which device management features are enabled or disabled.
+	GetFeatures() ([]MMOmaFeature, error)
+
+	// List of network-initiated sessions which are waiting to be accepted or rejected, given as an array of unsigned integer pairs, where:
+	// 		The first integer is a MMOmaSessionType.
+	// 		The second integer is the unique session ID.
+	GetPendingNetworkInitiatedSessions() ([]modemOmaInitiatedSession, error)
+
+	// Type of the current on-going device management session, given as a MMOmaSessionType.
+	GetSessionType() (MMOmaSessionType, error)
+
+	// State of the current on-going device management session, given as a MMOmaSessionState.
+	GetSessionState() (MMOmaSessionState, error)
 }
-// todo add properties & implement
+
 func NewModemOma(objectPath dbus.ObjectPath) (ModemOma, error) {
 	var om modemOma
 	return &om, om.init(ModemManagerInterface, objectPath)
@@ -65,37 +82,108 @@ func NewModemOma(objectPath dbus.ObjectPath) (ModemOma, error) {
 
 type modemOma struct {
 	dbusBase
+	sigChan chan *dbus.Signal
+}
+type modemOmaInitiatedSession struct {
+	SessionType MMOmaSessionType `json:"session-type"` // network-initiated session type
+	SessionId   uint32           `json:"session-id"`   // network-initiated session id
 }
 
+func (mois modemOmaInitiatedSession) String() string {
+	return "SessionType: " + fmt.Sprint(mois.SessionType) +
+		", SessionId: " + fmt.Sprint(mois.SessionId)
+}
+func (om modemOma) GetObjectPath() dbus.ObjectPath {
+	return om.obj.Path()
+}
 func (om modemOma) Setup(features []MMOmaFeature) error {
-	panic("implement me")
+	// todo: untested
+	var tmp MMOmaFeature
+	return om.call(ModemOmaSetup, tmp.SliceToBitmask(features))
 }
 
 func (om modemOma) StartClientInitiatedSession(sessionType MMOmaSessionType) error {
-	panic("implement me")
+	// todo: untested
+	return om.call(ModemOmaStartClientInitiatedSession, sessionType)
 }
 
 func (om modemOma) AcceptNetworkInitiatedSession(sessionId uint32, accept bool) error {
-	panic("implement me")
+	// todo: untested
+	return om.call(ModemOmaAcceptNetworkInitiatedSession, sessionId, accept)
 }
 
 func (om modemOma) CancelSession() error {
-	panic("implement me")
+	// todo: untested
+	return om.call(ModemOmaCancelSession)
+}
+
+func (om modemOma) GetFeatures() ([]MMOmaFeature, error) {
+	var tmp MMOmaFeature
+	res, err := om.getUint32Property(ModemOmaPropertyFeatures)
+	if err != nil {
+		return nil, err
+	}
+	return tmp.BitmaskToSlice(res), nil
+
+}
+
+func (om modemOma) GetPendingNetworkInitiatedSessions() (result []modemOmaInitiatedSession, err error) {
+	res, err := om.getSliceSlicePairProperty(ModemOmaPropertyPendingNetworkInitiatedSessions)
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range res {
+		var tmp modemOmaInitiatedSession
+		sType, ok := e.GetLeft().(uint32)
+		if !ok {
+			return nil, errors.New("wrong type")
+		}
+		tmp.SessionType = MMOmaSessionType(sType)
+		sId, ok := e.GetLeft().(uint32)
+		if !ok {
+			return nil, errors.New("wrong type")
+		}
+		tmp.SessionId = sId
+		result = append(result, tmp)
+	}
+	return
+}
+
+func (om modemOma) GetSessionType() (MMOmaSessionType, error) {
+	res, err := om.getUint32Property(ModemOmaPropertySessionType)
+	if err != nil {
+		return MmOmaSessionTypeUnknown, err
+	}
+	return MMOmaSessionType(res), nil
+}
+
+func (om modemOma) GetSessionState() (MMOmaSessionState, error) {
+	res, err := om.getUint32Property(ModemOmaPropertySessionState)
+	if err != nil {
+		return MmOmaSessionStateUnknown, err
+	}
+	return MMOmaSessionState(res), nil
 }
 
 func (om modemOma) Subscribe() <-chan *dbus.Signal {
-	panic("implement me")
+	if om.sigChan != nil {
+		return om.sigChan
+	}
+
+	om.subscribeNamespace(ModemManagerObjectPath)
+	om.sigChan = make(chan *dbus.Signal, 10)
+	om.conn.Signal(om.sigChan)
+
+	return om.sigChan
 }
 
 func (om modemOma) Unsubscribe() {
-	panic("implement me")
+	om.conn.RemoveSignal(om.sigChan)
+	om.sigChan = nil
 }
 
-func (m modemOma) GetObjectPath() dbus.ObjectPath {
+
+
+func (om modemOma) MarshalJSON() ([]byte, error) {
 	panic("implement me")
 }
-
-func (m modemOma) MarshalJSON() ([]byte, error) {
-	panic("implement me")
-}
-
