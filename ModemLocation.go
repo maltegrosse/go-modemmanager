@@ -1,34 +1,211 @@
 package go_modemmanager
 
-import "github.com/godbus/dbus/v5"
+import (
+	"github.com/godbus/dbus/v5"
+	"time"
+)
 
 // The Location interface allows devices to provide location information to client applications.
 // Not all devices can provide this information, or even if they do, they may not be able to provide it while
 // a data session is active.
-// This interface will only be available once the modem is ready to be registered in the cellular network.
+// This interface will only be available once the modelo is ready to be registered in the cellular network.
 // 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used
 // (including GNSS module management).
 
 const (
-	LocationInterface = ModemInterface + ".Location"
+	ModemLocationInterface = ModemInterface + ".Location"
 
 	/* Methods */
+	ModemLocationSetup         = ModemLocationInterface + ".Setup"
+	ModemLocationGetLocation   = ModemLocationInterface + ".GetLocation"
+	ModemLocationSetSuplServer = ModemLocationInterface + ".SetSuplServer"
+
+	ModemLocationInjectAssistanceData = ModemLocationInterface + ".InjectAssistanceData"
+	ModemLocationSetGpsRefreshRate    = ModemLocationInterface + ".SetGpsRefreshRate"
 
 	/* Property */
 
+	ModemLocationPropertyCapabilities            = ModemLocationInterface + ".Capabilities"            //  readable   u
+	ModemLocationPropertySupportedAssistanceData = ModemLocationInterface + ".SupportedAssistanceData" //  readable   u
+	ModemLocationPropertyEnabled                 = ModemLocationInterface + ".Enabled"                 //  readable   u
+	ModemLocationPropertySignalsLocation         = ModemLocationInterface + ".SignalsLocation"         // readable   b
+
+	ModemLocationPropertyLocation              = ModemLocationInterface + ".Location"              // readable   a{uv}
+	ModemLocationPropertySuplServer            = ModemLocationInterface + ".SuplServer"            // readable   s
+	ModemLocationPropertyAssistanceDataServers = ModemLocationInterface + ".AssistanceDataServers" // readable   as
+	ModemLocationPropertyGpsRefreshRate        = ModemLocationInterface + ".GpsRefreshRate"        // readable   u
+
 )
 
-type Location interface {
+type ModemLocation interface {
 	/* METHODS */
 
-	//MarshalJSON() ([]byte, error)
+	// Returns object path
+	GetObjectPath() dbus.ObjectPath
+
+	MarshalJSON() ([]byte, error)
+
+	// Configure the location sources to use when gathering location information. Also enable or disable location
+	// information gathering. This method may require the client to authenticate itself.
+	// When signals are emitted, any client application (including malicious ones!)
+	// can listen for location updates unless D-Bus permissions restrict these signals frolo certain users. If further
+	// security is desired, the signal_location argument can be set to FALSE to disable location updates
+	// via D-Bus signals and require applications to call authenticated APIs (like GetLocation() ) to get location information.
+	// The optional MM_MODEM_LOCATION_SOURCE_AGPS_MSA and MM_MODEM_LOCATION_SOURCE_AGPS_MSB allow to
+	// request MSA/MSB A-GPS operation, and they must be given along with either
+	// MM_MODEM_LOCATION_SOURCE_GPS_RAW or MM_MODEM_LOCATION_SOURCE_GPS_NMEA.
+	//
+	//Both MM_MODEM_LOCATION_SOURCE_AGPS_MSA and MM_MODEM_LOCATION_SOURCE_AGPS_MSB cannot be given at the same time,
+	// and if none given, standalone GPS is assumed.
+	// 		IN u sources: Bitmask of MMModemLocationSource flags, specifying which sources should get enabled or disabled. MM_MODEM_LOCATION_SOURCE_NONE will disable all location gathering.
+	//		IN b signal_location: Flag to control whether the device emits signals with the new location information. This argument is ignored when disabling location information gathering.
+	Setup(sources MMModemLocationSource, signalLocation bool) error
+
+	// Return current location information, if any. If the modelo supports multiple location types it may return more than one. See the "Location" property for more information on the dictionary returned at location.
+	// This method may require the client to authenticate itself.
+	GetCurrentLocation() ([]currentLocation, error)
+
+	// Configure the SUPL server for A-GPS.
+	// IN s supl: SUPL server configuration, given either as IP:PORT or as FQDN:PORT.
+	SetSuplServer(supl string) error
+
+	// Inject assistance data to the GNSS module. The data files should be downloaded using external means
+	// frolo the URLs specified in the AssistanceDataServers property.
+	// The user does not need to specify the assistance data type being given.
+	// There is no maximulo data size limit specified, default DBus systelo bus limits apply.
+	InjectAssistanceData([]byte) error
+
+	// Set the refresh rate of the GPS information in the API. If not explicitly set, a default of 30s will be used.
+	// The refresh rate can be set to 0 to disable it, so that every update reported by the modelo is published in the interface.
+	// 		IN u rate: Rate, in seconds.
+	SetGpsRefreshRate(rate uint32) error
+
+	/* PROPERTIES */
+
+	// Bitmask of MMModemLocationSource values, specifying the supported location sources.
+	GetCapabilities() ([]MMModemLocationSource, error)
+
+	// Bitmask of MMModemLocationAssistanceDataType values, specifying the supported types of assistance data.
+	GetSupportedAssistanceData() ([]MMModemLocationAssistanceDataType, error)
+
+	// Bitmask specifying which of the supported MMModemLocationSource location sources is currently enabled in the device.
+	GetEnabled() ([]MMModemLocationSource, error)
+
+	// TRUE if location updates will be emitted via D-Bus signals, FALSE if location updates will not be emitted.
+	// See the Setup() method for more information.
+	GetSignalsLocation() (bool, error)
+
+	// Dictionary of available location information when location information gathering is enabled. If the modem
+	// supports multiple location types it may return more than one here.
+	// Note that if the device was told not to emit updated location information when location information
+	// gathering was initially enabled, this property may not return any location information for security reasons.
+	GetLocation() ([]currentLocation, error)
 }
 
-func NewLocation(objectPath dbus.ObjectPath) (Location, error) {
-	var lo location
+func NewModemLocation(objectPath dbus.ObjectPath) (ModemLocation, error) {
+	var lo modemLocation
 	return &lo, lo.init(ModemManagerInterface, objectPath)
 }
 
-type  location struct {
+type modemLocation struct {
 	dbusBase
+}
+type currentLocation struct {
+	SourceType     MMModemLocationSource  `json:"status"`      // The Source Type
+	ThreeGppLacCli threeGppLacCliLocation `json:"3gpp-lac-ci"` // Devices supporting this capability return a string in the format "MCC,MNC,LAC,CI,TAC" (without the quotes of course)
+	GpsRaw         gpsRawLocation         `json:"gps-raw"`     // Devices supporting this capability return a D-Bus dictionary (signature "a{sv}") mapping well-known keys to values with defined formats.
+	GpsNmea        gpsNmeaLocation        `json:"gps-nmea"`    // Devices supporting this capability return a string containing one or more NMEA sentences (D-Bus signature 's'). The manager will cache the most recent NMEA sentence of each type for a period of time not less than 30 seconds. When reporting multiple NMEA sentences, sentences shall be separated by an ASCII Carriage Return and Line Feed (<CR><LF>) sequence.
+	CdmaBs         cdmaBsLocation         `json:"cdma-bs"`     // Devices supporting this capability return a D-Bus dictionary (signature "a{sv}") mapping well-known keys to values with defined formats.
+}
+
+func (cl currentLocation) String() string {
+	return ReturnString(cl)
+
+}
+
+type threeGppLacCliLocation struct {
+	Mcc     string  `json:"MCC"` // This is the three-digit ITU E.212 Mobile Country Code of the network provider to which the mobile is currently registered. e.g. "310".
+	Mnc     string  `json:"MNC"` // This is the two- or three-digit GSM Mobile Network Code of the network provider to which the mobile is currently registered. e.g. "26" or "260".
+	Lac string  `json:"LAC"` // This is the two-byte Location Area Code of the GSM/UMTS base station with which the mobile is registered, in upper-case hexadecimal format without leading zeros, as specified in 3GPP TS 27.007. E.g. "84CD".
+	Ci string  `json:"CI"` // This is the two- or four-byte Cell Identifier with which the mobile is registered, in upper-case hexadecimal format without leading zeros, as specified in 3GPP TS 27.007. e.g. "2BAF" or "D30156".
+	Tac string 
+
+}
+func (tgp threeGppLacCliLocation) String() string {
+	return ReturnString(tgp)
+}
+
+type gpsRawLocation struct {
+	UtcTime     time.Time  `json:"utc-time"` // (Required) UTC time in ISO 8601 format, given as a string value (signature "s"). e.g. 203015.
+	Latitude     float64  `json:"latitude"` // (Required) Latitude in Decimal Degrees (positive numbers mean N quadrasphere, negative mean S quadrasphere), given as a double value (signature "d"). e.g. 38.889722, meaning 38d 53' 22" N.
+	Longitude     float64  `json:"longitude"` // (Required) Longitude in Decimal Degrees (positive numbers mean E quadrasphere, negative mean W quadrasphere), given as a double value (signature "d"). e.g. -77.008889, meaning 77d 0' 32" W.
+	Altitude     float64  `json:"altitude"` // (Optional) Altitude above sea level in meters, given as a double value (signature "d"). e.g. 33.5.
+}
+func (rgps gpsRawLocation) String() string {
+	return ReturnString(rgps)
+
+}
+type gpsNmeaLocation struct {
+	NmeaSentences     []string  `json:"nmea-sentances"` // Devices supporting this capability return a string containing one or more NMEA sentences (D-Bus signature 's'). The manager will cache the most recent NMEA sentence of each type for a period of time not less than 30 seconds. When reporting multiple NMEA sentences, sentences shall be separated by an ASCII Carriage Return and Line Feed (<CR><LF>) sequence. The manager may discard any cached sentences older than 30 seconds.  This allows clients to read the latest positioning data as soon as possible after they start, even if the device is not providing frequent location data updates.
+}
+func (ngps gpsNmeaLocation) String() string {
+	return ReturnString(ngps)
+
+}
+type cdmaBsLocation struct {
+	Latitude     float64  `json:"latitude"` // (Required) Latitude in Decimal Degrees (positive numbers mean N quadrasphere, negative mean S quadrasphere), given as a double value (signature "d"). e.g. 38.889722, meaning 38d 53' 22" N.
+	Longitude     float64  `json:"longitude"` // (Required) Longitude in Decimal Degrees (positive numbers mean E quadrasphere, negative mean W quadrasphere), given as a double value (signature "d"). e.g. -77.008889, meaning 77d 0' 32" W.
+}
+
+func (lo modemLocation) GetObjectPath() dbus.ObjectPath {
+	return lo.obj.Path()
+}
+
+func (lo modemLocation) Setup(sources MMModemLocationSource, signalLocation bool) error {
+	panic("implement me")
+}
+
+func (lo modemLocation) GetCurrentLocation() ([]currentLocation, error) {
+	panic("implement me")
+}
+
+func (lo modemLocation) SetSuplServer(supl string) error {
+	panic("implement me")
+}
+
+func (lo modemLocation) InjectAssistanceData([]byte) error {
+	panic("implement me")
+}
+
+func (lo modemLocation) SetGpsRefreshRate(rate uint32) error {
+	panic("implement me")
+}
+
+func (lo modemLocation) GetCapabilities() ([]MMModemLocationSource, error) {
+	res, err := lo.getUint32Property(ModemLocationPropertyCapabilities)
+	if err != nil {
+		return nil, err
+	}
+	var tmp MMModemLocationSource
+	return tmp.BitmaskToSlice(res), nil
+}
+
+func (lo modemLocation) GetSupportedAssistanceData() ([]MMModemLocationAssistanceDataType, error) {
+	panic("implement me")
+}
+
+func (lo modemLocation) GetEnabled() ([]MMModemLocationSource, error) {
+	panic("implement me")
+}
+
+func (lo modemLocation) GetSignalsLocation() (bool, error) {
+	panic("implement me")
+}
+
+func (lo modemLocation) GetLocation() ([]currentLocation, error) {
+	panic("implement me")
+}
+
+func (lo modemLocation) MarshalJSON() ([]byte, error) {
+	panic("implement me")
 }

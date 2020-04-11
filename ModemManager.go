@@ -1,6 +1,9 @@
 package go_modemmanager
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 const (
 	ModemManagerInterface = "org.freedesktop.ModemManager1"
@@ -25,8 +28,11 @@ type ModemManager interface {
 	// Start a new scan for connected modem devices.
 	ScanDevices() error
 
-	// List modem devices.
-	ListDevices() ([]Modem,error)
+	// List modem devices. renamed from ListDevices to GetModems
+	GetModems() ([]Modem,error)
+
+	// List Bearers
+	GetBearers()([]Bearer, error)
 
 	// Set logging verbosity.
 	SetLogging(level MMLoggingLevel) error
@@ -66,17 +72,36 @@ type EventProperties struct {
 	Subsystem string `json:"subsystem"` // The device subsystem, given as a string value (signature "s"). This parameter is MANDATORY.
 	Uid string `json:"uid"` // The unique ID of the physical device, given as a string value (signature "s"). This parameter is OPTIONAL, if not given the sysfs path of the physical device will be used. This parameter must be the same for all devices exposed by the same physical device.
 }
-func (mm modemManager) ListDevices() (modems []Modem, err error) {
+func (mm modemManager) GetModems() (modems []Modem, err error) {
+	fmt.Println("####->",ModemManagerInterface,ModemManagerObjectPath)
 	devPaths, err := mm.getManagedObjects(ModemManagerInterface,ModemManagerObjectPath)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(devPaths)
 	for idx := range devPaths {
 		modem, err:=NewModem(devPaths[idx])
 		if err != nil {
 			return nil, err
 		}
 		modems = append(modems, modem)
+	}
+	return
+}
+
+func (mm modemManager) GetBearers() (bearers []Bearer, err error) {
+	fmt.Println("####->",ModemManagerInterface,ModemManagerObjectPath)
+	devPaths, err := mm.getManagedObjects(ModemManagerInterface,ModemManagerObjectPath)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(devPaths)
+	for idx := range devPaths {
+		bearer, err:=NewBearer(devPaths[idx])
+		if err != nil {
+			return nil, err
+		}
+		bearers = append(bearers, bearer)
 	}
 	return
 }

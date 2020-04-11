@@ -598,6 +598,35 @@ const (
 	MmModemLocationSourceAgpsMsb      MMModemLocationSource = 1 << 6 // Mobile Station Based A-GPS location requested.
 
 )
+func (ls MMModemLocationSource) GetAllSources() []MMModemLocationSource {
+
+	return []MMModemLocationSource{MmModemLocationSource3gppLacCi, MmModemLocationSourceGpsRaw,
+		MmModemLocationSourceGpsNmea,MmModemLocationSourceCdmaBs,MmModemLocationSourceGpsUnmanaged,
+		MmModemLocationSourceAgpsMsa,MmModemLocationSourceAgpsMsb	}
+}
+
+func (ls MMModemLocationSource) BitmaskToSlice(bitmask uint32) (sources []MMModemLocationSource) {
+	if bitmask == 0 {
+		return
+	}
+	for idx, x := range ls.GetAllSources() {
+		if bitmask&(1<<idx) > 0 {
+			sources = append(sources, x)
+		}
+	}
+	return sources
+}
+func (ls MMModemLocationSource) SliceToBitmask(sources []MMModemLocationSource) (bitmask uint32) {
+	bitmask = 0
+	for idx, x := range ls.GetAllSources() {
+		for _, y := range sources {
+			if x == y {
+				bitmask = bitmask | (1 << idx)
+			}
+		}
+	}
+	return bitmask
+}
 
 type MMModemLocationAssistanceDataType uint32 // Type of assistance data that may be injected to the GNSS module.
 

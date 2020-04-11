@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/maltegrosse/go-modemmanager"
 	"log"
-	"time"
 )
 
 func main() {
@@ -26,8 +25,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
-	modems, err := mmgr.ListDevices()
+	fmt.Println("### Modems Start ###")
+	modems, err := mmgr.GetModems()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -421,8 +420,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Set Signal rate to 1 sec, now wait 2 seconds....")
-		time.Sleep(2*time.Second)
+	//	fmt.Println("Set Signal rate to 1 sec, now wait 2 seconds....")
+	//	time.Sleep(2*time.Second)
 
 		mSignalRate, err := modemSignal.GetRate()
 		if err != nil {
@@ -479,8 +478,41 @@ func main() {
 		}
 		fmt.Println("ModemOMA at: ", modemOma.GetObjectPath())
 
+		modemLocation, err := modem.GetModemLocation()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("ModemLocation at: ", modemOma.GetObjectPath())
+
+		mlCap, err := modemLocation.GetCapabilities()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Capabilities: ", mlCap)
+
+
+
 
 
 	}
+	fmt.Println("### Modems End ###")
+	/*fmt.Println()
+	fmt.Println("### Bearers Start ###")
+	bearers, err := mmgr.GetBearers()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	fmt.Println("found ", len(bearers), " bearer(s) ")
+	for _, bearer := range bearers {
+		fmt.Println("ObjectPath: ", bearer.GetObjectPath())
 
+		bearerInterface, err := bearer.GetInterface()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Bearer Interface: ", bearerInterface)
+
+
+	}
+	fmt.Println("### Bearers End ###")*/
 }

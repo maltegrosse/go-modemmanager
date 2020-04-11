@@ -45,6 +45,8 @@ import (
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"net"
+	"reflect"
+	"strings"
 	"time"
 )
 
@@ -514,4 +516,30 @@ func (d *dbusBase) Contains(slice []string, val string) bool {
 		}
 	}
 	return false
+}
+
+func (d *dbusBase) isEmpty(object interface{}, fieldName string) bool {
+	v := reflect.ValueOf(object)
+	st := reflect.TypeOf(object)
+	for i := 0; i < v.NumField(); i++ {
+		field := st.Field(i)
+		if field.Name == fieldName && v.Field(i).IsZero() {
+			return true
+		}
+	}
+	return false
+}
+
+func ReturnString(object interface{}) string {
+	var resSlice []string
+	v := reflect.ValueOf(object)
+	st := reflect.TypeOf(object)
+	for i := 0; i < v.NumField(); i++ {
+		field := st.Field(i)
+		if !v.Field(i).IsZero() {
+			tmpField := field.Name + ": " + fmt.Sprint(reflect.Indirect(v).FieldByName(field.Name))
+			resSlice = append(resSlice, tmpField)
+		}
+	}
+	return strings.Join(resSlice, ", ")
 }

@@ -94,6 +94,9 @@ type Modem interface {
 	// Return ModemSignal Interface
 	GetModemOma()(ModemOma,error)
 
+	// Return ModemLocation Interface
+	GetModemLocation()(ModemLocation,error)
+
 	// Enables the Modem: When enabled, the modem's radio is powered on and data sessions, voice calls,
 	// location services, and Short Message Service may be available.
 	Enable() error
@@ -328,6 +331,10 @@ func (m modem) GetModemSignal()(ModemSignal,error){
 
 func (m modem) GetModemOma()(ModemOma,error){
 	return NewModemOma(m.obj.Path())
+}
+
+func (m modem) GetModemLocation()(ModemLocation,error){
+	return NewModemLocation(m.obj.Path())
 }
 
 func (m modem) Enable() error {

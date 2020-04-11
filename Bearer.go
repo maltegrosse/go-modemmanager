@@ -1,6 +1,9 @@
 package go_modemmanager
 
-import "github.com/godbus/dbus/v5"
+import (
+	"fmt"
+	"github.com/godbus/dbus/v5"
+)
 
 // This interface provides access to specific actions that may be performed on available bearers.
 
@@ -9,36 +12,232 @@ const (
 
 	BearersObjectPath = modemManagerMainObjectPath + "Bearers"
 	/* Methods */
+	BearerConnect    = BearerInterface + ".Connect"
+	BearerDisconnect = BearerInterface + ".Disconnect"
 
 	/* Property */
+	BearerPropertyInterface  = BearerInterface + ".Interface"  // readable   s
+	BearerPropertyConnected  = BearerInterface + ".Connected"  // readable   b
+	BearerPropertySuspended  = BearerInterface + ".Suspended"  // readable   b
+	BearerPropertyIp4Config  = BearerInterface + ".Ip4Config"  // readable   a{sv}
+	BearerPropertyIp6Config  = BearerInterface + ".Ip6Config"  // readable   a{sv}
+	BearerPropertyStats      = BearerInterface + ".Stats"      // readable   a{sv}
+	BearerPropertyIpTimeout  = BearerInterface + ".IpTimeout " // readable   u
+	BearerPropertyBearerType = BearerInterface + ".BearerType" // readable   u
+	BearerPropertyProperties = BearerInterface + ".Properties" // readable   a{sv}
 
 )
 
 type Bearer interface {
 	/* METHODS */
+
 	// Returns object path
 	GetObjectPath() dbus.ObjectPath
-	//MarshalJSON() ([]byte, error)
+
+	// Requests activation of a packet data connection with the network using this bearer's properties. Upon successful
+	// activation, the modem can send and receive packet data and, depending on the addressing capability of the
+	// modem, a connection manager may need to start PPP, perform DHCP, or assign the IP address returned by the
+	// modem to the data interface. Upon successful return, the "Ip4Config" and/or "Ip6Config" properties become
+	// valid and may contain IP configuration information for the data interface associated with this bearer.
+	Connect() error
+
+	// Disconnect and deactivate this packet data connection.
+	// Any ongoing data session will be terminated and IP addresses become invalid when this method is called.
+	Disconnect() error
+
+	MarshalJSON() ([]byte, error)
+
+	/* PROPERTIES */
+
+	// The operating system name for the network data interface that provides packet data using this bearer.
+	// Connection managers must configure this interface depending on the IP "method" given by the "Ip4Config" or
+	// "Ip6Config" properties set by bearer activation.
+	// If MM_BEARER_IP_METHOD_STATIC or MM_BEARER_IP_METHOD_DHCP methods are given, the interface will be an
+	// ethernet-style interface suitable for DHCP or setting static IP configuration on, while if the
+	// MM_BEARER_IP_METHOD_PPP method is given, the interface will be a serial TTY which must then have PPP
+	// run over it.
+	GetInterface() (string, error)
+
+	// Indicates whether or not the bearer is connected and thus whether packet data communication using this bearer is possible.
+	GetConnected() (bool, error)
+
+	// In some devices, packet data service will be suspended while the device is handling other communication,
+	// like a voice call. If packet data service is suspended (but not deactivated) this property will be TRUE.
+	GetSuspended() (bool, error)
+
+	// If the bearer was configured for IPv4 addressing, upon activation this property contains the
+	// addressing details for assignment to the data interface.
+	// Mandatory Item: method
+	// If the bearer specifies configuration via PPP or DHCP, only the "method" item will be present.
+	// Additional items which are only applicable when using the MM_BEARER_IP_METHOD_STATIC method are:
+	// address, prefix, dns1, dns2, dns3 and gateway
+	// This property may also include the following items when such information is available: mtu
+	GetIp4Config() (bearerIpConfig, error)
+
+	// If the bearer was configured for IPv6 addressing, upon activation this property contains the addressing
+	// details for assignment to the data interface.
+	// Mandatory Item: method
+	// If the bearer specifies configuration via PPP or DHCP, often only the "method" item will be present.
+	// IPv6 SLAAC should be used to retrieve correct addressing and DNS information via Router Advertisements
+	// and DHCPv6. In some cases an IPv6 Link-Local "address" item will be present, which should be assigned
+	// to the data port before performing SLAAC, as the mobile network may expect SLAAC setup to use this address.
+	// Additional items which are usually only applicable when using the MM_BEARER_IP_METHOD_STATIC method are:
+	// address, prefix, dns1, dns2, dns3 and gateway
+	// This property may also include the following items when such information is available: mtu
+	GetIp6Config() (bearerIpConfig, error)
+
+	// If the modem supports it, this property will show statistics of the ongoing connection.
+	// When the connection is disconnected automatically or explicitly by the user, the values in this
+	// property will show the last values cached. The statistics are reset
+	GetStats() (BearerStats, error)
+
+	// Maximum time to wait for a successful IP establishment, when PPP is used.
+	GetIpTimeout() (uint32, error)
+
+	// A MMBearerType
+	GetBearerType() (MMBearerType, error)
+
+	// List of properties used when creating the bearer.
+	GetProperties() (BearerProperty, error)
 }
 
 func NewBearer(objectPath dbus.ObjectPath) (Bearer, error) {
 	var be bearer
-	return &be, be.init(BearerInterface, objectPath)
+	return &be, be.init(ModemManagerInterface, objectPath)
 }
 
-type  bearer struct {
+type bearer struct {
 	dbusBase
+}
+
+type bearerIpConfig struct {
+	Method   MMBearerIpMethod `json:"method"`    // Mandatory: A MMBearerIpMethod, given as an unsigned integer value (signature "u").
+	Address  string           `json:"address"`   // 	IP address, given as a string value (signature "s").
+	Prefix   uint32           `json:"prefix"`    // Numeric CIDR network prefix (ie, 24, 32, etc), given as an unsigned integer value (signature "u").
+	Dns1     string           `json:"dns1"`      // 	IP address of the first DNS server, given as a string value (signature "s").
+	Dns2     string           `json:"dns2"`      // 	IP address of the second DNS server, given as a string value (signature "s").
+	Dns3     string           `json:"dns3"`      // IP address of the third DNS server, given as a string value (signature "s").
+	Gateway  string           `json:"gateway"`   //  IP address of the default gateway, given as a string value (signature "s").
+	Mtu      uint32           `json:"mtu"`       // Maximum transmission unit (MTU), given as an unsigned integer value (signature "u").
+	IpFamily MMBearerIpFamily `json:"ip-family"` // The IpFamily, either ipv4 or ipv6
+}
+
+func (bc bearerIpConfig) String() string {
+	return "Method: " + fmt.Sprint(bc.Method) +
+		", Address: " + bc.Address +
+		", Prefix: " + fmt.Sprint(bc.Prefix) +
+		", Dns1: " + bc.Dns1 +
+		", Dns2: " + bc.Dns2 +
+		", Dns3: " + bc.Dns3 +
+		", Gateway: " + bc.Gateway +
+		", Mtu: " + fmt.Sprint(bc.Mtu) +
+		", IpFamily: " + fmt.Sprint(bc.IpFamily)
+}
+
+type BearerProperty struct {
+	APN          string                `json:"apn"`           // Access Point Name, given as a string value (signature "s"). Required in 3GPP.
+	IPType       MMBearerIpFamily      `json:"ip-type"`       // Addressing type, given as a MMBearerIpFamily value (signature "u"). Optional in 3GPP and CDMA.
+	AllowedAuth  MMBearerAllowedAuth   `json:"allowed-auth"`  // The authentication method to use, given as a MMBearerAllowedAuth value (signature "u"). Optional in 3GPP.
+	User         string                `json:"user"`          // User name (if any) required by the network, given as a string value (signature "s"). Optional in 3GPP.
+	Password     string                `json:"password"`      // Password (if any) required by the network, given as a string value (signature "s"). Optional in 3GPP.
+	AllowRoaming bool                  `json:"allow-roaming"` // Flag to tell whether connection is allowed during roaming, given as a boolean value (signature "b"). Optional in 3GPP.
+	RMProtocol   MMModemCdmaRmProtocol `json:"rm-protocol"`   // Protocol of the Rm interface, given as a MMModemCdmaRmProtocol value (signature "u"). Optional in CDMA.
+	Number       string                `json:"number"`        // Telephone number to dial, given as a string value (signature "s"). Required in POTS.
+}
+
+func (bp BearerProperty) String() string {
+	return "APN: " + bp.APN +
+		", IPType: " + fmt.Sprint(bp.IPType) +
+		", AllowedAuth: " + fmt.Sprint(bp.AllowedAuth) +
+		", User: " + bp.User +
+		", Password: " + bp.Password +
+		", AllowRoaming: " + fmt.Sprint(bp.AllowRoaming) +
+		", RMProtocol: " + fmt.Sprint(bp.RMProtocol) +
+		", Number: " + bp.Number
+}
+
+type BearerStats struct {
+	RxBytes  int64  `json:"rx-bytes"` // Number of bytes received without error, given as an unsigned 64-bit integer value (signature "t").
+	TxBytes  int64  `json:"tx-bytes"` // Number bytes transmitted without error, given as an unsigned 64-bit integer value (signature "t").
+	Duration uint32 `json:"duration"` // Duration of the connection, in seconds, given as an unsigned integer value (signature "u").
+}
+
+func (bs BearerStats) String() string {
+	return "RxBytes: " + fmt.Sprint(bs.RxBytes) +
+		", TxBytes: " + fmt.Sprint(bs.TxBytes) +
+		", Duration: " + fmt.Sprint(bs.Duration)
 }
 func (be bearer) GetObjectPath() dbus.ObjectPath {
 	return be.obj.Path()
 }
-type BearerProperty struct {
-	APN string `json:"apn"` // Access Point Name, given as a string value (signature "s"). Required in 3GPP.
-	IPType MMBearerIpFamily `json:"ip-type"` // Addressing type, given as a MMBearerIpFamily value (signature "u"). Optional in 3GPP and CDMA.
-	AllowedAuth MMBearerAllowedAuth `json:"allowed-auth"` //  The authentication method to use, given as a MMBearerAllowedAuth value (signature "u"). Optional in 3GPP.
-	User string `json:"user"` // User name (if any) required by the network, given as a string value (signature "s"). Optional in 3GPP.
-	Password string `json:"password"` // Password (if any) required by the network, given as a string value (signature "s"). Optional in 3GPP.
-	AllowRoaming bool `json:"allow-roaming"` // Flag to tell whether connection is allowed during roaming, given as a boolean value (signature "b"). Optional in 3GPP.
-	RMProtocol MMModemCdmaRmProtocol `json:"rm-protocol"` // Protocol of the Rm interface, given as a MMModemCdmaRmProtocol value (signature "u"). Optional in CDMA.
-	Number string `json:"number"` // Telephone number to dial, given as a string value (signature "s"). Required in POTS.
+
+func (be bearer) Connect() error {
+	return be.call(BearerConnect)
+}
+
+func (be bearer) Disconnect() error {
+	return be.call(BearerDisconnect)
+}
+
+func (be bearer) GetInterface() (string, error) {
+	return be.getStringProperty(BearerPropertyInterface)
+}
+
+func (be bearer) GetConnected() (bool, error) {
+	return be.getBoolProperty(BearerPropertyConnected)
+}
+
+func (be bearer) GetSuspended() (bool, error) {
+	return be.getBoolProperty(BearerPropertySuspended)
+}
+
+func (be bearer) GetIp4Config() (bi bearerIpConfig, err error) {
+	tmpMap, err := be.getMapStringVariantProperty(BearerPropertyIp4Config)
+	if err != nil {
+		return bi, err
+	}
+	fmt.Println(tmpMap)
+	return
+}
+
+func (be bearer) GetIp6Config() (bi bearerIpConfig, err error) {
+	tmpMap, err := be.getMapStringVariantProperty(BearerPropertyIp4Config)
+	if err != nil {
+		return bi, err
+	}
+	fmt.Println(tmpMap)
+	return
+}
+
+func (be bearer) GetStats() (br BearerStats, err error) {
+	tmpMap, err := be.getMapStringVariantProperty(BearerPropertyStats)
+	if err != nil {
+		return br, err
+	}
+	fmt.Println(tmpMap)
+	return
+}
+
+func (be bearer) GetIpTimeout() (uint32, error) {
+	return be.getUint32Property(BearerPropertyIpTimeout)
+}
+
+func (be bearer) GetBearerType() (MMBearerType, error) {
+	res, err := be.getUint32Property(BearerPropertyBearerType)
+	if err != nil {
+		return MmBearerTypeUnknown, err
+	}
+	return MMBearerType(res), nil
+}
+
+func (be bearer) GetProperties() (bp BearerProperty, err error) {
+	tmpMap, err := be.getMapStringVariantProperty(BearerPropertyProperties)
+	if err != nil {
+		return bp, err
+	}
+	fmt.Println(tmpMap)
+	return
+}
+func (be bearer) MarshalJSON() ([]byte, error) {
+	panic("implement me")
 }
