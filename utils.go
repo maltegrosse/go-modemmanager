@@ -58,29 +58,28 @@ const (
 type Pair struct {
 	a, b interface{}
 }
-func (p Pair)GetLeft()(interface{}){
+
+func (p Pair) GetLeft() interface{} {
 	return p.a
 }
-func (p Pair)GetRight()(interface{}){
+func (p Pair) GetRight() interface{} {
 	return p.b
 }
-func (p Pair)SetLeft(left interface{})(){
+func (p Pair) SetLeft(left interface{}) {
 	p.a = left
 }
-func (p Pair)SetRight(right interface{})(){
+func (p Pair) SetRight(right interface{}) {
 	p.b = right
 }
-func (p Pair)String()string{
+func (p Pair) String() string {
 	return fmt.Sprint(p.a) + " : " + fmt.Sprint(p.b)
 }
-func (p Pair)PairToSlice() []interface{}{
+func (p Pair) PairToSlice() []interface{} {
 	var sl []interface{}
 	sl = append(sl, p.a)
 	sl = append(sl, p.b)
 	return sl
 }
-
-
 
 type dbusBase struct {
 	conn *dbus.Conn
@@ -278,6 +277,18 @@ func (d *dbusBase) getMapUint32Uint32Property(iface string) (value map[uint32]ui
 		return
 	}
 	value, ok := prop.(map[uint32]uint32)
+	if !ok {
+		err = makeErrVariantType(iface)
+		return
+	}
+	return
+}
+func (d *dbusBase) getMapUint32InterfaceProperty(iface string) (value map[uint32]interface{}, err error) {
+	prop, err := d.getProperty(iface)
+	if err != nil {
+		return
+	}
+	value, ok := prop.(map[uint32]interface{})
 	if !ok {
 		err = makeErrVariantType(iface)
 		return
@@ -506,8 +517,6 @@ func (d *dbusBase) getManagedObjects(iface string, path dbus.ObjectPath) ([]dbus
 	}
 	return managedObjectPaths, nil
 }
-
-
 
 func (d *dbusBase) Contains(slice []string, val string) bool {
 	for _, item := range slice {

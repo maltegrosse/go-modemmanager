@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"reflect"
-	"strconv"
 	"time"
 )
 
@@ -51,7 +50,7 @@ type Modem3gpp interface {
 	Scan() (networks []Network3Gpp, err error)
 
 	// Request a network scan (async)
-	RequestScan() ()
+	RequestScan()
 
 	// Get latest scan result
 	GetScanResults() (NetworkScanResult, error)
@@ -76,8 +75,8 @@ type Modem3gpp interface {
 	GetOperatorCode() (string, error)
 
 	// parsed from operator code
-	GetMcc() (uint32, error)
-	GetMnc() (uint32, error)
+	GetMcc() (string, error)
+	GetMnc() (string, error)
 
 	// Name of the operator to which the mobile is currently registered.
 	// If the operator name is not known or the mobile is not registered to a mobile network, this property will be a zero-length (blank) string.
@@ -136,8 +135,8 @@ type Network3Gpp struct {
 	OperatorLong     string                         `json:"operator-long"`  // Long-format name of operator, given as a string value (signature "s"). If the name is unknown, this field should not be present.
 	OperatorShort    string                         `json:"operator-short"` // Short-format name of operator, given as a string value (signature "s"). If the name is unknown, this field should not be present.
 	OperatorCode     string                         `json:"operator-code"`  // Mobile code of the operator, given as a string value (signature "s"). Returned in the format "MCCMNC", where MCC is the three-digit ITU E.212 Mobile Country Code and MNC is the two- or three-digit GSM Mobile Network Code. e.g. "31026" or "310260".
-	Mcc              uint32                         // parsed from OperatorCode
-	Mnc              uint32                         // parsed from OperatorCode
+	Mcc              string                         // parsed from OperatorCode
+	Mnc              string                         // parsed from OperatorCode
 	AccessTechnology MMModemAccessTechnology        `json:"access-technology"` // A MMModemAccessTechnology value representing the generic access technology used by this mobile network, given as an unsigned integer (signature "u").
 }
 
@@ -207,15 +206,10 @@ func (m modem3gpp) Scan() (networks []Network3Gpp, err error) {
 						if len(tmpValue) > 4 {
 							runes := []rune(tmpValue)
 							subOne := string(runes[0:3])
-							mcc, err := strconv.ParseUint(subOne, 10, 32)
-							if err == nil {
-								network.Mcc = uint32(mcc)
-							}
+							network.Mcc = subOne
 							subTwo := string(runes[3:len(tmpValue)])
-							mnc, err := strconv.ParseUint(subTwo, 10, 32)
-							if err == nil {
-								network.Mnc = uint32(mnc)
-							}
+							network.Mnc = subTwo
+
 						}
 					}
 				case "access-technology":
@@ -234,7 +228,7 @@ func (m modem3gpp) Scan() (networks []Network3Gpp, err error) {
 	return networks, nil
 }
 
-func (m modem3gpp) RequestScan() () {
+func (m modem3gpp) RequestScan() {
 	go func() {
 		res, err := m.Scan()
 		if err == nil {
@@ -296,37 +290,31 @@ func (m modem3gpp) GetOperatorCode() (string, error) {
 	return m.getStringProperty(Modem3gppPropertyOperatorCode)
 }
 
-func (m modem3gpp) GetMcc() (uint32, error) {
+func (m modem3gpp) GetMcc() (string, error) {
 	tmpValue, err := m.GetOperatorCode()
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	if len(tmpValue) > 4 {
 		runes := []rune(tmpValue)
-		subOne := string(runes[0:3])
-		mcc, err := strconv.ParseUint(subOne, 10, 32)
-		if err == nil {
-			return uint32(mcc), nil
-		}
+		mcc := string(runes[0:3])
+		return mcc, nil
 
 	}
-	return 0, err
+	return "", nil
 }
 
-func (m modem3gpp) GetMnc() (uint32, error) {
+func (m modem3gpp) GetMnc() (string, error) {
 	tmpValue, err := m.GetOperatorCode()
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	if len(tmpValue) > 4 {
 		runes := []rune(tmpValue)
-		subTwo := string(runes[3:len(tmpValue)])
-		mnc, err := strconv.ParseUint(subTwo, 10, 32)
-		if err == nil {
-			return uint32(mnc), nil
-		}
+		mnc := string(runes[3:len(tmpValue)])
+		return mnc, nil
 	}
-	return 0, err
+	return "", err
 }
 
 func (m modem3gpp) GetOperatorName() (string, error) {

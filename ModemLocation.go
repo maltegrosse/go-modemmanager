@@ -1,6 +1,7 @@
 package go_modemmanager
 
 import (
+	"fmt"
 	"github.com/godbus/dbus/v5"
 	"time"
 )
@@ -59,11 +60,11 @@ type ModemLocation interface {
 	// and if none given, standalone GPS is assumed.
 	// 		IN u sources: Bitmask of MMModemLocationSource flags, specifying which sources should get enabled or disabled. MM_MODEM_LOCATION_SOURCE_NONE will disable all location gathering.
 	//		IN b signal_location: Flag to control whether the device emits signals with the new location information. This argument is ignored when disabling location information gathering.
-	Setup(sources MMModemLocationSource, signalLocation bool) error
+	Setup(sources []MMModemLocationSource, signalLocation bool) error
 
 	// Return current location information, if any. If the modelo supports multiple location types it may return more than one. See the "Location" property for more information on the dictionary returned at location.
 	// This method may require the client to authenticate itself.
-	GetCurrentLocation() ([]currentLocation, error)
+	GetCurrentLocation() (currentLocation, error)
 
 	// Configure the SUPL server for A-GPS.
 	// IN s supl: SUPL server configuration, given either as IP:PORT or as FQDN:PORT.
@@ -89,7 +90,7 @@ type ModemLocation interface {
 	GetSupportedAssistanceData() ([]MMModemLocationAssistanceDataType, error)
 
 	// Bitmask specifying which of the supported MMModemLocationSource location sources is currently enabled in the device.
-	GetEnabled() ([]MMModemLocationSource, error)
+	GetEnabledLocationSources() ([]MMModemLocationSource, error)
 
 	// TRUE if location updates will be emitted via D-Bus signals, FALSE if location updates will not be emitted.
 	// See the Setup() method for more information.
@@ -99,7 +100,16 @@ type ModemLocation interface {
 	// supports multiple location types it may return more than one here.
 	// Note that if the device was told not to emit updated location information when location information
 	// gathering was initially enabled, this property may not return any location information for security reasons.
-	GetLocation() ([]currentLocation, error)
+	GetLocation() (currentLocation, error)
+
+	// SUPL server configuration for A-GPS, given either as IP:PORT or FQDN:PORT.
+	GetSuplServer() (string, error)
+
+	// URLs from where the user can download assistance data files to inject with InjectAssistanceData().
+	GetAssistanceDataServers() ([]string, error)
+
+	// Rate of refresh of the GPS information in the interface.
+	GetGpsRefreshRate() (uint32, error)
 }
 
 func NewModemLocation(objectPath dbus.ObjectPath) (ModemLocation, error) {
@@ -110,12 +120,12 @@ func NewModemLocation(objectPath dbus.ObjectPath) (ModemLocation, error) {
 type modemLocation struct {
 	dbusBase
 }
+
 type currentLocation struct {
-	SourceType     MMModemLocationSource  `json:"status"`      // The Source Type
-	ThreeGppLacCli threeGppLacCliLocation `json:"3gpp-lac-ci"` // Devices supporting this capability return a string in the format "MCC,MNC,LAC,CI,TAC" (without the quotes of course)
-	GpsRaw         gpsRawLocation         `json:"gps-raw"`     // Devices supporting this capability return a D-Bus dictionary (signature "a{sv}") mapping well-known keys to values with defined formats.
-	GpsNmea        gpsNmeaLocation        `json:"gps-nmea"`    // Devices supporting this capability return a string containing one or more NMEA sentences (D-Bus signature 's'). The manager will cache the most recent NMEA sentence of each type for a period of time not less than 30 seconds. When reporting multiple NMEA sentences, sentences shall be separated by an ASCII Carriage Return and Line Feed (<CR><LF>) sequence.
-	CdmaBs         cdmaBsLocation         `json:"cdma-bs"`     // Devices supporting this capability return a D-Bus dictionary (signature "a{sv}") mapping well-known keys to values with defined formats.
+	ThreeGppLacCi threeGppLacCiLocation `json:"3gpp-lac-ci"` // Devices supporting this capability return a string in the format "MCC,MNC,LAC,CI,TAC" (without the quotes of course)
+	GpsRaw        gpsRawLocation        `json:"gps-raw"`     // Devices supporting this capability return a D-Bus dictionary (signature "a{sv}") mapping well-known keys to values with defined formats.
+	GpsNmea       gpsNmeaLocation       `json:"gps-nmea"`    // Devices supporting this capability return a string containing one or more NMEA sentences (D-Bus signature 's'). The manager will cache the most recent NMEA sentence of each type for a period of time not less than 30 seconds. When reporting multiple NMEA sentences, sentences shall be separated by an ASCII Carriage Return and Line Feed (<CR><LF>) sequence.
+	CdmaBs        cdmaBsLocation        `json:"cdma-bs"`     // Devices supporting this capability return a D-Bus dictionary (signature "a{sv}") mapping well-known keys to values with defined formats.
 }
 
 func (cl currentLocation) String() string {
@@ -123,62 +133,69 @@ func (cl currentLocation) String() string {
 
 }
 
-type threeGppLacCliLocation struct {
-	Mcc     string  `json:"MCC"` // This is the three-digit ITU E.212 Mobile Country Code of the network provider to which the mobile is currently registered. e.g. "310".
-	Mnc     string  `json:"MNC"` // This is the two- or three-digit GSM Mobile Network Code of the network provider to which the mobile is currently registered. e.g. "26" or "260".
-	Lac string  `json:"LAC"` // This is the two-byte Location Area Code of the GSM/UMTS base station with which the mobile is registered, in upper-case hexadecimal format without leading zeros, as specified in 3GPP TS 27.007. E.g. "84CD".
-	Ci string  `json:"CI"` // This is the two- or four-byte Cell Identifier with which the mobile is registered, in upper-case hexadecimal format without leading zeros, as specified in 3GPP TS 27.007. e.g. "2BAF" or "D30156".
-	Tac string 
-
+type threeGppLacCiLocation struct {
+	Mcc string `json:"MCC"` // This is the three-digit ITU E.212 Mobile Country Code of the network provider to which the mobile is currently registered. e.g. "310".
+	Mnc string `json:"MNC"` // This is the two- or three-digit GSM Mobile Network Code of the network provider to which the mobile is currently registered. e.g. "26" or "260".
+	Lac string `json:"LAC"` // This is the two-byte Location Area Code of the GSM/UMTS base station with which the mobile is registered, in upper-case hexadecimal format without leading zeros, as specified in 3GPP TS 27.007. E.g. "84CD".
+	Ci  string `json:"CI"`  // This is the two- or four-byte Cell Identifier with which the mobile is registered, in upper-case hexadecimal format without leading zeros, as specified in 3GPP TS 27.007. e.g. "2BAF" or "D30156".
+	Tac string `json:"TAC"` // 	This is the two-byte Location Area Code of the LTE base station with which the mobile is registered, in upper-case hexadecimal format without leading zeros, as specified in 3GPP TS 27.007. E.g. "6FFE".
 }
-func (tgp threeGppLacCliLocation) String() string {
+
+func (tgp threeGppLacCiLocation) String() string {
 	return ReturnString(tgp)
 }
 
 type gpsRawLocation struct {
-	UtcTime     time.Time  `json:"utc-time"` // (Required) UTC time in ISO 8601 format, given as a string value (signature "s"). e.g. 203015.
-	Latitude     float64  `json:"latitude"` // (Required) Latitude in Decimal Degrees (positive numbers mean N quadrasphere, negative mean S quadrasphere), given as a double value (signature "d"). e.g. 38.889722, meaning 38d 53' 22" N.
-	Longitude     float64  `json:"longitude"` // (Required) Longitude in Decimal Degrees (positive numbers mean E quadrasphere, negative mean W quadrasphere), given as a double value (signature "d"). e.g. -77.008889, meaning 77d 0' 32" W.
-	Altitude     float64  `json:"altitude"` // (Optional) Altitude above sea level in meters, given as a double value (signature "d"). e.g. 33.5.
+	UtcTime   time.Time `json:"utc-time"`  // (Required) UTC time in ISO 8601 format, given as a string value (signature "s"). e.g. 203015.
+	Latitude  float64   `json:"latitude"`  // (Required) Latitude in Decimal Degrees (positive numbers mean N quadrasphere, negative mean S quadrasphere), given as a double value (signature "d"). e.g. 38.889722, meaning 38d 53' 22" N.
+	Longitude float64   `json:"longitude"` // (Required) Longitude in Decimal Degrees (positive numbers mean E quadrasphere, negative mean W quadrasphere), given as a double value (signature "d"). e.g. -77.008889, meaning 77d 0' 32" W.
+	Altitude  float64   `json:"altitude"`  // (Optional) Altitude above sea level in meters, given as a double value (signature "d"). e.g. 33.5.
 }
+
 func (rgps gpsRawLocation) String() string {
 	return ReturnString(rgps)
 
 }
+
 type gpsNmeaLocation struct {
-	NmeaSentences     []string  `json:"nmea-sentances"` // Devices supporting this capability return a string containing one or more NMEA sentences (D-Bus signature 's'). The manager will cache the most recent NMEA sentence of each type for a period of time not less than 30 seconds. When reporting multiple NMEA sentences, sentences shall be separated by an ASCII Carriage Return and Line Feed (<CR><LF>) sequence. The manager may discard any cached sentences older than 30 seconds.  This allows clients to read the latest positioning data as soon as possible after they start, even if the device is not providing frequent location data updates.
+	NmeaSentences []string `json:"nmea-sentances"` // Devices supporting this capability return a string containing one or more NMEA sentences (D-Bus signature 's'). The manager will cache the most recent NMEA sentence of each type for a period of time not less than 30 seconds. When reporting multiple NMEA sentences, sentences shall be separated by an ASCII Carriage Return and Line Feed (<CR><LF>) sequence. The manager may discard any cached sentences older than 30 seconds.  This allows clients to read the latest positioning data as soon as possible after they start, even if the device is not providing frequent location data updates.
 }
+
 func (ngps gpsNmeaLocation) String() string {
 	return ReturnString(ngps)
 
 }
+
 type cdmaBsLocation struct {
-	Latitude     float64  `json:"latitude"` // (Required) Latitude in Decimal Degrees (positive numbers mean N quadrasphere, negative mean S quadrasphere), given as a double value (signature "d"). e.g. 38.889722, meaning 38d 53' 22" N.
-	Longitude     float64  `json:"longitude"` // (Required) Longitude in Decimal Degrees (positive numbers mean E quadrasphere, negative mean W quadrasphere), given as a double value (signature "d"). e.g. -77.008889, meaning 77d 0' 32" W.
+	Latitude  float64 `json:"latitude"`  // (Required) Latitude in Decimal Degrees (positive numbers mean N quadrasphere, negative mean S quadrasphere), given as a double value (signature "d"). e.g. 38.889722, meaning 38d 53' 22" N.
+	Longitude float64 `json:"longitude"` // (Required) Longitude in Decimal Degrees (positive numbers mean E quadrasphere, negative mean W quadrasphere), given as a double value (signature "d"). e.g. -77.008889, meaning 77d 0' 32" W.
 }
 
 func (lo modemLocation) GetObjectPath() dbus.ObjectPath {
 	return lo.obj.Path()
 }
 
-func (lo modemLocation) Setup(sources MMModemLocationSource, signalLocation bool) error {
+func (lo modemLocation) Setup(sources []MMModemLocationSource, enableSignal bool) error {
+	var tmp MMModemLocationSource
+	bitmask := tmp.SliceToBitmask(sources)
+	return lo.call(ModemLocationSetup, &bitmask, &enableSignal)
+}
+
+func (lo modemLocation) GetCurrentLocation() (currentLocation, error) {
 	panic("implement me")
 }
 
-func (lo modemLocation) GetCurrentLocation() ([]currentLocation, error) {
-	panic("implement me")
+func (lo modemLocation) SetSuplServer(suplServer string) error {
+	return lo.call(ModemLocationSetSuplServer, &suplServer)
 }
 
-func (lo modemLocation) SetSuplServer(supl string) error {
-	panic("implement me")
-}
-
-func (lo modemLocation) InjectAssistanceData([]byte) error {
-	panic("implement me")
+func (lo modemLocation) InjectAssistanceData(data []byte) error {
+	// todo: untested
+	return lo.call(ModemLocationInjectAssistanceData, &data)
 }
 
 func (lo modemLocation) SetGpsRefreshRate(rate uint32) error {
-	panic("implement me")
+	return lo.call(ModemLocationSetGpsRefreshRate, &rate)
 }
 
 func (lo modemLocation) GetCapabilities() ([]MMModemLocationSource, error) {
@@ -191,21 +208,86 @@ func (lo modemLocation) GetCapabilities() ([]MMModemLocationSource, error) {
 }
 
 func (lo modemLocation) GetSupportedAssistanceData() ([]MMModemLocationAssistanceDataType, error) {
-	panic("implement me")
+	res, err := lo.getUint32Property(ModemLocationPropertySupportedAssistanceData)
+	if err != nil {
+		return nil, err
+	}
+	var tmp MMModemLocationAssistanceDataType
+	return tmp.BitmaskToSlice(res), nil
 }
 
-func (lo modemLocation) GetEnabled() ([]MMModemLocationSource, error) {
-	panic("implement me")
+func (lo modemLocation) GetEnabledLocationSources() ([]MMModemLocationSource, error) {
+	res, err := lo.getUint32Property(ModemLocationPropertyEnabled)
+	if err != nil {
+		return nil, err
+	}
+	var tmp MMModemLocationSource
+	return tmp.BitmaskToSlice(res), nil
 }
 
 func (lo modemLocation) GetSignalsLocation() (bool, error) {
-	panic("implement me")
+	return lo.getBoolProperty(ModemLocationPropertySignalsLocation)
 }
 
-func (lo modemLocation) GetLocation() ([]currentLocation, error) {
+func (lo modemLocation) GetLocation() (locs currentLocation, err error) {
+	res, err := lo.getMapUint32InterfaceProperty(ModemLocationPropertyLocation)
+	if err != nil {
+		return
+	}
+	var sourceTypeM MMModemLocationSource
+	for key, element := range res {
+		sType := sourceTypeM.BitmaskToSlice(key)
+		if len(sType) > 0 {
+			locationType := sType[0]
+
+			switch locationType {
+			case MmModemLocationSource3gppLacCi:
+				tmpMap, ok := element.(map[string]string)
+				if ok {
+					fmt.Println(tmpMap)
+					var three threeGppLacCiLocation
+					// todo
+
+					locs.ThreeGppLacCi = three
+
+				}
+			case MmModemLocationSourceGpsRaw:
+				tmpMap, ok := element.(map[string]string)
+				if ok {
+					fmt.Println(tmpMap)
+				}
+			case MmModemLocationSourceGpsNmea:
+				tmpMap, ok := element.(map[string]string)
+				if ok {
+					fmt.Println(tmpMap)
+				}
+			case MmModemLocationSourceCdmaBs:
+				tmpMap, ok := element.(map[string]string)
+				if ok {
+					fmt.Println(tmpMap)
+				}
+			}
+		}
+
+	}
 	panic("implement me")
 }
+func (lo modemLocation) mapToStruct(tmpMap map[interface{}]interface{}) (object interface{}, err error) {
+	// todo map keys to json tags and convert values to specific type
+	return
+}
 
+func (lo modemLocation) GetSuplServer() (string, error) {
+	return lo.getStringProperty(ModemLocationPropertySuplServer)
+}
+
+func (lo modemLocation) GetAssistanceDataServers() ([]string, error) {
+	return lo.getSliceStringProperty(ModemLocationPropertyAssistanceDataServers)
+}
+
+func (lo modemLocation) GetGpsRefreshRate() (uint32, error) {
+	return lo.getUint32Property(ModemLocationPropertyGpsRefreshRate)
+}
 func (lo modemLocation) MarshalJSON() ([]byte, error) {
 	panic("implement me")
 }

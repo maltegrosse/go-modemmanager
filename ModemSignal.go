@@ -1,7 +1,6 @@
 package go_modemmanager
 
 import (
-	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"reflect"
@@ -41,8 +40,8 @@ type ModemSignal interface {
 	//Refresh rate for the extended signal quality information updates, in seconds. A value of 0 disables the retrieval of the values.
 	GetRate() (rate uint32, err error)
 
-	// Returns one of cmda,evdo, gsm,umts or lte signal properties objects where rssi is set
-	GetCurrentSignal() (sp SignalProperty, err error)
+	// Returns all available cmda,evdo, gsm,umts or lte signal properties objects where rssi is set
+	GetCurrentSignals() (sp []SignalProperty, err error)
 
 	// The CDMA1x access technology.
 	GetCdma() (SignalProperty, error)
@@ -222,13 +221,13 @@ func (si modemSignal) isRssiSet(sp SignalProperty) bool {
 	return false
 
 }
-func (si modemSignal) GetCurrentSignal() (sp SignalProperty, err error) {
+func (si modemSignal) GetCurrentSignals() (sp []SignalProperty, err error) {
 	mSignalCdma, err := si.GetCdma()
 	if err != nil {
 		return sp, err
 	}
 	if si.isRssiSet(mSignalCdma) {
-		return mSignalCdma, nil
+		sp = append(sp, mSignalCdma)
 	}
 
 	mSignalEvdo, err := si.GetEvdo()
@@ -236,7 +235,7 @@ func (si modemSignal) GetCurrentSignal() (sp SignalProperty, err error) {
 		return sp, err
 	}
 	if si.isRssiSet(mSignalEvdo) {
-		return mSignalEvdo, nil
+		sp = append(sp, mSignalEvdo)
 	}
 
 	mSignalGsm, err := si.GetGsm()
@@ -244,7 +243,7 @@ func (si modemSignal) GetCurrentSignal() (sp SignalProperty, err error) {
 		return sp, err
 	}
 	if si.isRssiSet(mSignalGsm) {
-		return mSignalGsm, nil
+		sp = append(sp, mSignalGsm)
 	}
 
 	mSignalUmts, err := si.GetUmts()
@@ -252,7 +251,7 @@ func (si modemSignal) GetCurrentSignal() (sp SignalProperty, err error) {
 		return sp, err
 	}
 	if si.isRssiSet(mSignalUmts) {
-		return mSignalUmts, nil
+		sp = append(sp, mSignalUmts)
 	}
 
 	mSignalLte, err := si.GetLte()
@@ -260,9 +259,9 @@ func (si modemSignal) GetCurrentSignal() (sp SignalProperty, err error) {
 		return sp, err
 	}
 	if si.isRssiSet(mSignalLte) {
-		return mSignalLte, nil
+		sp = append(sp, mSignalLte)
 	}
-	return sp, errors.New("no signal found")
+	return
 
 }
 

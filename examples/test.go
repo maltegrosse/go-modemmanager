@@ -364,8 +364,6 @@ func main() {
 		}
 		fmt.Println("Ussd for: ", ussd.GetObjectPath())
 
-
-
 		// cdma untested as not available via qmi
 		mCdma, err := modem.GetModemCdma()
 		if err != nil {
@@ -398,7 +396,7 @@ func main() {
 		fmt.Println("ModemFirmware for: ", modemFirmware.GetObjectPath())
 
 		// functionality untested as my modem returns empty results
-		usedFirmware,err := modemFirmware.List()
+		usedFirmware, err := modemFirmware.List()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -420,8 +418,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-	//	fmt.Println("Set Signal rate to 1 sec, now wait 2 seconds....")
-	//	time.Sleep(2*time.Second)
+		//	fmt.Println("Set Signal rate to 1 sec, now wait 2 seconds....")
+		//	time.Sleep(2*time.Second)
 
 		mSignalRate, err := modemSignal.GetRate()
 		if err != nil {
@@ -489,10 +487,6 @@ func main() {
 			log.Fatal(err.Error())
 		}
 		fmt.Println("Capabilities: ", mlCap)
-
-
-
-
 
 	}
 	fmt.Println("### Modems End ###")

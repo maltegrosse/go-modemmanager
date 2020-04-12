@@ -598,11 +598,12 @@ const (
 	MmModemLocationSourceAgpsMsb      MMModemLocationSource = 1 << 6 // Mobile Station Based A-GPS location requested.
 
 )
+
 func (ls MMModemLocationSource) GetAllSources() []MMModemLocationSource {
 
 	return []MMModemLocationSource{MmModemLocationSource3gppLacCi, MmModemLocationSourceGpsRaw,
-		MmModemLocationSourceGpsNmea,MmModemLocationSourceCdmaBs,MmModemLocationSourceGpsUnmanaged,
-		MmModemLocationSourceAgpsMsa,MmModemLocationSourceAgpsMsb	}
+		MmModemLocationSourceGpsNmea, MmModemLocationSourceCdmaBs, MmModemLocationSourceGpsUnmanaged,
+		MmModemLocationSourceAgpsMsa, MmModemLocationSourceAgpsMsb}
 }
 
 func (ls MMModemLocationSource) BitmaskToSlice(bitmask uint32) (sources []MMModemLocationSource) {
@@ -635,6 +636,34 @@ const (
 	MmModemLocationAssistanceDataTypeNone MMModemLocationAssistanceDataType = 0      // None.
 	MmModemLocationAssistanceDataTypeXtra MMModemLocationAssistanceDataType = 1 << 0 // Qualcomm gpsOneXTRA.
 )
+
+func (ad MMModemLocationAssistanceDataType) GetAllAssistanceData() []MMModemLocationAssistanceDataType {
+
+	return []MMModemLocationAssistanceDataType{MmModemLocationAssistanceDataTypeXtra}
+}
+
+func (ad MMModemLocationAssistanceDataType) BitmaskToSlice(bitmask uint32) (data []MMModemLocationAssistanceDataType) {
+	if bitmask == 0 {
+		return
+	}
+	for idx, x := range ad.GetAllAssistanceData() {
+		if bitmask&(1<<idx) > 0 {
+			data = append(data, x)
+		}
+	}
+	return
+}
+func (ad MMModemLocationAssistanceDataType) SliceToBitmask(data []MMModemLocationAssistanceDataType) (bitmask uint32) {
+	bitmask = 0
+	for idx, x := range ad.GetAllAssistanceData() {
+		for _, y := range data {
+			if x == y {
+				bitmask = bitmask | (1 << idx)
+			}
+		}
+	}
+	return
+}
 
 type MMModemContactsStorage uint32 // Specifies different storage locations for contact information.
 
@@ -683,7 +712,7 @@ const (
 func (i MMBearerIpFamily) GetAllIPFamilies() []MMBearerIpFamily {
 
 	return []MMBearerIpFamily{MmBearerIpFamilyIpv4, MmBearerIpFamilyIpv6,
-		MmBearerIpFamilyIpv4v6,}
+		MmBearerIpFamilyIpv4v6}
 }
 
 func (i MMBearerIpFamily) BitmaskToSlice(bitmask uint32) (ipFamilies []MMBearerIpFamily) {
@@ -889,10 +918,11 @@ const (
 	MmOmaFeatureHandsFreeActivation MMOmaFeature = 1 << 2 // Hands free activation service.
 
 )
+
 func (mmo MMOmaFeature) GetAllFeatures() []MMOmaFeature {
 
 	return []MMOmaFeature{MmOmaFeatureDeviceProvisioning, MmOmaFeaturePrlUpdate,
-		MmOmaFeatureHandsFreeActivation,}
+		MmOmaFeatureHandsFreeActivation}
 }
 
 func (mmo MMOmaFeature) BitmaskToSlice(bitmask uint32) (features []MMOmaFeature) {
@@ -1015,10 +1045,10 @@ const (
 	MmModemFirmwareUpdateMethodQmiPdc   MMModemFirmwareUpdateMethod = 1 << 1 // Device supports QMI PDC based update.
 
 )
+
 func (fu MMModemFirmwareUpdateMethod) GetAllUpdateMethods() []MMModemFirmwareUpdateMethod {
 
-	return []MMModemFirmwareUpdateMethod{MmModemFirmwareUpdateMethodFastboot, MmModemFirmwareUpdateMethodQmiPdc,
-		}
+	return []MMModemFirmwareUpdateMethod{MmModemFirmwareUpdateMethodFastboot, MmModemFirmwareUpdateMethodQmiPdc}
 }
 
 func (fu MMModemFirmwareUpdateMethod) BitmaskToSlice(bitmask uint32) (ipFamilies []MMModemFirmwareUpdateMethod) {
@@ -1064,10 +1094,10 @@ type MMSignalPropertyType uint32 // SignalProperty Type
 
 //go:generate stringer -type=MMSignalPropertyType -trimprefix=MMSignalPropertyType
 const (
-	MMSignalPropertyTypeCdma  MMSignalPropertyType = 0 // Signal Type Cdma.
+	MMSignalPropertyTypeCdma MMSignalPropertyType = 0 // Signal Type Cdma.
 	MMSignalPropertyTypeEvdo MMSignalPropertyType = 1 // Signal Type Evdo.
-	MMSignalPropertyTypeGsm MMSignalPropertyType = 2 // Signal Type Gsm.
+	MMSignalPropertyTypeGsm  MMSignalPropertyType = 2 // Signal Type Gsm.
 	MMSignalPropertyTypeUmts MMSignalPropertyType = 3 // Signal Type Umts.
-	MMSignalPropertyTypeLte MMSignalPropertyType = 4 // Signal Type Lte.
+	MMSignalPropertyTypeLte  MMSignalPropertyType = 4 // Signal Type Lte.
 
 )

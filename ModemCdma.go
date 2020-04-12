@@ -53,27 +53,26 @@ type ModemCdma interface {
 	/* PROPERTIES */
 
 	// A MMModemCdmaActivationState value specifying the state of the activation in the 3GPP2 network.
-	GetActivationState()(MMModemCdmaActivationState, error)
+	GetActivationState() (MMModemCdmaActivationState, error)
 
 	// The modem's Mobile Equipment Identifier.
-	GetMeid()(string, error)
+	GetMeid() (string, error)
 
 	// The modem's Electronic Serial Number (superceded by MEID but still used by older devices).
-	GetEsn()(string,error)
+	GetEsn() (string, error)
 
 	// The System Identifier of the serving CDMA 1x network, if known, and if the modem is registered with a CDMA 1x network.
 	// See ifast.org or the mobile broadband provider database for mappings of SIDs to network providers.
-	GetSid()(uint32, error)
+	GetSid() (uint32, error)
 
 	// The Network Identifier of the serving CDMA 1x network, if known, and if the modem is registered with a CDMA 1x network.
-	GetNid()(uint32,error)
+	GetNid() (uint32, error)
 
 	// A MMModemCdmaRegistrationState value specifying the CDMA 1x registration state.
-	GetCdma1xRegistrationState()(MMModemCdmaRegistrationState, error)
+	GetCdma1xRegistrationState() (MMModemCdmaRegistrationState, error)
 
 	// A MMModemCdmaRegistrationState value specifying the EVDO registration state.
-	GetEvdoRegistrationState()(MMModemCdmaRegistrationState, error)
-
+	GetEvdoRegistrationState() (MMModemCdmaRegistrationState, error)
 }
 
 func NewModemCdma(objectPath dbus.ObjectPath) (ModemCdma, error) {
@@ -94,12 +93,13 @@ type CdmaProperty struct {
 	MnAaaKey string `json:"mn-aaa-key"` // The MN-AAA key, given as a string of maximum 16 characters.
 	Prl      []byte `json:"prl"`        // The Preferred Roaming List, given as an array of maximum 16384 bytes.
 }
+
 func (mc modemCdma) GetObjectPath() dbus.ObjectPath {
 	return mc.obj.Path()
 }
 func (mc modemCdma) Activate(carrierCode string) error {
 	// todo: untested
-	return mc.call(ModemCdmaActivate, carrierCode)
+	return mc.call(ModemCdmaActivate, &carrierCode)
 }
 
 func (mc modemCdma) ActivateManual(property CdmaProperty) error {
@@ -114,16 +114,13 @@ func (mc modemCdma) ActivateManual(property CdmaProperty) error {
 		field := st.Field(i)
 		tag := field.Tag.Get("json")
 		value := v.Field(i).Interface()
-		if v.Field(i).IsZero()  {
+		if v.Field(i).IsZero() {
 			continue
 		}
 		myMap[tag] = value
 	}
 	return mc.call(ModemCdmaActivateManual, &myMap)
 }
-
-
-
 
 func (mc modemCdma) GetActivationState() (MMModemCdmaActivationState, error) {
 	res, err := mc.getUint32Property(ModemCdmaPropertyActivationState)
@@ -185,4 +182,3 @@ func (mc modemCdma) Unsubscribe() {
 func (mc modemCdma) MarshalJSON() ([]byte, error) {
 	panic("implement me")
 }
-
