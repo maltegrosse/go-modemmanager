@@ -26,9 +26,10 @@ func NewSms(objectPath dbus.ObjectPath) (Sms, error) {
 	return &ss, ss.init(SimInterface, objectPath)
 }
 
-type  sms struct {
+type sms struct {
 	dbusBase
 }
+
 func (ss sms) GetObjectPath() dbus.ObjectPath {
 	return ss.obj.Path()
 }

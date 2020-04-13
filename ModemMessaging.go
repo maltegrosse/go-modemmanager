@@ -1,6 +1,9 @@
 package go_modemmanager
 
-import "github.com/godbus/dbus/v5"
+import (
+	"fmt"
+	"github.com/godbus/dbus/v5"
+)
 
 // The Messaging interface handles sending SMS messages and notification of new incoming messages.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
@@ -8,25 +11,193 @@ import "github.com/godbus/dbus/v5"
 // be used (including listing stored messages).
 
 const (
-	MessagingInterface = ModemInterface + ".Messaging"
+	ModemMessagingInterface = ModemInterface + ".Messaging"
 
 	/* Methods */
+	ModemMessagingList   = ModemMessagingInterface + ".List"
+	ModemMessagingDelete = ModemMessagingInterface + ".Delete"
+	ModemMessagingCreate = ModemMessagingInterface + ".Create"
 
 	/* Property */
-
+	ModemMessagingPropertyMessages          = ModemMessagingInterface + ".Messages"
+	ModemMessagingPropertySupportedStorages = ModemMessagingInterface + ".SupportedStorages"
+	ModemMessagingPropertyDefaultStorage    = ModemMessagingInterface + ".DefaultStorage"
 )
 
-type Messaging interface {
+type ModemMessaging interface {
 	/* METHODS */
+	// Returns object path
+	GetObjectPath() dbus.ObjectPath
 
-	//MarshalJSON() ([]byte, error)
+	MarshalJSON() ([]byte, error)
+
+	// Retrieve all SMS messages. This method should only be used once and subsequent information retrieved either
+	// by listening for the "Added" signal, or by querying the specific SMS object of interest.
+	List() ([]Sms, error)
+
+	// Delete an SMS message.
+	Delete(Sms) error
+
+	// Creates a new message object.
+	// The 'Number' and either 'Text' or 'Data' properties are mandatory, others are optional.
+	// If the SMSC is not specified and one is required, the default SMSC is used.
+	// Optional Parameters are given has Pairs, where left side is property name as string, and right side the value as string
+	// When sending, if the text/data is larger than the limit of the technology or modem, the message will be broken into multiple parts or messages.
+
+	CreateSms(number string, text string, optionalParameters ...Pair) (Sms error)
+	CreateMms(number string, data []byte, optionalParameters ...Pair) (Sms error)
+
+	/* PROPERTIES */
+
+	// The list of SMS object paths.
+	GetMessages() ([]Sms, error)
+
+	// A list of MMSmsStorage values, specifying the storages supported by this modem for storing and receiving SMS.
+	GetSupportedStorages() ([]MMSmsStorage, error)
+
+	// A MMSmsStorage value, specifying the storage to be used when receiving or storing SMS.
+	GetDefaultStorage() (MMSmsStorage, error)
+
+	/* SIGNALS */
+
+	// Added (o path,
+	//       b received);
+	// Emitted when any part of a new SMS has been received or added (but not for subsequent parts, if any).
+	// For messages received from the network, not all parts may have been received and the message may not be complete.
+	// Check the 'State' property to determine if the message is complete.
+	// 		o path: Object path of the new SMS.
+	// 		b received: TRUE if the message was received from the network, as opposed to being added locally.
+	//
+	// Deleted (o path);
+	// Emitted when a message has been deleted.
+	// 		o path: Object path of the now deleted SMS.
+
+	Subscribe() <-chan *dbus.Signal
+	Unsubscribe()
 }
 
-func NewMessaging(objectPath dbus.ObjectPath) (Messaging, error) {
-	var me messaging
+func NewModemMessaging(objectPath dbus.ObjectPath) (ModemMessaging, error) {
+	var me modemMessaging
 	return &me, me.init(ModemManagerInterface, objectPath)
 }
 
-type  messaging struct {
+type modemMessaging struct {
 	dbusBase
+	sigChan chan *dbus.Signal
+}
+
+func (me modemMessaging) GetObjectPath() dbus.ObjectPath {
+	return me.obj.Path()
+}
+
+func (me modemMessaging) List() (sms []Sms, err error) {
+	// todo: untested
+	var smsPaths []dbus.ObjectPath
+	err = me.callWithReturn(&smsPaths, ModemMessagingList)
+	if err != nil {
+		return
+	}
+
+	for idx := range smsPaths {
+		singleSms, err := NewSms(smsPaths[idx])
+		if err != nil {
+			return
+		}
+		sms = append(sms, singleSms)
+	}
+	return
+}
+
+func (me modemMessaging) Delete(sms Sms) error {
+	// todo: untested
+	objPath := sms.GetObjectPath()
+	return me.call(ModemMessagingDelete, &objPath)
+}
+
+func (me modemMessaging) CreateSms(number string, text string, optionalParameters ...Pair) (Sms error) {
+	// todo: untested
+	type dynMap interface{}
+	var myMap map[string]dynMap
+	myMap = make(map[string]dynMap)
+	myMap["number"] = number
+	myMap["text"] = text
+	for _, pair := range optionalParameters {
+		myMap[fmt.Sprint(pair.GetLeft())] = fmt.Sprint(pair.GetRight())
+	}
+	return me.call(ModemMessagingCreate, &myMap)
+}
+
+func (me modemMessaging) CreateMms(number string, data []byte, optionalParameters ...Pair) (Sms error) {
+	// todo: untested
+	type dynMap interface{}
+	var myMap map[string]dynMap
+	myMap = make(map[string]dynMap)
+	myMap["number"] = number
+	myMap["data"] = data
+	for _, pair := range optionalParameters {
+		myMap[fmt.Sprint(pair.GetLeft())] = fmt.Sprint(pair.GetRight())
+	}
+	return me.call(ModemMessagingCreate, &myMap)
+}
+
+func (me modemMessaging) GetMessages() (sms []Sms, err error) {
+	// todo: untested
+	smsPaths, err := me.getSliceObjectProperty(ModemMessagingPropertyMessages)
+	if err != nil {
+		return
+	}
+	for idx := range smsPaths {
+		singleSms, err := NewSms(smsPaths[idx])
+		if err != nil {
+			return
+		}
+		sms = append(sms, singleSms)
+	}
+	return
+}
+
+func (me modemMessaging) GetSupportedStorages() (storages []MMSmsStorage, err error) {
+	// todo: untested
+	s, err := me.getSliceUint32Property(ModemMessagingPropertySupportedStorages)
+	if err != nil {
+		return
+	}
+
+	for _, c := range s {
+		storages = append(storages, MMSmsStorage(c))
+
+	}
+	return
+}
+
+func (me modemMessaging) GetDefaultStorage() (storage MMSmsStorage, err error) {
+	// todo: untested
+	s, err := me.getUint32Property(ModemMessagingPropertyDefaultStorage)
+	if err != nil {
+		return
+	}
+	return MMSmsStorage(s), nil
+}
+
+func (me modemMessaging) Subscribe() <-chan *dbus.Signal {
+	// todo: fix signal
+	if me.sigChan != nil {
+		return me.sigChan
+	}
+
+	me.subscribeNamespace(ModemManagerObjectPath)
+	me.sigChan = make(chan *dbus.Signal, 10)
+	me.conn.Signal(me.sigChan)
+
+	return me.sigChan
+}
+
+func (me modemMessaging) Unsubscribe() {
+	me.conn.RemoveSignal(me.sigChan)
+	me.sigChan = nil
+}
+
+func (me modemMessaging) MarshalJSON() ([]byte, error) {
+	// todo: implement
+	panic("implement me")
 }

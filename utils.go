@@ -554,10 +554,10 @@ func ReturnString(object interface{}) string {
 	return strings.Join(resSlice, ", ")
 }
 
-func SetField(obj interface{}, name string, value interface{}, useTags bool) error {
+func SetField(obj interface{}, name string, value interface{}, useJsonTags bool) error {
 	structValue := reflect.ValueOf(obj).Elem()
 	var structFieldValue reflect.Value
-	if useTags {
+	if useJsonTags {
 		fieldName, err := getFieldNameByTag(obj, name)
 		if err != nil {
 			return err

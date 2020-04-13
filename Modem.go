@@ -74,28 +74,31 @@ type Modem interface {
 	// todo: add GetInterfacePath
 
 	// Returns ModemSimple Interface
-	GetSimpleModem() (ModemSimple,error)
+	GetSimpleModem() (ModemSimple, error)
 
 	// Returns Modem3gpp Interface
-	GetModem3gpp() (Modem3gpp,error)
+	Get3gpp() (Modem3gpp, error)
 
 	// Return ModemCdma Interface
-	GetModemCdma()(ModemCdma,error)
+	GetCdma() (ModemCdma, error)
 
 	// Return ModemTime Interface
-	GetModemTime()(ModemTime,error)
+	GetTime() (ModemTime, error)
 
 	// Return ModemFirmware Interface
-	GetModemFirmware()(ModemFirmware,error)
+	GetFirmware() (ModemFirmware, error)
 
 	// Return ModemSignal Interface
-	GetModemSignal()(ModemSignal,error)
+	GetSignal() (ModemSignal, error)
 
 	// Return ModemSignal Interface
-	GetModemOma()(ModemOma,error)
+	GetOma() (ModemOma, error)
 
 	// Return ModemLocation Interface
-	GetModemLocation()(ModemLocation,error)
+	GetLocation() (ModemLocation, error)
+
+	// Return ModemMessaging Interface
+	GetMessaging() (ModemMessaging, error)
 
 	// Enables the Modem: When enabled, the modem's radio is powered on and data sessions, voice calls,
 	// location services, and Short Message Service may be available.
@@ -152,7 +155,6 @@ type Modem interface {
 	// u reason: A MMModemStateChangeReason value, specifying the reason for this state change.
 	Subscribe() <-chan *dbus.Signal
 	Unsubscribe()
-
 
 	/* METHODS to get Properties */
 	// The path of the SIM object available in this device, if any.
@@ -303,38 +305,42 @@ type Mode struct {
 	AllowedModes  []MMModemMode
 	PreferredMode MMModemMode
 }
+
 func (m modem) GetObjectPath() dbus.ObjectPath {
 	return m.obj.Path()
 }
 
-func (m modem) GetSimpleModem()(ModemSimple,error){
+func (m modem) GetSimpleModem() (ModemSimple, error) {
 	return NewModemSimple(m.obj.Path())
 }
-func (m modem) GetModem3gpp()(Modem3gpp,error){
+func (m modem) Get3gpp() (Modem3gpp, error) {
 	return NewModem3gpp(m.obj.Path())
 }
-func (m modem) GetModemCdma()(ModemCdma,error){
+func (m modem) GetCdma() (ModemCdma, error) {
 	return NewModemCdma(m.obj.Path())
 }
 
-func (m modem) GetModemTime()(ModemTime,error){
+func (m modem) GetTime() (ModemTime, error) {
 	return NewModemTime(m.obj.Path())
 }
 
-func (m modem) GetModemFirmware()(ModemFirmware,error){
+func (m modem) GetFirmware() (ModemFirmware, error) {
 	return NewModemFirmware(m.obj.Path())
 }
 
-func (m modem) GetModemSignal()(ModemSignal,error){
+func (m modem) GetSignal() (ModemSignal, error) {
 	return NewModemSignal(m.obj.Path())
 }
 
-func (m modem) GetModemOma()(ModemOma,error){
+func (m modem) GetOma() (ModemOma, error) {
 	return NewModemOma(m.obj.Path())
 }
 
-func (m modem) GetModemLocation()(ModemLocation,error){
+func (m modem) GetLocation() (ModemLocation, error) {
 	return NewModemLocation(m.obj.Path())
+}
+func (m modem) GetMessaging() (ModemMessaging, error) {
+	return NewModemMessaging(m.obj.Path())
 }
 
 func (m modem) Enable() error {
