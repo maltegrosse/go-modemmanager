@@ -42,6 +42,7 @@ package go_modemmanager
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"net"
@@ -551,4 +552,47 @@ func ReturnString(object interface{}) string {
 		}
 	}
 	return strings.Join(resSlice, ", ")
+}
+
+func SetField(obj interface{}, name string, value interface{}, useTags bool) error {
+	structValue := reflect.ValueOf(obj).Elem()
+	var structFieldValue reflect.Value
+	if useTags {
+		fieldName, err := getFieldNameByTag(obj, name)
+		if err != nil {
+			return err
+		}
+		structFieldValue = structValue.FieldByName(fieldName)
+	} else {
+		structFieldValue = structValue.FieldByName(name)
+	}
+
+	if !structFieldValue.IsValid() {
+		return fmt.Errorf("no such field: %s in obj", name)
+	}
+
+	if !structFieldValue.CanSet() {
+		return fmt.Errorf("nannot set %s field value", name)
+	}
+
+	structFieldType := structFieldValue.Type()
+	val := reflect.ValueOf(value)
+	if structFieldType != val.Type() {
+		return errors.New("provided value type didn't match obj field type")
+	}
+
+	structFieldValue.Set(val)
+	return nil
+}
+func getFieldNameByTag(obj interface{}, name string) (fieldName string, err error) {
+	v := reflect.ValueOf(obj)
+	st := reflect.TypeOf(obj)
+	for i := 0; i < v.NumField(); i++ {
+		field := st.Field(i)
+		tag := field.Tag.Get("json")
+		if tag == name {
+			return field.Name, nil
+		}
+	}
+	return "", errors.New("no field tag found")
 }
