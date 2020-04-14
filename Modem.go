@@ -156,7 +156,8 @@ type Modem interface {
 	Subscribe() <-chan *dbus.Signal
 	Unsubscribe()
 
-	/* METHODS to get Properties */
+	/* PROPERTIES */
+
 	// The path of the SIM object available in this device, if any.
 	GetSim() (Sim, error)
 
