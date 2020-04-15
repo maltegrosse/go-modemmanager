@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/maltegrosse/go-modemmanager"
 	"log"
+	"time"
 )
 
 func main() {
@@ -275,7 +276,7 @@ func main() {
 			}
 			fmt.Println("Disconnected Bearers: ")
 		*/
-		modem3gpp, err := modem.GetModem3gpp()
+		modem3gpp, err := modem.Get3gpp()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -365,13 +366,13 @@ func main() {
 		fmt.Println("Ussd for: ", ussd.GetObjectPath())
 
 		// cdma untested as not available via qmi
-		mCdma, err := modem.GetModemCdma()
+		mCdma, err := modem.GetCdma()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 		fmt.Println("ModemCdma for: ", mCdma.GetObjectPath())
 
-		modemTime, err := modem.GetModemTime()
+		modemTime, err := modem.GetTime()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -389,7 +390,7 @@ func main() {
 		}
 		fmt.Println("Current Network Time Zone: ", modemNTimeZone)
 
-		modemFirmware, err := modem.GetModemFirmware()
+		modemFirmware, err := modem.GetFirmware()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -408,7 +409,7 @@ func main() {
 		}
 		fmt.Println("ModemFirmware UpdateSettings: ", updateSettings)
 
-		modemSignal, err := modem.GetModemSignal()
+		modemSignal, err := modem.GetSignal()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -457,7 +458,7 @@ func main() {
 		}
 		fmt.Println("Signal Lte: ", mSignalLte)
 
-		currentSignal, err := modemSignal.GetCurrentSignal()
+		currentSignal, err := modemSignal.GetCurrentSignals()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -470,13 +471,13 @@ func main() {
 		fmt.Println("Set Signal rate to 0 sec, disabled...")
 
 		// OMA untested as not available via qmi
-		modemOma, err := modem.GetModemOma()
+		modemOma, err := modem.GetOma()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 		fmt.Println("ModemOMA at: ", modemOma.GetObjectPath())
 
-		modemLocation, err := modem.GetModemLocation()
+		modemLocation, err := modem.GetLocation()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -488,6 +489,43 @@ func main() {
 		}
 		fmt.Println("Capabilities: ", mlCap)
 
+
+		var tmpLocCap []go_modemmanager.MMModemLocationSource
+		tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSource3gppLacCi)
+		err = modemLocation.Setup(tmpLocCap,true)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+
+		mloc, err := modemLocation.GetCurrentLocation()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Location 3gppLacCi: ", mloc.ThreeGppLacCi)
+
+		mlocEnabledSources, err := modemLocation.GetEnabledLocationSources()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Location Enabled Sources: ", mlocEnabledSources)
+
+		gpsAvailable := true
+		if gpsAvailable{
+			tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSourceGpsRaw)
+			fmt.Println(tmpLocCap)
+			err = modemLocation.Setup(tmpLocCap,true)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Wait two seconds until gps signal is ready")
+			time.Sleep(2*time.Second)
+			mloc, err = modemLocation.GetCurrentLocation()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Location GpsRaw: ", mloc.GpsRaw)
+		}
 	}
 	fmt.Println("### Modems End ###")
 	/*fmt.Println()

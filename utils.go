@@ -553,26 +553,54 @@ func ReturnString(object interface{}) string {
 	}
 	return strings.Join(resSlice, ", ")
 }
+ func FillStructByMap(obj interface{}, inputMap map[string]interface{})(res interface{}){
+	 v := reflect.ValueOf(obj)
+	 ps := reflect.ValueOf(&obj)
+	 st := reflect.TypeOf(obj)
+	 s := ps.Elem()
 
-func SetField(obj interface{}, name string, value interface{}, useJsonTags bool) error {
+	 for i := 0; i < v.NumField(); i++ {
+		 field := st.Field(i)
+		 fmt.Println(field,s)
+		 tag := field.Tag.Get("json")
+		// value := v.Field(i).Interface()
+		fmt.Println(tag)
+
+
+		 for k, value := range inputMap {
+			 if k == tag{
+			//	 f := s.FieldByName(fmt.Sprint(field.Name))
+			//	 fmt.Println(f.CanSet())
+				 val := reflect.ValueOf(value)
+				// v.Field(i).Set(value)
+				fmt.Println(val, tag)
+				// fmt.Println(reflect.TypeOf(value))
+				// fmt.Println(v.Field(i).CanSet())
+				// fmt.Println(v.Field(i).Kind())
+			//	 if val.Type() == v.Field(i).Kind()
+
+
+			}
+		}
+	 }
+	 fmt.Println(obj)
+ 	return
+ }
+func SetField(obj interface{}, name string, value interface{}) error {
 	structValue := reflect.ValueOf(obj).Elem()
-	var structFieldValue reflect.Value
-	if useJsonTags {
+
 		fieldName, err := getFieldNameByTag(obj, name)
 		if err != nil {
 			return err
 		}
-		structFieldValue = structValue.FieldByName(fieldName)
-	} else {
-		structFieldValue = structValue.FieldByName(name)
-	}
+		structFieldValue := structValue.FieldByName(fieldName)
 
 	if !structFieldValue.IsValid() {
 		return fmt.Errorf("no such field: %s in obj", name)
 	}
 
 	if !structFieldValue.CanSet() {
-		return fmt.Errorf("nannot set %s field value", name)
+		return fmt.Errorf("can not set %s field value", name)
 	}
 
 	structFieldType := structFieldValue.Type()

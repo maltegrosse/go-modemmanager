@@ -101,7 +101,7 @@ func (me modemMessaging) List() (sms []Sms, err error) {
 	for idx := range smsPaths {
 		singleSms, err := NewSms(smsPaths[idx])
 		if err != nil {
-			return
+			return nil, err
 		}
 		sms = append(sms, singleSms)
 	}
@@ -149,7 +149,7 @@ func (me modemMessaging) GetMessages() (sms []Sms, err error) {
 	for idx := range smsPaths {
 		singleSms, err := NewSms(smsPaths[idx])
 		if err != nil {
-			return
+			return nil, err
 		}
 		sms = append(sms, singleSms)
 	}
@@ -167,6 +167,7 @@ func (me modemMessaging) GetSupportedStorages() (storages []MMSmsStorage, err er
 		storages = append(storages, MMSmsStorage(c))
 
 	}
+
 	return
 }
 
@@ -199,5 +200,4 @@ func (me modemMessaging) Unsubscribe() {
 
 func (me modemMessaging) MarshalJSON() ([]byte, error) {
 	// todo: implement
-	panic("implement me")
-}
+	panic("not implemented") }
