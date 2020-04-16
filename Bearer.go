@@ -22,7 +22,7 @@ const (
 	BearerPropertyIp4Config  = BearerInterface + ".Ip4Config"  // readable   a{sv}
 	BearerPropertyIp6Config  = BearerInterface + ".Ip6Config"  // readable   a{sv}
 	BearerPropertyStats      = BearerInterface + ".Stats"      // readable   a{sv}
-	BearerPropertyIpTimeout  = BearerInterface + ".IpTimeout " // readable   u
+	BearerPropertyIpTimeout  = BearerInterface + ".IpTimeout"  // readable   u
 	BearerPropertyBearerType = BearerInterface + ".BearerType" // readable   u
 	BearerPropertyProperties = BearerInterface + ".Properties" // readable   a{sv}
 
@@ -157,8 +157,8 @@ func (bp BearerProperty) String() string {
 }
 
 type BearerStats struct {
-	RxBytes  int64  `json:"rx-bytes"` // Number of bytes received without error, given as an unsigned 64-bit integer value (signature "t").
-	TxBytes  int64  `json:"tx-bytes"` // Number bytes transmitted without error, given as an unsigned 64-bit integer value (signature "t").
+	RxBytes  uint64 `json:"rx-bytes"` // Number of bytes received without error, given as an unsigned 64-bit integer value (signature "t").
+	TxBytes  uint64 `json:"tx-bytes"` // Number bytes transmitted without error, given as an unsigned 64-bit integer value (signature "t").
 	Duration uint32 `json:"duration"` // Duration of the connection, in seconds, given as an unsigned integer value (signature "u").
 }
 
@@ -196,16 +196,107 @@ func (be bearer) GetIp4Config() (bi bearerIpConfig, err error) {
 	if err != nil {
 		return bi, err
 	}
-	fmt.Println(tmpMap)
+
+	bi.IpFamily = MmBearerIpFamilyIpv4
+	for key, element := range tmpMap {
+		switch key {
+		case "method":
+			tmpValue, ok := element.Value().(uint32)
+			if ok {
+				bi.Method = MMBearerIpMethod(tmpValue)
+			}
+		case "address":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bi.Address = tmpValue
+			}
+		case "prefix":
+			tmpValue, ok := element.Value().(uint32)
+			if ok {
+				bi.Prefix = tmpValue
+			}
+		case "dns1":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bi.Dns1 = tmpValue
+			}
+		case "dns2":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bi.Dns2 = tmpValue
+			}
+		case "dns3":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bi.Dns3 = tmpValue
+			}
+		case "gateway":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bi.Gateway = tmpValue
+			}
+		case "mtu":
+			tmpValue, ok := element.Value().(uint32)
+			if ok {
+				bi.Mtu = tmpValue
+			}
+
+		}
+	}
 	return
 }
 
 func (be bearer) GetIp6Config() (bi bearerIpConfig, err error) {
-	tmpMap, err := be.getMapStringVariantProperty(BearerPropertyIp4Config)
+	tmpMap, err := be.getMapStringVariantProperty(BearerPropertyIp6Config)
 	if err != nil {
 		return bi, err
 	}
-	fmt.Println(tmpMap)
+	bi.IpFamily = MmBearerIpFamilyIpv6
+	for key, element := range tmpMap {
+		switch key {
+		case "method":
+			tmpValue, ok := element.Value().(uint32)
+			if ok {
+				bi.Method = MMBearerIpMethod(tmpValue)
+			}
+		case "address":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bi.Address = tmpValue
+			}
+		case "prefix":
+			tmpValue, ok := element.Value().(uint32)
+			if ok {
+				bi.Prefix = tmpValue
+			}
+		case "dns1":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bi.Dns1 = tmpValue
+			}
+		case "dns2":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bi.Dns2 = tmpValue
+			}
+		case "dns3":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bi.Dns3 = tmpValue
+			}
+		case "gateway":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bi.Gateway = tmpValue
+			}
+		case "mtu":
+			tmpValue, ok := element.Value().(uint32)
+			if ok {
+				bi.Mtu = tmpValue
+			}
+
+		}
+	}
 	return
 }
 
@@ -214,7 +305,26 @@ func (be bearer) GetStats() (br BearerStats, err error) {
 	if err != nil {
 		return br, err
 	}
-	fmt.Println(tmpMap)
+	for key, element := range tmpMap {
+		switch key {
+		case "duration":
+			tmpValue, ok := element.Value().(uint32)
+			if ok {
+				br.Duration = tmpValue
+			}
+		case "rx-bytes":
+			tmpValue, ok := element.Value().(uint64)
+			if ok {
+				br.RxBytes = tmpValue
+			}
+		case "tx-bytes":
+			tmpValue, ok := element.Value().(uint64)
+			if ok {
+				br.TxBytes = tmpValue
+			}
+
+		}
+	}
 	return
 }
 
@@ -235,7 +345,50 @@ func (be bearer) GetProperties() (bp BearerProperty, err error) {
 	if err != nil {
 		return bp, err
 	}
-	fmt.Println(tmpMap)
+	for key, element := range tmpMap {
+		switch key {
+		case "apn":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bp.APN = tmpValue
+			}
+		case "ip-type":
+			tmpValue, ok := element.Value().(uint32)
+			if ok {
+				bp.IPType = MMBearerIpFamily(tmpValue)
+			}
+		case "allowed-auth":
+			tmpValue, ok := element.Value().(uint32)
+			if ok {
+				bp.AllowedAuth = MMBearerAllowedAuth(tmpValue)
+			}
+		case "user":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bp.User = tmpValue
+			}
+		case "password":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bp.Password = tmpValue
+			}
+		case "allow-roaming":
+			tmpValue, ok := element.Value().(bool)
+			if ok {
+				bp.AllowRoaming = tmpValue
+			}
+		case "rm-protocol":
+			tmpValue, ok := element.Value().(uint32)
+			if ok {
+				bp.RMProtocol = MMModemCdmaRmProtocol(tmpValue)
+			}
+		case "number":
+			tmpValue, ok := element.Value().(string)
+			if ok {
+				bp.Number = tmpValue
+			}
+		}
+	}
 	return
 }
 func (be bearer) MarshalJSON() ([]byte, error) {

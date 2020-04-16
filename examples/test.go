@@ -38,24 +38,116 @@ func main() {
 		// test gps
 		gpsAvailable := false
 
-
 		//err = modem.Enable()
 		//if err != nil {
 		//	log.Fatal(err.Error())
 		//}
-
+		fmt.Println("### START Sim ####")
 		sim, err := modem.GetSim()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Found Sim: ", sim.GetObjectPath())
+		fmt.Println(" Found Sim: ", sim.GetObjectPath())
+
+		simIdent, err := sim.GetSimIdentifier()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("-  SimIdentifier", simIdent)
+
+		simImsi, err := sim.GetImsi()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("-  Imsi", simImsi)
+
+		simOpIdent, err := sim.GetOperatorIdentifier()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("-  OperatorIdentifier", simOpIdent)
+
+		simOp, err := sim.GetOperatorName()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("-  OperatorName", simOp)
+
+		simEm, err := sim.GetEmergencyNumbers()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("-  EmergencyNumbers", simEm)
+
+
+		fmt.Println("### END Sim ###")
+
 		bearers, err := modem.GetBearers()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
+		fmt.Println("### START Bearer ####")
 		for _, bearer := range bearers {
-			fmt.Println("Found bearer:", bearer.GetObjectPath())
+			fmt.Println("Found bearer at:", bearer.GetObjectPath())
+			bearerInterface, err := bearer.GetInterface()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("- Interface:", bearerInterface)
+
+			bearerConnected, err := bearer.GetConnected()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("- Connected:", bearerConnected)
+
+			bearerSuspended, err := bearer.GetSuspended()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("- Suspended:", bearerSuspended)
+
+			bearerip4, err := bearer.GetIp4Config()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("- Ip4Config:", bearerip4)
+
+			bearerip6, err := bearer.GetIp6Config()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("- Ip6Config:", bearerip6)
+
+			bearerStats, err := bearer.GetStats()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("- Stats:", bearerStats)
+
+			beareripTimeout, err := bearer.GetIpTimeout()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("- IpTimeout:", beareripTimeout)
+
+			bearerType, err := bearer.GetBearerType()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("- BearerType:", bearerType)
+
+			bearerProperties, err := bearer.GetProperties()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("- Properties:", bearerProperties)
+
 		}
+
+		fmt.Println("### END Bearer ###")
+
+		fmt.Println("### START Modem ####")
 		supportedCapabilites, err := modem.GetSupportedCapabilities()
 		if err != nil {
 			log.Fatal(err.Error())
@@ -254,7 +346,7 @@ func main() {
 		}
 		fmt.Println("New Bearer: ",newBearer)
 		*/
-
+		fmt.Println("### START Simple Modem ####")
 		modemSimple, err := modem.GetSimpleModem()
 		if err != nil {
 			log.Fatal(err.Error())
@@ -280,6 +372,9 @@ func main() {
 			}
 			fmt.Println("Disconnected Bearers: ")
 		*/
+		fmt.Println("### END Simple Modem ####")
+
+		fmt.Println("### START 3GPP ####")
 		modem3gpp, err := modem.Get3gpp()
 		if err != nil {
 			log.Fatal(err.Error())
@@ -369,13 +464,16 @@ func main() {
 		}
 		fmt.Println("Ussd for: ", ussd.GetObjectPath())
 
+		fmt.Println("### END 3GPP ####")
 		// cdma untested as not available via qmi
+
 		mCdma, err := modem.GetCdma()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 		fmt.Println("ModemCdma for: ", mCdma.GetObjectPath())
 
+		fmt.Println("### START Time ####")
 		modemTime, err := modem.GetTime()
 		if err != nil {
 			log.Fatal(err.Error())
@@ -393,7 +491,9 @@ func main() {
 			log.Fatal(err.Error())
 		}
 		fmt.Println("Current Network Time Zone: ", modemNTimeZone)
+		fmt.Println("### END Time ####")
 
+		fmt.Println("### START Firmware ####")
 		modemFirmware, err := modem.GetFirmware()
 		if err != nil {
 			log.Fatal(err.Error())
@@ -412,7 +512,9 @@ func main() {
 			log.Fatal(err.Error())
 		}
 		fmt.Println("ModemFirmware UpdateSettings: ", updateSettings)
+		fmt.Println("### END Firmware ####")
 
+		fmt.Println("### START Signal ####")
 		modemSignal, err := modem.GetSignal()
 		if err != nil {
 			log.Fatal(err.Error())
@@ -473,7 +575,7 @@ func main() {
 			log.Fatal(err.Error())
 		}
 		fmt.Println("Set Signal rate to 0 sec, disabled...")
-
+		fmt.Println("### END Signal ####")
 		// OMA untested as not available via qmi
 		modemOma, err := modem.GetOma()
 		if err != nil {
@@ -481,6 +583,7 @@ func main() {
 		}
 		fmt.Println("ModemOMA at: ", modemOma.GetObjectPath())
 
+		fmt.Println("### START Location ####")
 		modemLocation, err := modem.GetLocation()
 		if err != nil {
 			log.Fatal(err.Error())
@@ -493,14 +596,12 @@ func main() {
 		}
 		fmt.Println("Capabilities: ", mlCap)
 
-
 		var tmpLocCap []go_modemmanager.MMModemLocationSource
 		tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSource3gppLacCi)
-		err = modemLocation.Setup(tmpLocCap,true)
+		err = modemLocation.Setup(tmpLocCap, true)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-
 
 		mloc, err := modemLocation.GetCurrentLocation()
 		if err != nil {
@@ -514,8 +615,7 @@ func main() {
 		}
 		fmt.Println("Location Enabled Sources: ", mlocEnabledSources)
 
-
-		if gpsAvailable{
+		if gpsAvailable {
 			//tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSourceGpsRaw)
 			//err = modemLocation.Setup(tmpLocCap,true)
 			//if err != nil {
@@ -530,12 +630,12 @@ func main() {
 			//fmt.Println("Location GpsRaw: ", mloc.GpsRaw)
 
 			tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSourceGpsNmea)
-			err = modemLocation.Setup(tmpLocCap,true)
+			err = modemLocation.Setup(tmpLocCap, true)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
 			fmt.Println("Wait four seconds until gps signal is ready")
-			time.Sleep(4*time.Second)
+			time.Sleep(4 * time.Second)
 
 			mlocEnabledSources, err := modemLocation.GetEnabledLocationSources()
 			if err != nil {
@@ -549,10 +649,8 @@ func main() {
 			}
 			fmt.Println("Location Set Refresh rate to 1 sec: ")
 
-
-
 			fmt.Println("Wait four seconds until gps signal is ready")
-			time.Sleep(4*time.Second)
+			time.Sleep(4 * time.Second)
 			mloc, err = modemLocation.GetCurrentLocation()
 			if err != nil {
 				log.Fatal(err.Error())
@@ -596,9 +694,10 @@ func main() {
 			}
 			fmt.Println("Location GpsRefreshRate: ", mlocrefreshr)
 
-
 		}
+		fmt.Println("### END Location ####")
 
+		fmt.Println("### START Messaging ####")
 		// sms
 		messaging, err := modem.GetMessaging()
 		if err != nil {
@@ -612,39 +711,231 @@ func main() {
 		}
 		fmt.Println("Found ", len(smss), " SMS")
 
-		for _, sms:= range smss {
-			fmt.Println("SMS at ", sms.GetObjectPath())
+		// See comments regarding method and property
+		//smss2, err := messaging.GetMessages()
+		//if err != nil {
+		//	log.Fatal(err.Error())
+		//}
+		//fmt.Println("Found ", len(smss2), " SMS")
+
+		messSS, err := messaging.GetSupportedStorages()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("SMS Supported Storages ", messSS)
+
+		messDS, err := messaging.GetDefaultStorage()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("SMS Default Storage ", messDS)
+
+		for _, sms := range smss {
+			fmt.Println(" SMS at ", sms.GetObjectPath())
+
+			smsState, err := sms.GetState()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - State: ", smsState)
+
+			smsPdu, err := sms.GetPduType()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - PduType: ", smsPdu)
+
+			smsNo, err := sms.GetNumber()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - Number: ", smsNo)
 
 			smsTxt, err := sms.GetText()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
 			fmt.Println(" - Text: ", smsTxt)
+
+			smsData, err := sms.GetData()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - Data: ", smsData)
+
+			smsSmsc, err := sms.GetSMSC()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - SMSC: ", smsSmsc)
+
+			smsVal, err := sms.GetValidity()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - Validity: ", smsVal)
+
+			smsClass, err := sms.GetClass()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - Class: ", smsClass)
+
+			smsTid, err := sms.GetTeleserviceId()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - TeleserviceId: ", smsTid)
+
+			smsSc, err := sms.GetServiceCategory()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - ServiceCategory: ", smsSc)
+
+			smsDRR, err := sms.GetDeliveryReportRequest()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - DeliveryReportRequest: ", smsDRR)
+
+			smsMR, err := sms.GetMessageReference()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - MessageReference: ", smsMR)
+
+			smsTS, err := sms.GetTimestamp()
+			if err != nil {
+				fmt.Println(" - Timestamp: ", err.Error())
+
+			} else {
+				fmt.Println(" - Timestamp: ", smsTS)
+			}
+
+			smsDTS, err := sms.GetDischargeTimestamp()
+			if err != nil {
+				fmt.Println(" - DischargeTimestamp: ", err.Error())
+			} else {
+				fmt.Println(" - DischargeTimestamp: ", smsDTS)
+			}
+
+			smsDS, err := sms.GetDeliveryState()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - DeliveryState: ", smsDS)
+
+			smsStor, err := sms.GetStorage()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - Storage: ", smsStor)
 		}
+		//err = messaging.Delete(smss[1])
+		//if err != nil {
+		//	log.Fatal(err.Error())
+		//}
+		//fmt.Println("Deleted SMS at position 1")
 
+		// create and send sms
+		//singleSms, err := messaging.CreateSms("0172xxxx","greetings from modem manager")
+		//if err != nil {
+		//	log.Fatal(err.Error())
+		//} else {
+		//	fmt.Println(" - New sms at: ", singleSms.GetObjectPath())
+		//	err = singleSms.Send()
+		//	if err != nil {
+		//		log.Fatal(err.Error())
+		//	}
+		//	fmt.Println(" - SMS sent: ", singleSms.GetObjectPath())
+		//}
 
-	}
+		fmt.Println("### END Messaging ####")
 
-
-
-	fmt.Println("### Modems End ###")
-	/*fmt.Println()
-	fmt.Println("### Bearers Start ###")
-	bearers, err := mmgr.GetBearers()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	fmt.Println("found ", len(bearers), " bearer(s) ")
-	for _, bearer := range bearers {
-		fmt.Println("ObjectPath: ", bearer.GetObjectPath())
-
-		bearerInterface, err := bearer.GetInterface()
+		fmt.Println("### START Voice ####")
+		voice, err := modem.GetVoice()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Bearer Interface: ", bearerInterface)
+		fmt.Println(" voice at", voice.GetObjectPath())
+
+		call, err := voice.CreateCall("0173xxxx")
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println(" -starting call",call.GetObjectPath())
+		err = call.Start()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		time.Sleep(3*time.Second)
+		callState, err := call.GetState()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println(" -State",callState)
+
+		time.Sleep(3*time.Second)
+		callStateReason, err := call.GetStateReason()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println(" -StateReason",callStateReason)
+
+		time.Sleep(3*time.Second)
+		callDirection, err := call.GetDirection()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println(" -Direction",callDirection)
+
+		time.Sleep(3*time.Second)
+		callMulti, err := call.GetMultiparty()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println(" -Multiparty",callMulti)
+
+		time.Sleep(5*time.Second)
+		err = call.SendDtmf("123454567")
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Println(" -sent dtmf")
+
+		time.Sleep(5*time.Second)
+		callAudioPort, err := call.GetAudioPort()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println(" -AudioPort",callAudioPort)
+
+		time.Sleep(3*time.Second)
+		callFormat, err := call.GetAudioFormat()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println(" -AudioFormat",callFormat)
 
 
+		time.Sleep(10*time.Second)
+
+		// only works if accepted
+		err = call.Hangup()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Println(" -hangup call",call.GetObjectPath())
+
+		err = voice.HangupAll()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Println(" -hangup all",call.GetObjectPath())
+
+
+		fmt.Println("### END Voice ####")
 	}
-	fmt.Println("### Bearers End ###")*/
+
 }

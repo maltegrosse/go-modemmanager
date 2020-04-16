@@ -995,7 +995,7 @@ const (
 
 )
 
-type MMCallState uint32 // State of Call.
+type MMCallState int32 // State of Call.
 
 //go:generate stringer -type=MMCallState  -trimprefix=MmCallState
 const (
@@ -1010,7 +1010,7 @@ const (
 
 )
 
-type MMCallStateReason uint32 // Reason for the state change in the call.
+type MMCallStateReason int32 // Reason for the state change in the call.
 
 //go:generate stringer -type=MMCallStateReason -trimprefix=MmCallStateReason
 const (
@@ -1026,7 +1026,7 @@ const (
 	MmCallStateReasonDeflected        MMCallStateReason = 9 // Call has been deflected to a new number.
 )
 
-type MMCallDirection uint32 // Direction of the call.
+type MMCallDirection int32 // Direction of the call.
 
 //go:generate stringer -type=MMCallDirection -trimprefix=MmCallDirection
 const (

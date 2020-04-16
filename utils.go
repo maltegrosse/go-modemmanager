@@ -289,7 +289,21 @@ func (d *dbusBase) getMapUint32InterfaceProperty(iface string) (value map[uint32
 	if err != nil {
 		return
 	}
+
 	value, ok := prop.(map[uint32]interface{})
+	if !ok {
+		err = makeErrVariantType(iface)
+		return
+	}
+	return
+}
+func (d *dbusBase) getMapUint32VariantProperty(iface string) (value map[uint32]dbus.Variant, err error) {
+	prop, err := d.getProperty(iface)
+	if err != nil {
+		return
+	}
+
+	value, ok := prop.(map[uint32]dbus.Variant)
 	if !ok {
 		err = makeErrVariantType(iface)
 		return
@@ -553,39 +567,40 @@ func ReturnString(object interface{}) string {
 	}
 	return strings.Join(resSlice, ", ")
 }
- func FillStructByMap(obj interface{}, inputMap map[string]interface{})(res interface{}){
-	 v := reflect.ValueOf(obj)
-	 ps := reflect.ValueOf(&obj)
-	 st := reflect.TypeOf(obj)
-	 s := ps.Elem()
-
-	 for i := 0; i < v.NumField(); i++ {
-		 field := st.Field(i)
-		 fmt.Println(field,s)
-		 tag := field.Tag.Get("json")
-		// value := v.Field(i).Interface()
-		fmt.Println(tag)
-
-
-		 for k, value := range inputMap {
-			 if k == tag{
-			//	 f := s.FieldByName(fmt.Sprint(field.Name))
-			//	 fmt.Println(f.CanSet())
-				 val := reflect.ValueOf(value)
-				// v.Field(i).Set(value)
-				fmt.Println(val, tag)
-				// fmt.Println(reflect.TypeOf(value))
-				// fmt.Println(v.Field(i).CanSet())
-				// fmt.Println(v.Field(i).Kind())
-			//	 if val.Type() == v.Field(i).Kind()
-
-
-			}
-		}
-	 }
-	 fmt.Println(obj)
- 	return
- }
+ //
+ //func FillStructByMap(obj interface{}, inputMap map[string]interface{})(res interface{}){
+	// v := reflect.ValueOf(obj)
+	// ps := reflect.ValueOf(&obj)
+	// st := reflect.TypeOf(obj)
+	// s := ps.Elem()
+ //
+	// for i := 0; i < v.NumField(); i++ {
+	//	 field := st.Field(i)
+	//	 fmt.Println(field,s)
+	//	 tag := field.Tag.Get("json")
+	//	// value := v.Field(i).Interface()
+	//	fmt.Println(tag)
+ //
+ //
+	//	 for k, value := range inputMap {
+	//		 if k == tag{
+	//		//	 f := s.FieldByName(fmt.Sprint(field.Name))
+	//		//	 fmt.Println(f.CanSet())
+	//			 val := reflect.ValueOf(value)
+	//			// v.Field(i).Set(value)
+	//			fmt.Println(val, tag)
+	//			// fmt.Println(reflect.TypeOf(value))
+	//			// fmt.Println(v.Field(i).CanSet())
+	//			// fmt.Println(v.Field(i).Kind())
+	//		//	 if val.Type() == v.Field(i).Kind()
+ //
+ //
+	//		}
+	//	}
+	// }
+	// fmt.Println(obj)
+ //	return
+ //}
 func SetField(obj interface{}, name string, value interface{}) error {
 	structValue := reflect.ValueOf(obj).Elem()
 

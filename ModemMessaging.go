@@ -44,8 +44,8 @@ type ModemMessaging interface {
 	// Optional Parameters are given has Pairs, where left side is property name as string, and right side the value as string
 	// When sending, if the text/data is larger than the limit of the technology or modem, the message will be broken into multiple parts or messages.
 
-	CreateSms(number string, text string, optionalParameters ...Pair) (Sms error)
-	CreateMms(number string, data []byte, optionalParameters ...Pair) (Sms error)
+	CreateSms(number string, text string, optionalParameters ...Pair) (Sms, error)
+	CreateMms(number string, data []byte, optionalParameters ...Pair) (Sms, error)
 
 	/* PROPERTIES */
 
@@ -91,7 +91,6 @@ func (me modemMessaging) GetObjectPath() dbus.ObjectPath {
 }
 
 func (me modemMessaging) List() (sms []Sms, err error) {
-	// todo: untested
 	var smsPaths []dbus.ObjectPath
 	err = me.callWithReturn(&smsPaths, ModemMessagingList)
 	if err != nil {
@@ -109,13 +108,11 @@ func (me modemMessaging) List() (sms []Sms, err error) {
 }
 
 func (me modemMessaging) Delete(sms Sms) error {
-	// todo: untested
 	objPath := sms.GetObjectPath()
 	return me.call(ModemMessagingDelete, &objPath)
 }
 
-func (me modemMessaging) CreateSms(number string, text string, optionalParameters ...Pair) (Sms error) {
-	// todo: untested
+func (me modemMessaging) CreateSms(number string, text string, optionalParameters ...Pair) (Sms, error) {
 	type dynMap interface{}
 	var myMap map[string]dynMap
 	myMap = make(map[string]dynMap)
@@ -124,10 +121,19 @@ func (me modemMessaging) CreateSms(number string, text string, optionalParameter
 	for _, pair := range optionalParameters {
 		myMap[fmt.Sprint(pair.GetLeft())] = fmt.Sprint(pair.GetRight())
 	}
-	return me.call(ModemMessagingCreate, &myMap)
+	var path dbus.ObjectPath
+	err := me.callWithReturn(&path,ModemMessagingCreate, &myMap)
+	if err != nil {
+		return nil, err
+	}
+	singleSms, err := NewSms(path)
+	if err != nil {
+		return nil, err
+	}
+	return singleSms, nil
 }
 
-func (me modemMessaging) CreateMms(number string, data []byte, optionalParameters ...Pair) (Sms error) {
+func (me modemMessaging) CreateMms(number string, data []byte, optionalParameters ...Pair) (Sms, error) {
 	// todo: untested
 	type dynMap interface{}
 	var myMap map[string]dynMap
@@ -137,11 +143,19 @@ func (me modemMessaging) CreateMms(number string, data []byte, optionalParameter
 	for _, pair := range optionalParameters {
 		myMap[fmt.Sprint(pair.GetLeft())] = fmt.Sprint(pair.GetRight())
 	}
-	return me.call(ModemMessagingCreate, &myMap)
+	var path dbus.ObjectPath
+	err := me.callWithReturn(&path,ModemMessagingCreate, &myMap)
+	if err != nil {
+		return nil, err
+	}
+	singleSms, err := NewSms(path)
+	if err != nil {
+		return nil, err
+	}
+	return singleSms, nil
 }
 
 func (me modemMessaging) GetMessages() (sms []Sms, err error) {
-	// todo: untested
 	smsPaths, err := me.getSliceObjectProperty(ModemMessagingPropertyMessages)
 	if err != nil {
 		return
@@ -157,22 +171,17 @@ func (me modemMessaging) GetMessages() (sms []Sms, err error) {
 }
 
 func (me modemMessaging) GetSupportedStorages() (storages []MMSmsStorage, err error) {
-	// todo: untested
 	s, err := me.getSliceUint32Property(ModemMessagingPropertySupportedStorages)
 	if err != nil {
 		return
 	}
-
 	for _, c := range s {
 		storages = append(storages, MMSmsStorage(c))
-
 	}
-
 	return
 }
 
 func (me modemMessaging) GetDefaultStorage() (storage MMSmsStorage, err error) {
-	// todo: untested
 	s, err := me.getUint32Property(ModemMessagingPropertyDefaultStorage)
 	if err != nil {
 		return

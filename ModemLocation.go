@@ -2,7 +2,6 @@ package go_modemmanager
 
 import (
 	"errors"
-	"fmt"
 	"github.com/godbus/dbus/v5"
 	"strings"
 	"time"
@@ -131,7 +130,7 @@ type currentLocation struct {
 }
 
 func (cl currentLocation) String() string {
-		return ReturnString(cl)
+	return ReturnString(cl)
 
 }
 
@@ -146,15 +145,6 @@ type threeGppLacCiLocation struct {
 func (tgp threeGppLacCiLocation) String() string {
 	return ReturnString(tgp)
 }
-func (tgp threeGppLacCiLocation) FillStruct(m map[string]interface{}) (err error) {
-	for k, v := range m {
-		err := SetField(tgp, k, v)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 type gpsRawLocation struct {
 	UtcTime   time.Time `json:"utc-time"`  // (Required) UTC time in ISO 8601 format, given as a string value (signature "s"). e.g. 203015.
@@ -166,12 +156,6 @@ type gpsRawLocation struct {
 func (rgps gpsRawLocation) String() string {
 	return ReturnString(rgps)
 
-}
-func (rgps gpsRawLocation) FillStruct(m map[string]interface{}) (err error) {
-	FillStructByMap(rgps,m)
-
-
-	return nil
 }
 
 type gpsNmeaLocation struct {
@@ -191,15 +175,6 @@ func (cdma cdmaBsLocation) String() string {
 	return ReturnString(cdma)
 
 }
-func (cdma cdmaBsLocation) FillStruct(m map[string]interface{}) (err error) {
-	for k, v := range m {
-		err := SetField(cdma, k, v)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func (lo modemLocation) GetObjectPath() dbus.ObjectPath {
 	return lo.obj.Path()
@@ -213,8 +188,7 @@ func (lo modemLocation) Setup(sources []MMModemLocationSource, enableSignal bool
 }
 
 func (lo modemLocation) GetCurrentLocation() (loc currentLocation, err error) {
-
-	var res map[uint32]interface{}
+	var res map[uint32]dbus.Variant
 	err = lo.callWithReturn(&res, ModemLocationGetLocation)
 	if err != nil {
 		return
@@ -233,7 +207,6 @@ func (lo modemLocation) InjectAssistanceData(data []byte) error {
 }
 
 func (lo modemLocation) SetGpsRefreshRate(rate uint32) error {
-	// todo: untested
 	return lo.call(ModemLocationSetGpsRefreshRate, &rate)
 }
 
@@ -247,7 +220,6 @@ func (lo modemLocation) GetCapabilities() ([]MMModemLocationSource, error) {
 }
 
 func (lo modemLocation) GetSupportedAssistanceData() ([]MMModemLocationAssistanceDataType, error) {
-	// todo: untested
 	res, err := lo.getUint32Property(ModemLocationPropertySupportedAssistanceData)
 	if err != nil {
 		return nil, err
@@ -266,20 +238,17 @@ func (lo modemLocation) GetEnabledLocationSources() ([]MMModemLocationSource, er
 }
 
 func (lo modemLocation) GetSignalsLocation() (bool, error) {
-	// todo: untested
 	return lo.getBoolProperty(ModemLocationPropertySignalsLocation)
 }
 
 func (lo modemLocation) GetLocation() (locs currentLocation, err error) {
-	// todo: untested
-	res, err := lo.getMapUint32InterfaceProperty(ModemLocationPropertyLocation)
+	res, err := lo.getMapUint32VariantProperty(ModemLocationPropertyLocation)
 	if err != nil {
 		return
 	}
 	return lo.createLocation(res)
 }
-func (lo modemLocation) createLocation(res map[uint32]interface{}) (locs currentLocation, err error) {
-	// todo: untested
+func (lo modemLocation) createLocation(res map[uint32]dbus.Variant) (locs currentLocation, err error) {
 	var sourceTypeM MMModemLocationSource
 	for key, element := range res {
 		sType := sourceTypeM.BitmaskToSlice(key)
@@ -288,7 +257,7 @@ func (lo modemLocation) createLocation(res map[uint32]interface{}) (locs current
 			locationType := sType[0]
 			switch locationType {
 			case MmModemLocationSource3gppLacCi:
-				tmpString, ok := element.(string)
+				tmpString, ok := element.Value().(string)
 				if ok {
 					res := strings.Split(tmpString, ",")
 					if len(res) == 5 {
@@ -305,7 +274,7 @@ func (lo modemLocation) createLocation(res map[uint32]interface{}) (locs current
 
 				}
 			case MmModemLocationSourceGpsRaw:
-				tmpMap, ok := element.(map[string]interface{})
+				tmpMap, ok := element.Value().(map[string]interface{})
 
 				var gpsRaw gpsRawLocation
 				if ok {
@@ -321,7 +290,7 @@ func (lo modemLocation) createLocation(res map[uint32]interface{}) (locs current
 								}
 								now := time.Now().UTC()
 								// workaround as date is missing
-								t = t.AddDate(now.Year(),int(now.Month()),now.Day())
+								t = t.AddDate(now.Year(), int(now.Month()), now.Day())
 								gpsRaw.UtcTime = t
 							}
 						case "altitude":
@@ -346,22 +315,33 @@ func (lo modemLocation) createLocation(res map[uint32]interface{}) (locs current
 				}
 
 			case MmModemLocationSourceGpsNmea:
-				tmpString, ok := element.(string)
-				fmt.Println(tmpString)
+				tmpString, ok := element.Value().(string)
 				if ok {
 					var nmea gpsNmeaLocation
-					// todo: double check the <CR><LF> is replaced with the actual ASCII CR (0x0D) and LF (0x0A) control characters
-					nmea.NmeaSentences = strings.Split(tmpString, "<CR><LF>")
+					splitString := strings.Split(tmpString, "\n")
+					var tmpRes []string
+					for _, nmea := range splitString {
+						// just in case something weird returned
+						if strings.ContainsAny(nmea, "*") {
+							tmpRes = append(tmpRes, strings.TrimSpace(nmea))
+						}
+					}
+					nmea.NmeaSentences = tmpRes
 					locs.GpsNmea = nmea
 				}
 			case MmModemLocationSourceCdmaBs:
-				tmpMap, ok := element.(map[string]interface{})
-				fmt.Println(tmpMap)
+				// todo: untested
+				tmpMap, ok := element.Value().(map[string]float64)
 				if ok {
 					var cdma cdmaBsLocation
-					err = cdma.FillStruct(tmpMap)
-					if err != nil {
-						return
+					for k, v := range tmpMap {
+						switch k {
+						case "latitude":
+							cdma.Latitude = v
+
+						case "longitude":
+							cdma.Longitude = v
+						}
 					}
 					locs.CdmaBs = cdma
 				}
@@ -373,12 +353,11 @@ func (lo modemLocation) createLocation(res map[uint32]interface{}) (locs current
 }
 
 func (lo modemLocation) GetSuplServer() (string, error) {
-	// todo: untested
+
 	return lo.getStringProperty(ModemLocationPropertySuplServer)
 }
 
 func (lo modemLocation) GetAssistanceDataServers() ([]string, error) {
-	// todo: untested
 	return lo.getSliceStringProperty(ModemLocationPropertyAssistanceDataServers)
 }
 
