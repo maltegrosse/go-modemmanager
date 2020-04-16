@@ -35,6 +35,10 @@ func main() {
 	for _, modem := range modems {
 		fmt.Println("ObjectPath: ", modem.GetObjectPath())
 
+		// test gps
+		gpsAvailable := false
+
+
 		//err = modem.Enable()
 		//if err != nil {
 		//	log.Fatal(err.Error())
@@ -510,23 +514,119 @@ func main() {
 		}
 		fmt.Println("Location Enabled Sources: ", mlocEnabledSources)
 
-		gpsAvailable := true
+
 		if gpsAvailable{
-			tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSourceGpsRaw)
-			fmt.Println(tmpLocCap)
+			//tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSourceGpsRaw)
+			//err = modemLocation.Setup(tmpLocCap,true)
+			//if err != nil {
+			//	log.Fatal(err.Error())
+			//}
+			//fmt.Println("Wait two seconds until gps signal is ready")
+			//time.Sleep(2*time.Second)
+			//mloc, err = modemLocation.GetCurrentLocation()
+			//if err != nil {
+			//	log.Fatal(err.Error())
+			//}
+			//fmt.Println("Location GpsRaw: ", mloc.GpsRaw)
+
+			tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSourceGpsNmea)
 			err = modemLocation.Setup(tmpLocCap,true)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Wait two seconds until gps signal is ready")
-			time.Sleep(2*time.Second)
+			fmt.Println("Wait four seconds until gps signal is ready")
+			time.Sleep(4*time.Second)
+
+			mlocEnabledSources, err := modemLocation.GetEnabledLocationSources()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Location Enabled Sources: ", mlocEnabledSources)
+
+			err = modemLocation.SetGpsRefreshRate(1)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Location Set Refresh rate to 1 sec: ")
+
+
+
+			fmt.Println("Wait four seconds until gps signal is ready")
+			time.Sleep(4*time.Second)
 			mloc, err = modemLocation.GetCurrentLocation()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Location GpsRaw: ", mloc.GpsRaw)
+			// use e.g. github.com/adrianmo/go-nmea to parse
+			fmt.Println("Location GpsNmea: ", mloc.GpsNmea)
+
+			mlocsdata, err := modemLocation.GetSupportedAssistanceData()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Location SupportedAssistanceData: ", mlocsdata)
+
+			mlocssignal, err := modemLocation.GetSignalsLocation()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Location SignalsLocation: ", mlocssignal)
+
+			mloc2, err := modemLocation.GetLocation()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Location Property: ", mloc2)
+
+			mlocSuplS, err := modemLocation.GetSuplServer()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Location SuplServer: ", mlocSuplS)
+
+			mlocAssDs, err := modemLocation.GetAssistanceDataServers()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Location AssistanceDataServers: ", mlocAssDs)
+
+			mlocrefreshr, err := modemLocation.GetGpsRefreshRate()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println("Location GpsRefreshRate: ", mlocrefreshr)
+
+
 		}
+
+		// sms
+		messaging, err := modem.GetMessaging()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("ModemMessaging at: ", messaging.GetObjectPath())
+
+		smss, err := messaging.List()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println("Found ", len(smss), " SMS")
+
+		for _, sms:= range smss {
+			fmt.Println("SMS at ", sms.GetObjectPath())
+
+			smsTxt, err := sms.GetText()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" - Text: ", smsTxt)
+		}
+
+
 	}
+
+
+
 	fmt.Println("### Modems End ###")
 	/*fmt.Println()
 	fmt.Println("### Bearers Start ###")
