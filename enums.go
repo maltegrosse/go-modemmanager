@@ -1162,6 +1162,7 @@ func (fu MMModemFirmwareUpdateMethod) SliceToBitmask(updateMethods []MMModemFirm
 // MMLoggingLevel Logging Level of ModemManager
 type MMLoggingLevel string
 
+// multiple logging levels for modem manager
 const (
 	MMLoggingLevelError   MMLoggingLevel = "ERR"   // logging level error.
 	MMLoggingLevelWarning MMLoggingLevel = "WARN"  // logging level warning.
@@ -1172,8 +1173,9 @@ const (
 // MMKernelPropertyAction The type of action, given as a string value (signature "s"). This parameter is MANDATORY.
 type MMKernelPropertyAction string
 
+// mm kernel property actions
 const (
-	MMKernelPropertyActionAdd    MMKernelPropertyAction = "add"    // 	A new kernel device has been added.
+	MMKernelPropertyActionAdd    MMKernelPropertyAction = "add"    // A new kernel device has been added.
 	MMKernelPropertyActionRemove MMKernelPropertyAction = "remove" // An existing kernel device has been removed.
 )
 
