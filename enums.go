@@ -459,7 +459,7 @@ const (
 	MmSmsDeliveryStateTemporaryFatalErrorInSme             MMSmsDeliveryState = 0x65 // Permanent error in SME.
 
 	/* Unknown, out of any possible valid value [0x00-0xFF] */
-	MmSmsDeliveryStateUnknown = 0x100 // Unknown state.
+	MmSmsDeliveryStateUnknown MMSmsDeliveryState = 0x100 // Unknown state.
 
 	/* --------------- 3GPP2 specific errors ---------------------- */
 

@@ -260,7 +260,6 @@ func (ss sms) GetDischargeTimestamp() (time.Time, error) {
 }
 
 func (ss sms) GetDeliveryState() (MMSmsDeliveryState, error) {
-	// todo: hex not working as enum
 	res, err := ss.getUint32Property(SmsPropertyDeliveryState)
 	if err != nil {
 		return MmSmsDeliveryStateUnknown, err
