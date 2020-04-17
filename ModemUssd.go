@@ -62,7 +62,7 @@ type Ussd interface {
 	GetNetworkRequest() (string, error)
 }
 
-// Returns new ModemUssd Interface
+// NewUssd returns new ModemUssd Interface
 func NewUssd(objectPath dbus.ObjectPath) (Ussd, error) {
 	var mu ussd
 	return &mu, mu.init(ModemManagerInterface, objectPath)

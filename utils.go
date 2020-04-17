@@ -60,22 +60,22 @@ type Pair struct {
 	a, b interface{}
 }
 
-// get left value
+// GetLeft returns left value
 func (p Pair) GetLeft() interface{} {
 	return p.a
 }
 
-// get right value
+// GetRight returns right value
 func (p Pair) GetRight() interface{} {
 	return p.b
 }
 
-// set left value
+// SetLeft value
 func (p Pair) SetLeft(left interface{}) {
 	p.a = left
 }
 
-// set right value
+// SetRight value
 func (p Pair) SetRight(right interface{}) {
 	p.b = right
 }

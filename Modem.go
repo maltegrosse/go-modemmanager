@@ -289,7 +289,7 @@ type Modem interface {
 	MarshalJSON() ([]byte, error)
 }
 
-// Returns new Modem Interface
+// NewModem returns new Modem Interface
 func NewModem(objectPath dbus.ObjectPath) (Modem, error) {
 	var m modem
 	return &m, m.init(ModemManagerInterface, objectPath)
@@ -306,7 +306,7 @@ type port struct {
 	PortType MMModemPortType // Modem Port Type
 }
 
-// Represents the modem access technology modes
+// Mode represents the modem access technology modes
 type Mode struct {
 	AllowedModes  []MMModemMode // allowed modes.
 	PreferredMode MMModemMode   // preferred access technology

@@ -75,7 +75,7 @@ type ModemOma interface {
 	GetSessionState() (MMOmaSessionState, error)
 }
 
-// Returns new ModemOma Interface
+// NewModemOma returns new ModemOma Interface
 func NewModemOma(objectPath dbus.ObjectPath) (ModemOma, error) {
 	var om modemOma
 	return &om, om.init(ModemManagerInterface, objectPath)

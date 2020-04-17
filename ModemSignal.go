@@ -59,7 +59,7 @@ type ModemSignal interface {
 	GetLte() (signalProperty, error)
 }
 
-// Returns new ModemSignal Interface
+// NewModemSignal returns new ModemSignal Interface
 func NewModemSignal(objectPath dbus.ObjectPath) (ModemSignal, error) {
 	var si modemSignal
 	return &si, si.init(ModemManagerInterface, objectPath)

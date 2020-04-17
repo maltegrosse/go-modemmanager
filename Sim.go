@@ -66,7 +66,7 @@ type Sim interface {
 	MarshalJSON() ([]byte, error)
 }
 
-// Returns new Sim Interface
+// NewSim returns new Sim Interface
 func NewSim(objectPath dbus.ObjectPath) (Sim, error) {
 	var sm sim
 	return &sm, sm.init(ModemManagerInterface, objectPath)

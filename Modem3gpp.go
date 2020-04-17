@@ -107,7 +107,7 @@ type Modem3gpp interface {
 	MarshalJSON() ([]byte, error)
 }
 
-// Returns new Modem3gppInterface
+// NewModem3gpp returns new Modem3gppInterface
 func NewModem3gpp(objectPath dbus.ObjectPath) (Modem3gpp, error) {
 	var m3gpp modem3gpp
 	scanResults = networkScanResult{Recent: false}

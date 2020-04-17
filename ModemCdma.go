@@ -75,7 +75,7 @@ type ModemCdma interface {
 	GetEvdoRegistrationState() (MMModemCdmaRegistrationState, error)
 }
 
-// Returns new ModemCdma Interface
+// NewModemCdma returns new ModemCdma Interface
 func NewModemCdma(objectPath dbus.ObjectPath) (ModemCdma, error) {
 	var mc modemCdma
 	return &mc, mc.init(ModemManagerInterface, objectPath)

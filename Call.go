@@ -111,7 +111,7 @@ type Call interface {
 	Unsubscribe()
 }
 
-// Returns new Call Interface
+// NewCall returns new Call Interface
 func NewCall(objectPath dbus.ObjectPath) (Call, error) {
 	var ca call
 	return &ca, ca.init(ModemManagerInterface, objectPath)

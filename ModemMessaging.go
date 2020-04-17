@@ -76,7 +76,7 @@ type ModemMessaging interface {
 	Unsubscribe()
 }
 
-// Returns new ModemMessagingInterface
+// NewModemMessaging returns new ModemMessagingInterface
 func NewModemMessaging(objectPath dbus.ObjectPath) (ModemMessaging, error) {
 	var me modemMessaging
 	return &me, me.init(ModemManagerInterface, objectPath)

@@ -45,7 +45,7 @@ type ModemTime interface {
 	GetNetworkTimezone() (modemTimeZone, error)
 }
 
-// Returns new ModemTime Interface
+// NewModemTime returns new ModemTime Interface
 func NewModemTime(objectPath dbus.ObjectPath) (ModemTime, error) {
 	var ti modemTime
 	return &ti, ti.init(ModemManagerInterface, objectPath)

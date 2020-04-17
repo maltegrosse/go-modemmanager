@@ -113,7 +113,7 @@ type ModemLocation interface {
 	GetGpsRefreshRate() (uint32, error)
 }
 
-// Returns new ModemLocation Interface
+// NewModemLocation returns new ModemLocation Interface
 func NewModemLocation(objectPath dbus.ObjectPath) (ModemLocation, error) {
 	var lo modemLocation
 	return &lo, lo.init(ModemManagerInterface, objectPath)

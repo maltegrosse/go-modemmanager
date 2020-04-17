@@ -18,7 +18,7 @@ const (
 
 )
 
-// The Simple interface allows controlling and querying the status of Modems.
+// The ModemSimple interface allows controlling and querying the status of Modems.
 // This interface will only be available once the modem is ready to be registered in the
 // cellular network. 3GPP devices will require a valid unlocked SIM card before any of the
 // features in the interface can be used.
@@ -41,9 +41,10 @@ type ModemSimple interface {
 	Disconnect(bearer Bearer) error
 
 	// Get the general modem status.
-	GetStatus() (SimpleStatus, error)
+	GetStatus() (simpleStatus, error)
 	MarshalJSON() ([]byte, error)
 }
+// SimpleProperties defines all available properties
 type SimpleProperties struct {
 	Pin            string                `json:"pin"`           // SIM-PIN unlock code, given as a string value (signature "s").
 	OperatorId     string                `json:"operator-id"`   // ETSI MCC-MNC of a network to force registration with, given as a string value (signature "s").
@@ -57,8 +58,11 @@ type SimpleProperties struct {
 	RmProtocol     MMModemCdmaRmProtocol `json:"rm-protocol"`   // For CDMA devices, the protocol of the Rm interface, given as a MMModemCdmaRmProtocol value (signature "u").
 
 }
-
-type SimpleStatus struct {
+func (sp SimpleProperties) String() string {
+	return returnString(sp)
+}
+// simpleStatus represents all properties of the current connection state
+type simpleStatus struct {
 	State                       MMModemState                 `json:"state"`                          // A MMModemState value specifying the overall state of the modem, given as an unsigned integer value (signature "u")
 	SignalQuality               uint32                       `json:"signal-quality"`                 // Signal quality value, given only when registered, as an unsigned integer value (signature "u").
 	CurrentBands                []MMModemBand                `json:"current-bands"`                  // List of MMModemBand values, given only when registered, as a list of unsigned integer values (signature "au").
@@ -71,7 +75,10 @@ type SimpleStatus struct {
 	CdmaSid                     uint32                       `json:"cdma-sid"`                       // The System Identifier of the serving network, if registered in a CDMA1x network and if known. Given as an unsigned integer value (signature "u").
 	CdmaNid                     uint32                       `json:"cdma-nid"`                       // The Network Identifier of the serving network, if registered in a CDMA1x network and if known. Given as an unsigned integer value (signature "u").
 }
-
+func (ss simpleStatus) String() string {
+	return returnString(ss)
+}
+// NewModemSimple returns new ModemSimple Interface
 func NewModemSimple(objectPath dbus.ObjectPath) (ModemSimple, error) {
 	var ms modemSimple
 	return &ms, ms.init(ModemManagerInterface, objectPath)
@@ -108,7 +115,7 @@ func (ms modemSimple) Disconnect(bearer Bearer) error {
 	return ms.call(ModemSimpleDisconnect, bearer.GetObjectPath())
 }
 
-func (ms modemSimple) GetStatus() (status SimpleStatus, err error) {
+func (ms modemSimple) GetStatus() (status simpleStatus, err error) {
 	type dynMap interface{}
 	var myMap map[string]dynMap
 	myMap = make(map[string]dynMap)

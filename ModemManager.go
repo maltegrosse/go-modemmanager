@@ -57,7 +57,7 @@ type ModemManager interface {
 	MarshalJSON() ([]byte, error)
 }
 
-// Returns new ModemManager Interface
+// NewModemManager returns new ModemManager Interface
 func NewModemManager() (ModemManager, error) {
 	var mm modemManager
 	return &mm, mm.init(ModemManagerInterface, ModemManagerObjectPath)

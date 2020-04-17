@@ -50,7 +50,7 @@ type ModemFirmware interface {
 	GetUpdateSettings() (updateSettingsProperty, error)
 }
 
-// Returns new ModemFirmware Interface
+// NewModemFirmware returns new ModemFirmware Interface
 func NewModemFirmware(objectPath dbus.ObjectPath) (ModemFirmware, error) {
 	var fi modemFirmware
 	return &fi, fi.init(ModemManagerInterface, objectPath)

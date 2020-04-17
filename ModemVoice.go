@@ -100,7 +100,7 @@ type ModemVoice interface {
 	Unsubscribe()
 }
 
-// Returns new ModemVoice Interface
+// NewModemVoice returns new ModemVoice Interface
 func NewModemVoice(objectPath dbus.ObjectPath) (ModemVoice, error) {
 	var vo modemVoice
 	return &vo, vo.init(ModemManagerInterface, objectPath)

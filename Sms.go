@@ -121,7 +121,7 @@ type Sms interface {
 	MarshalJSON() ([]byte, error)
 }
 
-// Returns new Sms Interface
+// NewSms returns new Sms Interface
 func NewSms(objectPath dbus.ObjectPath) (Sms, error) {
 	var ss sms
 	return &ss, ss.init(ModemManagerInterface, objectPath)

@@ -100,7 +100,7 @@ type Bearer interface {
 	GetProperties() (BearerProperty, error)
 }
 
-// Returns new Bearer Interface
+// NewBearer returns new Bearer Interface
 func NewBearer(objectPath dbus.ObjectPath) (Bearer, error) {
 	var be bearer
 	return &be, be.init(ModemManagerInterface, objectPath)
