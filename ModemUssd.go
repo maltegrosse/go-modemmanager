@@ -1,9 +1,9 @@
-package go_modemmanager
+package modemmanager
 
 import "github.com/godbus/dbus/v5"
 
 
-
+// Paths of methods and properties
 const (
 	Modem3gppUssdInterface = Modem3gppInterface + ".Ussd"
 

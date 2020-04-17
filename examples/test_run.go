@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	mmgr, err := go_modemmanager.NewModemManager()
+	mmgr, err := modemmanager.NewModemManager()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	err = mmgr.SetLogging(go_modemmanager.MMLoggingLevelDebug)
+	err = mmgr.SetLogging(modemmanager.MMLoggingLevelDebug)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -596,8 +596,8 @@ func main() {
 		}
 		fmt.Println("Capabilities: ", mlCap)
 
-		var tmpLocCap []go_modemmanager.MMModemLocationSource
-		tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSource3gppLacCi)
+		var tmpLocCap []modemmanager.MMModemLocationSource
+		tmpLocCap = append(tmpLocCap, modemmanager.MmModemLocationSource3gppLacCi)
 		err = modemLocation.Setup(tmpLocCap, true)
 		if err != nil {
 			log.Fatal(err.Error())
@@ -629,7 +629,7 @@ func main() {
 			//}
 			//fmt.Println("Location GpsRaw: ", mloc.GpsRaw)
 
-			tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSourceGpsNmea)
+			tmpLocCap = append(tmpLocCap, modemmanager.MmModemLocationSourceGpsNmea)
 			err = modemLocation.Setup(tmpLocCap, true)
 			if err != nil {
 				log.Fatal(err.Error())
@@ -853,89 +853,94 @@ func main() {
 
 		fmt.Println("### END Messaging ####")
 
-		fmt.Println("### START Voice ####")
-		voice, err := modem.GetVoice()
-		if err != nil {
-			log.Fatal(err.Error())
+
+		enableVoiceTest := false
+		if enableVoiceTest {
+			fmt.Println("### START Voice ####")
+			voice, err := modem.GetVoice()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" voice at", voice.GetObjectPath())
+
+			call, err := voice.CreateCall("0173xxxx")
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" -starting call",call.GetObjectPath())
+			err = call.Start()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			time.Sleep(3*time.Second)
+			callState, err := call.GetState()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" -State",callState)
+
+			time.Sleep(3*time.Second)
+			callStateReason, err := call.GetStateReason()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" -StateReason",callStateReason)
+
+			time.Sleep(3*time.Second)
+			callDirection, err := call.GetDirection()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" -Direction",callDirection)
+
+			time.Sleep(3*time.Second)
+			callMulti, err := call.GetMultiparty()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" -Multiparty",callMulti)
+
+			time.Sleep(5*time.Second)
+			err = call.SendDtmf("123454567")
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			fmt.Println(" -sent dtmf")
+
+			time.Sleep(5*time.Second)
+			callAudioPort, err := call.GetAudioPort()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" -AudioPort",callAudioPort)
+
+			time.Sleep(3*time.Second)
+			callFormat, err := call.GetAudioFormat()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(" -AudioFormat",callFormat)
+
+
+			time.Sleep(10*time.Second)
+
+			// only works if accepted
+			err = call.Hangup()
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			fmt.Println(" -hangup call",call.GetObjectPath())
+
+			err = voice.HangupAll()
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			fmt.Println(" -hangup all",call.GetObjectPath())
+
+
+			fmt.Println("### END Voice ####")
 		}
-		fmt.Println(" voice at", voice.GetObjectPath())
 
-		call, err := voice.CreateCall("0173xxxx")
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		fmt.Println(" -starting call",call.GetObjectPath())
-		err = call.Start()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		time.Sleep(3*time.Second)
-		callState, err := call.GetState()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		fmt.Println(" -State",callState)
-
-		time.Sleep(3*time.Second)
-		callStateReason, err := call.GetStateReason()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		fmt.Println(" -StateReason",callStateReason)
-
-		time.Sleep(3*time.Second)
-		callDirection, err := call.GetDirection()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		fmt.Println(" -Direction",callDirection)
-
-		time.Sleep(3*time.Second)
-		callMulti, err := call.GetMultiparty()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		fmt.Println(" -Multiparty",callMulti)
-
-		time.Sleep(5*time.Second)
-		err = call.SendDtmf("123454567")
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		fmt.Println(" -sent dtmf")
-
-		time.Sleep(5*time.Second)
-		callAudioPort, err := call.GetAudioPort()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		fmt.Println(" -AudioPort",callAudioPort)
-
-		time.Sleep(3*time.Second)
-		callFormat, err := call.GetAudioFormat()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		fmt.Println(" -AudioFormat",callFormat)
-
-
-		time.Sleep(10*time.Second)
-
-		// only works if accepted
-		err = call.Hangup()
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		fmt.Println(" -hangup call",call.GetObjectPath())
-
-		err = voice.HangupAll()
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		fmt.Println(" -hangup all",call.GetObjectPath())
-
-
-		fmt.Println("### END Voice ####")
 	}
 
 }

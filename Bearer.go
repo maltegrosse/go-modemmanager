@@ -1,4 +1,4 @@
-package go_modemmanager
+package modemmanager
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 const (
 	BearerInterface = ModemManagerInterface + ".Bearer"
 
-	BearersObjectPath = modemManagerMainObjectPath + "Bearers"
 	/* Methods */
 	BearerConnect    = BearerInterface + ".Connect"
 	BearerDisconnect = BearerInterface + ".Disconnect"
@@ -26,6 +25,7 @@ const (
 	BearerPropertyProperties = BearerInterface + ".Properties" // readable   a{sv}
 
 )
+
 // This interface provides access to specific actions that may be performed on available bearers.
 type Bearer interface {
 	/* METHODS */

@@ -1,4 +1,4 @@
-package go_modemmanager
+package modemmanager
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 )
 
 
-
+// Paths of methods and properties
 const (
 	ModemSimpleInterface = ModemInterface + ".Simple"
 

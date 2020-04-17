@@ -1,4 +1,4 @@
-package go_modemmanager
+package modemmanager
 
 /*
  Copied and extended from https://github.com/Wifx/gonetworkmanager/blob/master/utils.go

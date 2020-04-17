@@ -1,4 +1,4 @@
-package go_modemmanager
+package modemmanager
 
 // ref https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/blob/master/include/ModemManager-enums.h
 

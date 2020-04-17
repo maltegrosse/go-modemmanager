@@ -1,4 +1,4 @@
-package go_modemmanager
+package modemmanager
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-
+// Paths of methods and properties
 const (
 	ModemLocationInterface = ModemInterface + ".Location"
 

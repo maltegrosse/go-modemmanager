@@ -1,4 +1,4 @@
-package go_modemmanager
+package modemmanager
 
 import (
 	"fmt"
