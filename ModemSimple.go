@@ -44,6 +44,7 @@ type ModemSimple interface {
 	GetStatus() (simpleStatus, error)
 	MarshalJSON() ([]byte, error)
 }
+
 // SimpleProperties defines all available properties
 type SimpleProperties struct {
 	Pin            string                `json:"pin"`           // SIM-PIN unlock code, given as a string value (signature "s").
@@ -58,9 +59,11 @@ type SimpleProperties struct {
 	RmProtocol     MMModemCdmaRmProtocol `json:"rm-protocol"`   // For CDMA devices, the protocol of the Rm interface, given as a MMModemCdmaRmProtocol value (signature "u").
 
 }
+
 func (sp SimpleProperties) String() string {
 	return returnString(sp)
 }
+
 // simpleStatus represents all properties of the current connection state
 type simpleStatus struct {
 	State                       MMModemState                 `json:"state"`                          // A MMModemState value specifying the overall state of the modem, given as an unsigned integer value (signature "u")
@@ -75,9 +78,11 @@ type simpleStatus struct {
 	CdmaSid                     uint32                       `json:"cdma-sid"`                       // The System Identifier of the serving network, if registered in a CDMA1x network and if known. Given as an unsigned integer value (signature "u").
 	CdmaNid                     uint32                       `json:"cdma-nid"`                       // The Network Identifier of the serving network, if registered in a CDMA1x network and if known. Given as an unsigned integer value (signature "u").
 }
+
 func (ss simpleStatus) String() string {
 	return returnString(ss)
 }
+
 // NewModemSimple returns new ModemSimple Interface
 func NewModemSimple(objectPath dbus.ObjectPath) (ModemSimple, error) {
 	var ms modemSimple

@@ -1,8 +1,6 @@
 package modemmanager
 
-// ref https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/blob/master/include/ModemManager-enums.h
-
-//  MMModemCapability Flags describing one or more of the general access technology families that a modem supports.
+// MMModemCapability Flags describing one or more of the general access technology families that a modem supports.
 type MMModemCapability uint32
 
 //go:generate stringer -type=MMModemCapability -trimprefix=MmModemCapability
@@ -561,7 +559,6 @@ const (
 )
 
 // MMSmsCdmaTeleserviceId Teleservice IDs supported for CDMA SMS, as defined in 3GPP2 X.S0004-550-E (section 2.256) and 3GPP2 C.S0015-B (section 3.4.3.1).
-
 type MMSmsCdmaTeleserviceId uint32
 
 //go:generate stringer -type=MMSmsCdmaTeleserviceId -trimprefix=MmSmsCdmaTeleserviceId
@@ -579,7 +576,6 @@ const (
 )
 
 // MMSmsCdmaServiceCategory Service category for CDMA SMS, as defined in 3GPP2 C.R1001-D (section 9.3).
-
 type MMSmsCdmaServiceCategory uint32
 
 //go:generate stringer -type=MMSmsCdmaServiceCategory -trimprefix=MmSmsCdmaServiceCategory
@@ -625,7 +621,6 @@ const (
 )
 
 // MMModemLocationSource Sources of location information supported by the modem.
-
 type MMModemLocationSource uint32
 
 //go:generate stringer -type=MMModemLocationSource -trimprefix=MmModemLocationSource
@@ -1194,3 +1189,5 @@ const (
 	MMSignalPropertyTypeLte  MMSignalPropertyType = 4 // Signal Type Lte.
 
 )
+
+// ref https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/blob/master/include/ModemManager-enums.h
