@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 )
-
+// nolint: gocyclo
 func main() {
 
 	mmgr, err := go_modemmanager.NewModemManager()

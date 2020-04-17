@@ -1,6 +1,6 @@
 Go-ModemManager
 ================
-[![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
+[![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org) ![Go](https://github.com/maltegrosse/go-modemmanager/workflows/Go/badge.svg) 
 
 Go D-Bus bindings for ModemManager
 Additional information: [ModemManager D-Bus Specs](https://www.freedesktop.org/software/ModemManager/api/1.12.0/ref-dbus.html)
