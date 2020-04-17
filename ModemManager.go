@@ -5,6 +5,7 @@ import (
 	"reflect"
 )
 
+// Paths of methods and properties
 const (
 	ModemManagerInterface = "org.freedesktop.ModemManager1"
 
@@ -21,7 +22,7 @@ const (
 	ModemManagerPropertyVersion = ModemManagerInterface + ".Version" // readable   s
 
 )
-
+// The Manager interface allows controlling and querying the status of the ModemManager daemon.
 type ModemManager interface {
 	/* METHODS */
 

@@ -6,10 +6,8 @@ import (
 	"time"
 )
 
-// This interface allows clients to receive network time and timezone updates broadcast by mobile networks.
-// This interface will only be available once the modem is ready to be registered in the cellular network.
-// 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used.
 
+// Paths of methods and properties
 const (
 	ModemTimeInterface = ModemInterface + ".Time"
 
@@ -20,7 +18,9 @@ const (
 	ModemTimePropertyNetworkTimezone = ModemTimeInterface + ".NetworkTimezone" //  readable   a{sv}
 
 )
-
+// This interface allows clients to receive network time and timezone updates broadcast by mobile networks.
+// This interface will only be available once the modem is ready to be registered in the cellular network.
+// 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used.
 type ModemTime interface {
 	/* METHODS */
 

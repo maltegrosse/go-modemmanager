@@ -6,13 +6,9 @@ import (
 	"reflect"
 )
 
-// The Modem interface controls the status and actions in a given modem object.
-// This interface will always be available as long a the modem is considered valid.
-
+// Paths of methods and properties
 const (
 	ModemInterface = ModemManagerInterface + ".Modem"
-
-	ModemsObjectPath = modemManagerMainObjectPath + "Modems"
 
 	/* Methods */
 	ModemEnable  = ModemInterface + ".Enable"
@@ -64,7 +60,8 @@ const (
 	ModemPropertySupportedIpFamilies          = ModemInterface + ".SupportedIpFamilies"          //         readable   u
 
 )
-
+// The Modem interface controls the status and actions in a given modem object.
+// This interface will always be available as long a the modem is considered valid.
 type Modem interface {
 	/* METHODS */
 

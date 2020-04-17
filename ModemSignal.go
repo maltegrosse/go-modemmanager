@@ -6,10 +6,8 @@ import (
 	"reflect"
 )
 
-// This interface provides access to extended signal quality information.
-// This interface will only be available once the modem is ready to be registered in the cellular network.
-// 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used.
 
+// Paths of methods and properties
 const (
 	ModemSignalInterface = ModemInterface + ".Signal"
 
@@ -23,7 +21,9 @@ const (
 	ModemSignalPropertyUmts = ModemSignalInterface + ".Umts"
 	ModemSignalPropertyLte  = ModemSignalInterface + ".Lte"
 )
-
+// This interface provides access to extended signal quality information.
+// This interface will only be available once the modem is ready to be registered in the cellular network.
+// 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used.
 type ModemSignal interface {
 	/* METHODS */
 

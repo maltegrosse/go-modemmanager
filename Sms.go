@@ -6,12 +6,10 @@ import (
 	"time"
 )
 
-// The SMS interface Defines operations and properties of a single SMS message.
+
 
 const (
 	SmsInterface = ModemManagerInterface + ".Sms"
-
-	SmssObjectPath = modemManagerMainObjectPath + "SMSs"
 
 	/* Methods */
 	SmsSend  = SmsInterface + ".Send"
@@ -39,7 +37,7 @@ const (
 	SmsPropertyStorage = SmsInterface + ".Storage" // readable   u
 
 )
-
+// The SMS interface Defines operations and properties of a single SMS message.
 type Sms interface {
 	/* METHODS */
 

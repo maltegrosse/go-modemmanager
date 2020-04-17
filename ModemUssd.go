@@ -2,12 +2,7 @@ package go_modemmanager
 
 import "github.com/godbus/dbus/v5"
 
-// This interface provides access to actions based on the USSD protocol.
-// This interface will only be available once the modem is ready to be registered in the
-// cellular network. 3GPP devices will require a valid unlocked SIM card before any of the features
-// in the interface can be used.
 
-// Todo: Untested, USSD via QMI not available: https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/issues/26
 
 const (
 	Modem3gppUssdInterface = Modem3gppInterface + ".Ussd"
@@ -21,7 +16,11 @@ const (
 	Modem3gppUssdPropertyNetworkNotification = Modem3gppUssdInterface + ".NetworkNotification" // readable   s
 	Modem3gppUssdProperty                    = Modem3gppUssdInterface + ".NetworkRequest"      // readable   s
 )
-
+// This interface provides access to actions based on the USSD protocol.
+// This interface will only be available once the modem is ready to be registered in the
+// cellular network. 3GPP devices will require a valid unlocked SIM card before any of the features
+// in the interface can be used.
+// Todo: Untested, USSD via QMI not available: https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/issues/26
 type Ussd interface {
 	/* METHODS */
 

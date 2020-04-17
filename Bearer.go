@@ -5,8 +5,7 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-// This interface provides access to specific actions that may be performed on available bearers.
-
+// Paths of methods and properties
 const (
 	BearerInterface = ModemManagerInterface + ".Bearer"
 
@@ -27,7 +26,7 @@ const (
 	BearerPropertyProperties = BearerInterface + ".Properties" // readable   a{sv}
 
 )
-
+// This interface provides access to specific actions that may be performed on available bearers.
 type Bearer interface {
 	/* METHODS */
 

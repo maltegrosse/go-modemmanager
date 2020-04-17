@@ -4,8 +4,7 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-// The Call interface Defines operations and properties of a single Call.
-
+// Paths of methods and properties
 const (
 	CallInterface = ModemManagerInterface + ".Call"
 
@@ -28,7 +27,7 @@ const (
 	CallPropertyAudioFormat = CallInterface + ".AudioFormat" // readable   a{sv}
 
 )
-
+// The Call interface Defines operations and properties of a single Call.
 type Call interface {
 	/* METHODS */
 

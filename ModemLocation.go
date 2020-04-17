@@ -7,12 +7,6 @@ import (
 	"time"
 )
 
-// The Location interface allows devices to provide location information to client applications.
-// Not all devices can provide this information, or even if they do, they may not be able to provide it while
-// a data session is active.
-// This interface will only be available once the modelo is ready to be registered in the cellular network.
-// 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used
-// (including GNSS module management).
 
 const (
 	ModemLocationInterface = ModemInterface + ".Location"
@@ -38,7 +32,12 @@ const (
 	ModemLocationPropertyGpsRefreshRate        = ModemLocationInterface + ".GpsRefreshRate"        // readable   u
 
 )
-
+// The Location interface allows devices to provide location information to client applications.
+// Not all devices can provide this information, or even if they do, they may not be able to provide it while
+// a data session is active.
+// This interface will only be available once the modelo is ready to be registered in the cellular network.
+// 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used
+// (including GNSS module management).
 type ModemLocation interface {
 	/* METHODS */
 

@@ -5,11 +5,8 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-// The Messaging interface handles sending SMS messages and notification of new incoming messages.
-// This interface will only be available once the modem is ready to be registered in the cellular network.
-// 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can
-// be used (including listing stored messages).
 
+// Paths of methods and properties
 const (
 	ModemMessagingInterface = ModemInterface + ".Messaging"
 
@@ -23,7 +20,10 @@ const (
 	ModemMessagingPropertySupportedStorages = ModemMessagingInterface + ".SupportedStorages"
 	ModemMessagingPropertyDefaultStorage    = ModemMessagingInterface + ".DefaultStorage"
 )
-
+// The Messaging interface handles sending SMS messages and notification of new incoming messages.
+// This interface will only be available once the modem is ready to be registered in the cellular network.
+// 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can
+// be used (including listing stored messages).
 type ModemMessaging interface {
 	/* METHODS */
 	// Returns object path

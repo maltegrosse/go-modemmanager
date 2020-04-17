@@ -6,10 +6,7 @@ import (
 	"reflect"
 )
 
-// The Simple interface allows controlling and querying the status of Modems.
-// This interface will only be available once the modem is ready to be registered in the
-// cellular network. 3GPP devices will require a valid unlocked SIM card before any of the
-// features in the interface can be used.
+
 
 const (
 	ModemSimpleInterface = ModemInterface + ".Simple"
@@ -21,7 +18,10 @@ const (
 	/* Property */
 
 )
-
+// The Simple interface allows controlling and querying the status of Modems.
+// This interface will only be available once the modem is ready to be registered in the
+// cellular network. 3GPP devices will require a valid unlocked SIM card before any of the
+// features in the interface can be used.
 type ModemSimple interface {
 	/* METHODS */
 
