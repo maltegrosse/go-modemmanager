@@ -23,7 +23,7 @@ const (
 
 )
 
-// The Manager interface allows controlling and querying the status of the ModemManager daemon.
+// The ModemManager interface allows controlling and querying the status of the ModemManager daemon.
 type ModemManager interface {
 	/* METHODS */
 
@@ -57,6 +57,7 @@ type ModemManager interface {
 	MarshalJSON() ([]byte, error)
 }
 
+// Returns new ModemManager Interface
 func NewModemManager() (ModemManager, error) {
 	var mm modemManager
 	return &mm, mm.init(ModemManagerInterface, ModemManagerObjectPath)
@@ -65,6 +66,8 @@ func NewModemManager() (ModemManager, error) {
 type modemManager struct {
 	dbusBase
 }
+
+// EventProperties  defines the properties which should be reported to the kernel
 type EventProperties struct {
 	Action    MMKernelPropertyAction `json:"action"`    // The type of action, given as a string value (signature "s"). This parameter is MANDATORY.
 	Name      string                 `json:"name"`      // The device name, given as a string value (signature "s"). This parameter is MANDATORY.

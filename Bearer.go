@@ -26,7 +26,7 @@ const (
 
 )
 
-// This interface provides access to specific actions that may be performed on available bearers.
+// Bearer interface provides access to specific actions that may be performed on available bearers.
 type Bearer interface {
 	/* METHODS */
 
@@ -88,7 +88,7 @@ type Bearer interface {
 	// If the modem supports it, this property will show statistics of the ongoing connection.
 	// When the connection is disconnected automatically or explicitly by the user, the values in this
 	// property will show the last values cached. The statistics are reset
-	GetStats() (BearerStats, error)
+	GetStats() (bearerStats, error)
 
 	// Maximum time to wait for a successful IP establishment, when PPP is used.
 	GetIpTimeout() (uint32, error)
@@ -100,6 +100,7 @@ type Bearer interface {
 	GetProperties() (BearerProperty, error)
 }
 
+// Returns new Bearer Interface
 func NewBearer(objectPath dbus.ObjectPath) (Bearer, error) {
 	var be bearer
 	return &be, be.init(ModemManagerInterface, objectPath)
@@ -109,6 +110,7 @@ type bearer struct {
 	dbusBase
 }
 
+// bearerIpConfig represents all available ip configuration properties
 type bearerIpConfig struct {
 	Method   MMBearerIpMethod `json:"method"`    // Mandatory: A MMBearerIpMethod, given as an unsigned integer value (signature "u").
 	Address  string           `json:"address"`   // 	IP address, given as a string value (signature "s").
@@ -133,6 +135,7 @@ func (bc bearerIpConfig) String() string {
 		", IpFamily: " + fmt.Sprint(bc.IpFamily)
 }
 
+// BearerProperty represents all properties of a bearer
 type BearerProperty struct {
 	APN          string                `json:"apn"`           // Access Point Name, given as a string value (signature "s"). Required in 3GPP.
 	IPType       MMBearerIpFamily      `json:"ip-type"`       // Addressing type, given as a MMBearerIpFamily value (signature "u"). Optional in 3GPP and CDMA.
@@ -155,13 +158,14 @@ func (bp BearerProperty) String() string {
 		", Number: " + bp.Number
 }
 
-type BearerStats struct {
+// bearerStats represents all stats according to the bearer
+type bearerStats struct {
 	RxBytes  uint64 `json:"rx-bytes"` // Number of bytes received without error, given as an unsigned 64-bit integer value (signature "t").
 	TxBytes  uint64 `json:"tx-bytes"` // Number bytes transmitted without error, given as an unsigned 64-bit integer value (signature "t").
 	Duration uint32 `json:"duration"` // Duration of the connection, in seconds, given as an unsigned integer value (signature "u").
 }
 
-func (bs BearerStats) String() string {
+func (bs bearerStats) String() string {
 	return "RxBytes: " + fmt.Sprint(bs.RxBytes) +
 		", TxBytes: " + fmt.Sprint(bs.TxBytes) +
 		", Duration: " + fmt.Sprint(bs.Duration)
@@ -299,7 +303,7 @@ func (be bearer) GetIp6Config() (bi bearerIpConfig, err error) {
 	return
 }
 
-func (be bearer) GetStats() (br BearerStats, err error) {
+func (be bearer) GetStats() (br bearerStats, err error) {
 	tmpMap, err := be.getMapStringVariantProperty(BearerPropertyStats)
 	if err != nil {
 		return br, err

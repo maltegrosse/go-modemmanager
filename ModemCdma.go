@@ -24,7 +24,7 @@ const (
 
 )
 
-// This interface provides access to specific actions that may be performed in modems with CDMA capabilities.
+// ModemCdma interface provides access to specific actions that may be performed in modems with CDMA capabilities.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
 // Mixed 3GPP+3GPP2 devices will require a valid unlocked SIM card before any of the features in the interface can be used.
 type ModemCdma interface {
@@ -71,11 +71,11 @@ type ModemCdma interface {
 	// A MMModemCdmaRegistrationState value specifying the CDMA 1x registration state.
 	GetCdma1xRegistrationState() (MMModemCdmaRegistrationState, error)
 
-	// A MMModemCdmaRegistrationState value specifying the EVDO registration state.
+	// A MMModemCdmaRegistratiCdmaProperty onState value specifying the EVDO registration state.
 	GetEvdoRegistrationState() (MMModemCdmaRegistrationState, error)
 }
 
-// Create new ModemCdma
+// Returns new ModemCdma Interface
 func NewModemCdma(objectPath dbus.ObjectPath) (ModemCdma, error) {
 	var mc modemCdma
 	return &mc, mc.init(ModemManagerInterface, objectPath)
@@ -85,6 +85,8 @@ type modemCdma struct {
 	dbusBase
 	sigChan chan *dbus.Signal
 }
+
+// CdmaProperty describes the parameters for activating manually the modem
 type CdmaProperty struct {
 	Spc      string `json:"spc"`        // The Service Programming Code, given as a string of exactly 6 digit characters. Mandatory parameter.
 	Sid      uint16 `json:"sid"`        // The System Identification Number, given as a 16-bit unsigned integer (signature "q"). Mandatory parameter.
@@ -93,6 +95,10 @@ type CdmaProperty struct {
 	MnHaKey  string `json:"mn-ha-key"`  // The MN-HA key, given as a string of maximum 16 characters.
 	MnAaaKey string `json:"mn-aaa-key"` // The MN-AAA key, given as a string of maximum 16 characters.
 	Prl      []byte `json:"prl"`        // The Preferred Roaming List, given as an array of maximum 16384 bytes.
+}
+
+func (cdma CdmaProperty) String() string {
+	return returnString(cdma)
 }
 
 func (mc modemCdma) GetObjectPath() dbus.ObjectPath {

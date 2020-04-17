@@ -21,7 +21,7 @@ const (
 
 )
 
-// The SIM interface handles communication with SIM, USIM, and RUIM (CDMA SIM) cards.
+// The Sim interface handles communication with SIM, USIM, and RUIM (CDMA SIM) cards.
 type Sim interface {
 	/* METHODS */
 
@@ -66,6 +66,7 @@ type Sim interface {
 	MarshalJSON() ([]byte, error)
 }
 
+// Returns new Sim Interface
 func NewSim(objectPath dbus.ObjectPath) (Sim, error) {
 	var sm sim
 	return &sm, sm.init(ModemManagerInterface, objectPath)

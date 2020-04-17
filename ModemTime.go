@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Paths of methods and properties
+// Paths of methods and properties of ModemTime
 const (
 	ModemTimeInterface = ModemInterface + ".Time"
 
@@ -18,7 +18,7 @@ const (
 
 )
 
-// This interface allows clients to receive network time and timezone updates broadcast by mobile networks.
+// ModemTime interface allows clients to receive network time and timezone updates broadcast by mobile networks.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
 // 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used.
 type ModemTime interface {
@@ -42,9 +42,10 @@ type ModemTime interface {
 
 	/* PROPERTIES */
 	// The timezone data provided by the network.
-	GetNetworkTimezone() (ModemTimeZone, error)
+	GetNetworkTimezone() (modemTimeZone, error)
 }
 
+// Returns new ModemTime Interface
 func NewModemTime(objectPath dbus.ObjectPath) (ModemTime, error) {
 	var ti modemTime
 	return &ti, ti.init(ModemManagerInterface, objectPath)
@@ -54,13 +55,15 @@ type modemTime struct {
 	dbusBase
 	sigChan chan *dbus.Signal
 }
-type ModemTimeZone struct {
+
+// Represents the TimeZone of the Modem
+type modemTimeZone struct {
 	Offset      int32 `json:"offset"`       // Offset of the timezone from UTC, in minutes (including DST, if applicable), given as a signed integer value (signature "i").
 	DstOffset   int32 `json:"dst-offset"`   // Amount of offset that is due to DST (daylight saving time), given as a signed integer value (signature "i").
-	LeapSeconds int32 `json:"leap-seconds"` //
+	LeapSeconds int32 `json:"leap-seconds"` // Number of leap seconds included in the network time, given as a signed integer value (signature "i").
 }
 
-func (mtz ModemTimeZone) String() string {
+func (mtz modemTimeZone) String() string {
 	return "Offset: " + fmt.Sprint(mtz.Offset) +
 		", DstOffset: " + fmt.Sprint(mtz.DstOffset) +
 		", LeapSeconds: " + fmt.Sprint(mtz.LeapSeconds)
@@ -83,7 +86,7 @@ func (ti modemTime) GetNetworkTime() (time.Time, error) {
 	return t, err
 }
 
-func (ti modemTime) GetNetworkTimezone() (mTz ModemTimeZone, err error) {
+func (ti modemTime) GetNetworkTimezone() (mTz modemTimeZone, err error) {
 	tmpMap, err := ti.getMapStringVariantProperty(ModemTimePropertyNetworkTimezone)
 	if err != nil {
 		return mTz, err

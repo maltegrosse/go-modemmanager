@@ -16,7 +16,7 @@ const (
 	Modem3gppUssdProperty                    = Modem3gppUssdInterface + ".NetworkRequest"      // readable   s
 )
 
-// This interface provides access to actions based on the USSD protocol.
+// The Ussd interface provides access to actions based on the USSD protocol.
 // This interface will only be available once the modem is ready to be registered in the
 // cellular network. 3GPP devices will require a valid unlocked SIM card before any of the features
 // in the interface can be used.
@@ -62,6 +62,7 @@ type Ussd interface {
 	GetNetworkRequest() (string, error)
 }
 
+// Returns new ModemUssd Interface
 func NewUssd(objectPath dbus.ObjectPath) (Ussd, error) {
 	var mu ussd
 	return &mu, mu.init(ModemManagerInterface, objectPath)

@@ -37,7 +37,7 @@ const (
 
 )
 
-// The SMS interface Defines operations and properties of a single SMS message.
+// The Sms interface Defines operations and properties of a single SMS message.
 type Sms interface {
 	/* METHODS */
 
@@ -121,6 +121,7 @@ type Sms interface {
 	MarshalJSON() ([]byte, error)
 }
 
+// Returns new Sms Interface
 func NewSms(objectPath dbus.ObjectPath) (Sms, error) {
 	var ss sms
 	return &ss, ss.init(ModemManagerInterface, objectPath)

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Paths of methods and properties
+// Paths of methods and properties of Modem3gpp
 const (
 	Modem3gppInterface = ModemInterface + ".Modem3gpp"
 
@@ -30,7 +30,7 @@ const (
 	Modem3gppPropertyInitialEpsBearerSettings = Modem3gppInterface + ".InitialEpsBearerSettings" // readable   a{sv}
 )
 
-// This interface provides access to specific actions that may be performed in modems with 3GPP capabilities.
+// Modem3gpp interface provides access to specific actions that may be performed in modems with 3GPP capabilities.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
 // 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used.
 type Modem3gpp interface {
@@ -47,13 +47,13 @@ type Modem3gpp interface {
 
 	// results is an array of dictionaries with each array element describing a mobile network found in the scan.
 	// takes up to 1 min
-	Scan() (networks []Network3Gpp, err error)
+	Scan() (networks []network3Gpp, err error)
 
 	// Request a network scan (async)
 	RequestScan()
 
 	// Get latest scan result
-	GetScanResults() (NetworkScanResult, error)
+	GetScanResults() (networkScanResult, error)
 
 	// Sets the UE mode of operation for EPS.
 	SetEpsUeModeOperation(mode MMModem3gppEpsUeModeOperation) error
@@ -107,30 +107,34 @@ type Modem3gpp interface {
 	MarshalJSON() ([]byte, error)
 }
 
+// Returns new Modem3gppInterface
 func NewModem3gpp(objectPath dbus.ObjectPath) (Modem3gpp, error) {
 	var m3gpp modem3gpp
-	scanResults = NetworkScanResult{Recent: false}
+	scanResults = networkScanResult{Recent: false}
 	return &m3gpp, m3gpp.init(ModemManagerInterface, objectPath)
 }
 
 type modem3gpp struct {
 	dbusBase
 }
-type NetworkScanResult struct {
-	Networks     []Network3Gpp
+
+// networkScanResult represents the results of a scanned network
+type networkScanResult struct {
+	Networks     []network3Gpp
 	LastScan     time.Time
 	ScanDuration float64
 	Recent       bool
 }
 
-func (nsr NetworkScanResult) String() string {
+func (nsr networkScanResult) String() string {
 	return "Networks: " + fmt.Sprint(nsr.Networks) +
 		", LastScan: " + fmt.Sprint(nsr.LastScan) +
 		", ScanDuration: " + fmt.Sprint(nsr.ScanDuration) +
 		", Recent: " + fmt.Sprint(nsr.Recent)
 }
 
-type Network3Gpp struct {
+// network3Gpp describes a mobile network found in the scan
+type network3Gpp struct {
 	Status           MMModem3gppNetworkAvailability `json:"status"`         // A MMModem3gppNetworkAvailability value representing network availability status, given as an unsigned integer (signature "u"). This key will always be present.
 	OperatorLong     string                         `json:"operator-long"`  // Long-format name of operator, given as a string value (signature "s"). If the name is unknown, this field should not be present.
 	OperatorShort    string                         `json:"operator-short"` // Short-format name of operator, given as a string value (signature "s"). If the name is unknown, this field should not be present.
@@ -140,7 +144,7 @@ type Network3Gpp struct {
 	AccessTechnology MMModemAccessTechnology        `json:"access-technology"` // A MMModemAccessTechnology value representing the generic access technology used by this mobile network, given as an unsigned integer (signature "u").
 }
 
-func (n Network3Gpp) String() string {
+func (n network3Gpp) String() string {
 	return "Status: " + fmt.Sprint(n.Status) +
 		", OperatorLong: " + n.OperatorLong +
 		", OperatorShort: " + n.OperatorShort +
@@ -168,9 +172,9 @@ func (m modem3gpp) Register(operatorId string) error {
 	return m.call(Modem3gppRegister, operatorId)
 }
 
-var scanResults NetworkScanResult
+var scanResults networkScanResult
 
-func (m modem3gpp) Scan() (networks []Network3Gpp, err error) {
+func (m modem3gpp) Scan() (networks []network3Gpp, err error) {
 	// takes < 1min
 	start := time.Now()
 	var tmpRes interface{}
@@ -181,7 +185,7 @@ func (m modem3gpp) Scan() (networks []Network3Gpp, err error) {
 	scanResMap, ok := tmpRes.([]map[string]dbus.Variant)
 	if ok {
 		for _, el := range scanResMap {
-			var network Network3Gpp
+			var network network3Gpp
 			for key, element := range el {
 				switch key {
 				case "status":
@@ -223,7 +227,7 @@ func (m modem3gpp) Scan() (networks []Network3Gpp, err error) {
 		}
 	}
 	duration := time.Since(start).Seconds()
-	scanResults = NetworkScanResult{Recent: true, LastScan: time.Now(), ScanDuration: duration, Networks: networks}
+	scanResults = networkScanResult{Recent: true, LastScan: time.Now(), ScanDuration: duration, Networks: networks}
 
 	return networks, nil
 }
@@ -240,7 +244,7 @@ func (m modem3gpp) RequestScan() {
 	}()
 }
 
-func (m modem3gpp) GetScanResults() (res NetworkScanResult, err error) {
+func (m modem3gpp) GetScanResults() (res networkScanResult, err error) {
 	if scanResults.Recent {
 		return scanResults, nil
 	}

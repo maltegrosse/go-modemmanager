@@ -23,7 +23,7 @@ const (
 
 )
 
-// This interface allows clients to handle device management operations as specified by the Open Mobile Alliance (OMA).
+// ModemOma allows clients to handle device management operations as specified by the Open Mobile Alliance (OMA).
 // Device management sessions are either on-demand (client-initiated), or automatically initiated by either the device
 // itself or the network.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
@@ -75,6 +75,7 @@ type ModemOma interface {
 	GetSessionState() (MMOmaSessionState, error)
 }
 
+// Returns new ModemOma Interface
 func NewModemOma(objectPath dbus.ObjectPath) (ModemOma, error) {
 	var om modemOma
 	return &om, om.init(ModemManagerInterface, objectPath)

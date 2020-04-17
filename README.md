@@ -1,10 +1,11 @@
-Go-ModemManager
+![Alt Go-ModemManager](./go-modemmanager.png)
 ================
-[![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org) ![Go](https://github.com/maltegrosse/go-modemmanager/workflows/Go/badge.svg) 
+[![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
+![Go](https://github.com/maltegrosse/go-modemmanager/workflows/Go/badge.svg) 
+[![Go Report Card](https://goreportcard.com/badge/github.com/maltegrosse/go-modemmanager)](https://goreportcard.com/report/github.com/maltegrosse/go-modemmanager)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f873c5d0eb514347b01b6f24dd4f7b76)](https://www.codacy.com/manual/maltegrosse/go-modemmanager?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=maltegrosse/go-modemmanager&amp;utm_campaign=Badge_Grade)
 
 Go D-Bus bindings for ModemManager
-
-![](./go-modemmanager.png)
 
 
 Additional information: [ModemManager D-Bus Specs](https://www.freedesktop.org/software/ModemManager/api/1.12.0/ref-dbus.html)
@@ -17,6 +18,11 @@ Work in Progress, some methods/properties/signals needs to be fixed for initial 
 
 ## Todo
 Some methods/properties are untested as they are not supported by my modem/lack of how to use them. See `todo` tags in the code.
+
+- Implement MarshalJson methods
+- double check struts
+- implement signal methods
+- tidy up the code
 
 ## Installation
 

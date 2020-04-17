@@ -2,7 +2,8 @@ package modemmanager
 
 // ref https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/blob/master/include/ModemManager-enums.h
 
-type MMModemCapability uint32 //  Flags describing one or more of the general access technology families that a modem supports.
+//  Flags describing one or more of the general access technology families that a modem supports.
+type MMModemCapability uint32
 
 //go:generate stringer -type=MMModemCapability -trimprefix=MmModemCapability
 const (
@@ -16,12 +17,14 @@ const (
 	MmModemCapabilityAny         MMModemCapability = 0xFFFFFFFF // Mask specifying all capabilities.
 )
 
+// Return all capabilities
 func (c MMModemCapability) GetAllCapabilities() []MMModemCapability {
 	return []MMModemCapability{MmModemCapabilityPots, MmModemCapabilityCdmaEvdo, MmModemCapabilityGsmUmts, MmModemCapabilityLte,
 		MmModemCapabilityLteAdvanced, MmModemCapabilityIridium,
 	}
 }
 
+// bitmask to slice
 func (c MMModemCapability) BitmaskToSlice(bitmask uint32) (capabilities []MMModemCapability) {
 	if bitmask == 0 {
 		return
@@ -33,6 +36,8 @@ func (c MMModemCapability) BitmaskToSlice(bitmask uint32) (capabilities []MMMode
 	}
 	return
 }
+
+// slice to bitmask
 func (c MMModemCapability) SliceToBitmask(capabilities []MMModemCapability) (bitmask uint32) {
 	bitmask = 0
 	for idx, x := range c.GetAllCapabilities() {
@@ -45,7 +50,9 @@ func (c MMModemCapability) SliceToBitmask(capabilities []MMModemCapability) (bit
 	return bitmask
 }
 
-type MMModemLock uint32 // Possible lock reasons.
+// Possible lock reasons.
+type MMModemLock uint32
+
 //go:generate stringer -type=MMModemLock -trimprefix=MmModemLock
 const (
 	MmModemLockUnknown     MMModemLock = 0  // Lock reason unknown.
@@ -67,7 +74,9 @@ const (
 	MmModemLockPhNetsubPuk MMModemLock = 16 // Modem requires the network subset PUK code.
 )
 
-type MMModemState int32 // Possible modem states.
+// Possible modem states.
+type MMModemState int32
+
 //go:generate stringer -type=MMModemState -trimprefix=MmModemState
 const (
 	MmModemStateFailed        MMModemState = -1 // The modem is unusable.
@@ -86,7 +95,9 @@ const (
 
 )
 
-type MMModemStateFailedReason uint32 // Power state of the modem.
+// Power state of the modem.
+type MMModemStateFailedReason uint32
+
 //go:generate stringer -type=MMModemStateFailedReason -trimprefix=MmModemStateFailedReason
 const (
 	MmModemStateFailedReasonNone       MMModemStateFailedReason = 0 // No error.
@@ -96,7 +107,9 @@ const (
 
 )
 
-type MMModemPowerState uint32 // Power state of the modem.
+// Power state of the modem.
+type MMModemPowerState uint32
+
 //go:generate stringer -type=MMModemPowerState -trimprefix=MmModemPowerState
 const (
 	MmModemPowerStateUnknown MMModemPowerState = 0 // Unknown power state.
@@ -106,7 +119,9 @@ const (
 
 )
 
-type MMModemStateChangeReason uint32 // Possible reasons to have changed the modem state.
+// Possible reasons to have changed the modem state.
+type MMModemStateChangeReason uint32
+
 //go:generate stringer -type=MMModemStateChangeReason -trimprefix=MmModemStateChangeReason
 const (
 	MmModemStateChangeReasonUnknown       MMModemStateChangeReason = 0 // Reason unknown or not reportable.
@@ -116,7 +131,8 @@ const (
 
 )
 
-type MMModemAccessTechnology uint32 // Describes various access technologies that a device uses when registered with or connected to a network.
+// Describes various access technologies that a device uses when registered with or connected to a network.
+type MMModemAccessTechnology uint32
 
 //go:generate stringer -type=MMModemAccessTechnology  -trimprefix=MmModemAccessTechnology
 const (
@@ -139,6 +155,7 @@ const (
 	MmModemAccessTechnologyAny        MMModemAccessTechnology = 0xFFFFFFFF // Mask specifying all access technologies.
 )
 
+// returns all technologies
 func (t MMModemAccessTechnology) GetAllTechnologies() []MMModemAccessTechnology {
 	var technologies = []MMModemAccessTechnology{MmModemAccessTechnologyPots, MmModemAccessTechnologyGsm, MmModemAccessTechnologyGsmCompact,
 		MmModemAccessTechnologyGprs, MmModemAccessTechnologyEdge, MmModemAccessTechnologyUmts, MmModemAccessTechnologyHsdpa, MmModemAccessTechnologyHsupa, MmModemAccessTechnologyHspa,
@@ -147,6 +164,7 @@ func (t MMModemAccessTechnology) GetAllTechnologies() []MMModemAccessTechnology 
 	return technologies
 }
 
+// bitmask to slice
 func (t MMModemAccessTechnology) BitmaskToSlice(bitmask uint32) (technologies []MMModemAccessTechnology) {
 	if bitmask == 0 {
 		return
@@ -158,6 +176,8 @@ func (t MMModemAccessTechnology) BitmaskToSlice(bitmask uint32) (technologies []
 	}
 	return technologies
 }
+
+// slice to bitmask
 func (t MMModemAccessTechnology) SliceToBitmask(technologies []MMModemAccessTechnology) (bitmask uint32) {
 	bitmask = 0
 	for idx, x := range t.GetAllTechnologies() {
@@ -170,7 +190,8 @@ func (t MMModemAccessTechnology) SliceToBitmask(technologies []MMModemAccessTech
 	return bitmask
 }
 
-type MMModemMode uint32 // Bitfield to indicate which access modes are supported, allowed or preferred in a given device.
+// Bitfield to indicate which access modes are supported, allowed or preferred in a given device.
+type MMModemMode uint32
 
 //go:generate stringer -type=MMModemMode -trimprefix=MmModemMode
 const (
@@ -183,10 +204,12 @@ const (
 
 )
 
+// returns all modes
 func (m MMModemMode) GetAllModes() []MMModemMode {
 	return []MMModemMode{MmModemModeCs, MmModemMode2g, MmModemMode3g, MmModemMode4g}
 }
 
+// bitmask to slice
 func (m MMModemMode) BitmaskToSlice(bitmask uint32) (modes []MMModemMode) {
 	if bitmask == 0 {
 		return
@@ -198,6 +221,8 @@ func (m MMModemMode) BitmaskToSlice(bitmask uint32) (modes []MMModemMode) {
 	}
 	return
 }
+
+// slice to bitmask
 func (m MMModemMode) SliceToBitmask(modes []MMModemMode) (bitmask uint32) {
 	bitmask = 0
 	for idx, x := range m.GetAllModes() {
@@ -210,7 +235,9 @@ func (m MMModemMode) SliceToBitmask(modes []MMModemMode) (bitmask uint32) {
 	return bitmask
 }
 
-type MMModemBand uint32 // Radio bands supported by the device when connecting to a mobile network.
+// Radio bands supported by the device when connecting to a mobile network.
+type MMModemBand uint32
+
 //go:generate stringer -type=MMModemBand -trimprefix=MmModemBand
 const (
 	MmModemBandUnknown MMModemBand = 0 // Unknown or invalid band.
@@ -347,7 +374,9 @@ const (
 	MmModemBandAny MMModemBand = 256 // For certain operations, allow the modem to select a band automatically.
 )
 
-type MMModemPortType uint32 // Type of modem port.
+// Type of modem port.
+type MMModemPortType uint32
+
 //go:generate stringer -type=MMModemPortType -trimprefix=MmModemPortType
 const (
 	MmModemPortTypeUnknown MMModemPortType = 1 // Unknown.
@@ -361,7 +390,9 @@ const (
 
 )
 
-type MMSmsPduType uint32 // Type of PDUs used in the SMS.
+// Type of PDUs used in the SMS.
+type MMSmsPduType uint32
+
 //go:generate stringer -type=MMSmsPduType -trimprefix=MmSmsPduType
 const (
 	MmSmsPduTypeUnknown                     MMSmsPduType = 0  // Unknown type.
@@ -377,7 +408,9 @@ const (
 
 )
 
-type MMSmsState uint32 // State of a given SMS.
+// State of a given SMS.
+type MMSmsState uint32
+
 //go:generate stringer -type=MMSmsState -trimprefix=MmSmsState
 const (
 	MmSmsStateUnknown   MMSmsState = 0 // State unknown or not reportable.
@@ -389,7 +422,8 @@ const (
 
 )
 
-type MMSmsDeliveryState uint32 // Known SMS delivery states as defined in 3GPP TS 03.40 and  3GPP2 N.S0005-O, section 6.5.2.125. States out of the known ranges may also be valid (either reserved or SC-specific).
+// Known SMS delivery states as defined in 3GPP TS 03.40 and  3GPP2 N.S0005-O, section 6.5.2.125. States out of the known ranges may also be valid (either reserved or SC-specific).
+type MMSmsDeliveryState uint32
 
 //go:generate stringer -type=MMSmsDeliveryState -trimprefix=MmSmsDeliveryState
 const (
@@ -499,7 +533,8 @@ const (
 
 )
 
-type MMSmsStorage uint32 // Storage for SMS messages.
+// Storage for SMS messages.
+type MMSmsStorage uint32
 
 //go:generate stringer -type=MMSmsStorage -trimprefix=MmSmsStorage
 const (
@@ -513,7 +548,8 @@ const (
 
 )
 
-type MMSmsValidityType uint32 // Type of SMS validity value.
+// Type of SMS validity value.
+type MMSmsValidityType uint32
 
 //go:generate stringer -type=MMSmsValidityType -trimprefix=MmSmsValidityType
 const (
@@ -524,7 +560,9 @@ const (
 
 )
 
-type MMSmsCdmaTeleserviceId uint32 // Teleservice IDs supported for CDMA SMS, as defined in 3GPP2 X.S0004-550-E (section 2.256) and 3GPP2 C.S0015-B (section 3.4.3.1).
+// Teleservice IDs supported for CDMA SMS, as defined in 3GPP2 X.S0004-550-E (section 2.256) and 3GPP2 C.S0015-B (section 3.4.3.1).
+
+type MMSmsCdmaTeleserviceId uint32
 
 //go:generate stringer -type=MMSmsCdmaTeleserviceId -trimprefix=MmSmsCdmaTeleserviceId
 const (
@@ -540,7 +578,9 @@ const (
 
 )
 
-type MMSmsCdmaServiceCategory uint32 // Service category for CDMA SMS, as defined in 3GPP2 C.R1001-D (section 9.3).
+// Service category for CDMA SMS, as defined in 3GPP2 C.R1001-D (section 9.3).
+
+type MMSmsCdmaServiceCategory uint32
 
 //go:generate stringer -type=MMSmsCdmaServiceCategory -trimprefix=MmSmsCdmaServiceCategory
 const (
@@ -584,7 +624,9 @@ const (
 
 )
 
-type MMModemLocationSource uint32 // Sources of location information supported by the modem.
+// Sources of location information supported by the modem.
+
+type MMModemLocationSource uint32
 
 //go:generate stringer -type=MMModemLocationSource -trimprefix=MmModemLocationSource
 const (
@@ -599,6 +641,7 @@ const (
 
 )
 
+// returns all sources
 func (ls MMModemLocationSource) GetAllSources() []MMModemLocationSource {
 
 	return []MMModemLocationSource{MmModemLocationSource3gppLacCi, MmModemLocationSourceGpsRaw,
@@ -606,6 +649,7 @@ func (ls MMModemLocationSource) GetAllSources() []MMModemLocationSource {
 		MmModemLocationSourceAgpsMsa, MmModemLocationSourceAgpsMsb}
 }
 
+// bitmask to slice
 func (ls MMModemLocationSource) BitmaskToSlice(bitmask uint32) (sources []MMModemLocationSource) {
 	if bitmask == 0 {
 		return
@@ -617,6 +661,8 @@ func (ls MMModemLocationSource) BitmaskToSlice(bitmask uint32) (sources []MMMode
 	}
 	return sources
 }
+
+// slice to bitmask
 func (ls MMModemLocationSource) SliceToBitmask(sources []MMModemLocationSource) (bitmask uint32) {
 	bitmask = 0
 	for idx, x := range ls.GetAllSources() {
@@ -629,7 +675,8 @@ func (ls MMModemLocationSource) SliceToBitmask(sources []MMModemLocationSource) 
 	return bitmask
 }
 
-type MMModemLocationAssistanceDataType uint32 // Type of assistance data that may be injected to the GNSS module.
+// Type of assistance data that may be injected to the GNSS module.
+type MMModemLocationAssistanceDataType uint32
 
 //go:generate stringer -type=MMModemLocationAssistanceDataType -trimprefix=MmModemLocationAssistanceDataType
 const (
@@ -637,11 +684,13 @@ const (
 	MmModemLocationAssistanceDataTypeXtra MMModemLocationAssistanceDataType = 1 << 0 // Qualcomm gpsOneXTRA.
 )
 
+// returns all assistance data
 func (ad MMModemLocationAssistanceDataType) GetAllAssistanceData() []MMModemLocationAssistanceDataType {
 
 	return []MMModemLocationAssistanceDataType{MmModemLocationAssistanceDataTypeXtra}
 }
 
+// bitmask to slice
 func (ad MMModemLocationAssistanceDataType) BitmaskToSlice(bitmask uint32) (data []MMModemLocationAssistanceDataType) {
 	if bitmask == 0 {
 		return
@@ -653,6 +702,8 @@ func (ad MMModemLocationAssistanceDataType) BitmaskToSlice(bitmask uint32) (data
 	}
 	return
 }
+
+// slice to bitmask
 func (ad MMModemLocationAssistanceDataType) SliceToBitmask(data []MMModemLocationAssistanceDataType) (bitmask uint32) {
 	bitmask = 0
 	for idx, x := range ad.GetAllAssistanceData() {
@@ -665,7 +716,8 @@ func (ad MMModemLocationAssistanceDataType) SliceToBitmask(data []MMModemLocatio
 	return
 }
 
-type MMModemContactsStorage uint32 // Specifies different storage locations for contact information.
+// Specifies different storage locations for contact information.
+type MMModemContactsStorage uint32
 
 //go:generate stringer -type=MMModemContactsStorage -trimprefix=MmModemContactsStorage
 const (
@@ -676,7 +728,8 @@ const (
 
 )
 
-type MMBearerType uint32 // Type of context (2G/3G) or bearer (4G).
+// Type of context (2G/3G) or bearer (4G).
+type MMBearerType uint32
 
 //go:generate stringer -type=MMBearerType -trimprefix=MmBearerType
 const (
@@ -686,7 +739,8 @@ const (
 	MmBearerTypeDedicated     MMBearerType = 3 // Secondary context (2G/3G) or dedicated bearer (4G), defined by the user of the API. These bearers use the same IP address  used by a primary context or default bearer and provide a dedicated flow for  specific traffic with different QoS settings.
 )
 
-type MMBearerIpMethod uint32 // Type of IP method configuration to be used in a given Bearer.
+// Type of IP method configuration to be used in a given Bearer.
+type MMBearerIpMethod uint32
 
 //go:generate stringer -type=MMBearerIpMethod -trimprefix=MmBearerIpMethod
 const (
@@ -697,7 +751,8 @@ const (
 
 )
 
-type MMBearerIpFamily uint32 // Type of IP family to be used in a given Bearer.
+// Type of IP family to be used in a given Bearer.
+type MMBearerIpFamily uint32
 
 //go:generate stringer -type=MMBearerIpFamily -trimprefix=MmBearerIpFamily
 const (
@@ -709,12 +764,14 @@ const (
 
 )
 
+// returns all ip families
 func (i MMBearerIpFamily) GetAllIPFamilies() []MMBearerIpFamily {
 
 	return []MMBearerIpFamily{MmBearerIpFamilyIpv4, MmBearerIpFamilyIpv6,
 		MmBearerIpFamilyIpv4v6}
 }
 
+// bitmask to slice
 func (i MMBearerIpFamily) BitmaskToSlice(bitmask uint32) (ipFamilies []MMBearerIpFamily) {
 	if bitmask == 0 {
 		return
@@ -726,6 +783,8 @@ func (i MMBearerIpFamily) BitmaskToSlice(bitmask uint32) (ipFamilies []MMBearerI
 	}
 	return ipFamilies
 }
+
+// slice to bitmask
 func (i MMBearerIpFamily) SliceToBitmask(ipFamilies []MMBearerIpFamily) (bitmask uint32) {
 	bitmask = 0
 	for idx, x := range i.GetAllIPFamilies() {
@@ -738,7 +797,8 @@ func (i MMBearerIpFamily) SliceToBitmask(ipFamilies []MMBearerIpFamily) (bitmask
 	return bitmask
 }
 
-type MMBearerAllowedAuth uint32 // Allowed authentication methods when authenticating with the network.
+// Allowed authentication methods when authenticating with the network.
+type MMBearerAllowedAuth uint32
 
 //go:generate stringer -type=MMBearerAllowedAuth -trimprefix=MmBearerAllowedAuth
 const (
@@ -753,7 +813,8 @@ const (
 
 )
 
-type MMModemCdmaRegistrationState uint32 // Registration state of a CDMA modem.
+// Registration state of a CDMA modem.
+type MMModemCdmaRegistrationState uint32
 
 //go:generate stringer -type=MMModemCdmaRegistrationState -trimprefix=MmModemCdmaRegistrationState
 const (
@@ -764,7 +825,8 @@ const (
 
 )
 
-type MMModemCdmaActivationState uint32 // Activation state of a CDMA modem.
+// Activation state of a CDMA modem.
+type MMModemCdmaActivationState uint32
 
 //go:generate stringer -type=MMModemCdmaActivationState -trimprefix=MmModemCdmaActivationState
 const (
@@ -776,7 +838,8 @@ const (
 
 )
 
-type MMModemCdmaRmProtocol uint32 // Protocol of the Rm interface in modems with CDMA capabilities.
+// Protocol of the Rm interface in modems with CDMA capabilities.
+type MMModemCdmaRmProtocol uint32
 
 //go:generate stringer -type=MMModemCdmaRmProtocol -trimprefix=MmModemCdmaRmProtocol
 const (
@@ -789,7 +852,8 @@ const (
 
 )
 
-type MMModem3gppRegistrationState uint32 // GSM registration code as defined in 3GPP TS 27.007.
+// GSM registration code as defined in 3GPP TS 27.007.
+type MMModem3gppRegistrationState uint32
 
 //go:generate stringer -type=MMModem3gppRegistrationState -trimprefix=MmModem3gppRegistrationState
 const (
@@ -807,7 +871,8 @@ const (
 
 )
 
-type MMModem3gppFacility uint32 // A bitfield describing which facilities have a lock enabled, i.e., requires a pin or unlock code. The facilities include the personalizations (device locks) described in 3GPP spec TS 22.022, and the PIN and PIN2 locks, which are SIM locks.
+// A bitfield describing which facilities have a lock enabled, i.e., requires a pin or unlock code. The facilities include the personalizations (device locks) described in 3GPP spec TS 22.022, and the PIN and PIN2 locks, which are SIM locks.
+type MMModem3gppFacility uint32
 
 //go:generate stringer -type=MMModem3gppFacility -trimprefix=MmModem3gppFacility
 const (
@@ -823,6 +888,7 @@ const (
 
 )
 
+// returns all facilities
 func (f MMModem3gppFacility) GetAllFacilities() []MMModem3gppFacility {
 
 	return []MMModem3gppFacility{MmModem3gppFacilitySim,
@@ -830,6 +896,7 @@ func (f MMModem3gppFacility) GetAllFacilities() []MMModem3gppFacility {
 		MmModem3gppFacilityNetSubPers, MmModem3gppFacilityProviderPers, MmModem3gppFacilityCorpPers}
 }
 
+// bitmask to slice
 func (f MMModem3gppFacility) BitmaskToSlice(bitmask uint32) (facilities []MMModem3gppFacility) {
 	if bitmask == 0 {
 		return
@@ -841,6 +908,8 @@ func (f MMModem3gppFacility) BitmaskToSlice(bitmask uint32) (facilities []MMMode
 	}
 	return facilities
 }
+
+// slice to bitmask
 func (f MMModem3gppFacility) SliceToBitmask(facilities []MMModem3gppFacility) (bitmask uint32) {
 	bitmask = 0
 	for idx, x := range f.GetAllFacilities() {
@@ -853,7 +922,8 @@ func (f MMModem3gppFacility) SliceToBitmask(facilities []MMModem3gppFacility) (b
 	return bitmask
 }
 
-type MMModem3gppNetworkAvailability uint32 // Network availability status as defined in 3GPP TS 27.007 section 7.3.
+// Network availability status as defined in 3GPP TS 27.007 section 7.3.
+type MMModem3gppNetworkAvailability uint32
 
 //go:generate stringer -type=MMModem3gppNetworkAvailability -trimprefix=MmModem3gppNetworkAvailability
 const (
@@ -864,7 +934,8 @@ const (
 
 )
 
-type MMModem3gppSubscriptionState uint32 // Describes the current subscription status of the SIM.  This value is only available after the modem attempts to register with the network.
+// Describes the current subscription status of the SIM.  This value is only available after the modem attempts to register with the network.
+type MMModem3gppSubscriptionState uint32
 
 //go:generate stringer -type=MMModem3gppSubscriptionState -trimprefix=MmModem3gppSubscriptionState
 const (
@@ -875,7 +946,8 @@ const (
 
 )
 
-type MMModem3gppUssdSessionState uint32 // State of a USSD session.
+// State of a USSD session.
+type MMModem3gppUssdSessionState uint32
 
 //go:generate stringer -type=MMModem3gppUssdSessionState -trimprefix=MmModem3gppUssdSessionState
 const (
@@ -886,7 +958,8 @@ const (
 
 )
 
-type MMModem3gppEpsUeModeOperation uint32 // UE mode of operation for EPS, as per 3GPP TS 24.301.
+// UE mode of operation for EPS, as per 3GPP TS 24.301.
+type MMModem3gppEpsUeModeOperation uint32
 
 //go:generate stringer -type=MMModem3gppEpsUeModeOperation -trimprefix=MmModem3gppEpsUeModeOperation
 const (
@@ -898,7 +971,8 @@ const (
 
 )
 
-type MMFirmwareImageType uint32 // Type of firmware image.
+// Type of firmware image.
+type MMFirmwareImageType uint32
 
 //go:generate stringer -type=MMFirmwareImageType  -trimprefix=MmFirmwareImageType
 const (
@@ -908,7 +982,8 @@ const (
 
 )
 
-type MMOmaFeature uint32 // Features that can be enabled or disabled in the OMA device management support.
+// Features that can be enabled or disabled in the OMA device management support.
+type MMOmaFeature uint32
 
 //go:generate stringer -type=MMOmaFeature -trimprefix=MmOmaFeature
 const (
@@ -919,12 +994,14 @@ const (
 
 )
 
+// returns all features
 func (mmo MMOmaFeature) GetAllFeatures() []MMOmaFeature {
 
 	return []MMOmaFeature{MmOmaFeatureDeviceProvisioning, MmOmaFeaturePrlUpdate,
 		MmOmaFeatureHandsFreeActivation}
 }
 
+// bitmask to slice
 func (mmo MMOmaFeature) BitmaskToSlice(bitmask uint32) (features []MMOmaFeature) {
 	if bitmask == 0 {
 		return
@@ -936,6 +1013,8 @@ func (mmo MMOmaFeature) BitmaskToSlice(bitmask uint32) (features []MMOmaFeature)
 	}
 	return features
 }
+
+// slice to bitmask
 func (mmo MMOmaFeature) SliceToBitmask(features []MMOmaFeature) (bitmask uint32) {
 	bitmask = 0
 	for idx, x := range mmo.GetAllFeatures() {
@@ -948,7 +1027,8 @@ func (mmo MMOmaFeature) SliceToBitmask(features []MMOmaFeature) (bitmask uint32)
 	return bitmask
 }
 
-type MMOmaSessionType uint32 // Type of OMA device management session.
+// Type of OMA device management session.
+type MMOmaSessionType uint32
 
 //go:generate stringer -type=MMOmaSessionType -trimprefix=MmOmaSessionType
 const (
@@ -963,7 +1043,8 @@ const (
 
 )
 
-type MMOmaSessionState int32 // State of the OMA device management session.
+// State of the OMA device management session.
+type MMOmaSessionState int32
 
 //go:generate stringer -type=MMOmaSessionState -trimprefix=MmOmaSessionState
 const (
@@ -982,7 +1063,8 @@ const (
 
 )
 
-type MMOmaSessionStateFailedReason uint32 // Reason of failure in the OMA device management session.
+// Reason of failure in the OMA device management session.
+type MMOmaSessionStateFailedReason uint32
 
 //go:generate stringer -type=MMOmaSessionStateFailedReason -trimprefix=MmOmaSessionStateFailedReason
 const (
@@ -995,7 +1077,8 @@ const (
 
 )
 
-type MMCallState int32 // State of Call.
+// State of Call.
+type MMCallState int32
 
 //go:generate stringer -type=MMCallState  -trimprefix=MmCallState
 const (
@@ -1010,7 +1093,8 @@ const (
 
 )
 
-type MMCallStateReason int32 // Reason for the state change in the call.
+// Reason for the state change in the call.
+type MMCallStateReason int32
 
 //go:generate stringer -type=MMCallStateReason -trimprefix=MmCallStateReason
 const (
@@ -1026,7 +1110,8 @@ const (
 	MmCallStateReasonDeflected        MMCallStateReason = 9 // Call has been deflected to a new number.
 )
 
-type MMCallDirection int32 // Direction of the call.
+// Direction of the call.
+type MMCallDirection int32
 
 //go:generate stringer -type=MMCallDirection -trimprefix=MmCallDirection
 const (
@@ -1036,7 +1121,8 @@ const (
 
 )
 
-type MMModemFirmwareUpdateMethod uint32 // Type of firmware update method supported by the module.
+// Type of firmware update method supported by the module.
+type MMModemFirmwareUpdateMethod uint32
 
 //go:generate stringer -type=MMModemFirmwareUpdateMethod -trimprefix=MmModemFirmwareUpdateMethod
 const (
@@ -1046,11 +1132,13 @@ const (
 
 )
 
+// returns all update methods
 func (fu MMModemFirmwareUpdateMethod) GetAllUpdateMethods() []MMModemFirmwareUpdateMethod {
 
 	return []MMModemFirmwareUpdateMethod{MmModemFirmwareUpdateMethodFastboot, MmModemFirmwareUpdateMethodQmiPdc}
 }
 
+// bitmask to slice
 func (fu MMModemFirmwareUpdateMethod) BitmaskToSlice(bitmask uint32) (ipFamilies []MMModemFirmwareUpdateMethod) {
 	if bitmask == 0 {
 		return
@@ -1062,6 +1150,8 @@ func (fu MMModemFirmwareUpdateMethod) BitmaskToSlice(bitmask uint32) (ipFamilies
 	}
 	return ipFamilies
 }
+
+// slice to bitmask
 func (fu MMModemFirmwareUpdateMethod) SliceToBitmask(updateMethods []MMModemFirmwareUpdateMethod) (bitmask uint32) {
 	bitmask = 0
 	for idx, x := range fu.GetAllUpdateMethods() {
@@ -1074,7 +1164,8 @@ func (fu MMModemFirmwareUpdateMethod) SliceToBitmask(updateMethods []MMModemFirm
 	return bitmask
 }
 
-type MMLoggingLevel string // Logging Level of ModemManager
+// Logging Level of ModemManager
+type MMLoggingLevel string
 
 const (
 	MMLoggingLevelError   MMLoggingLevel = "ERR"   // logging level error.
@@ -1083,14 +1174,16 @@ const (
 
 )
 
-type MMKernelPropertyAction string // The type of action, given as a string value (signature "s"). This parameter is MANDATORY.
+// The type of action, given as a string value (signature "s"). This parameter is MANDATORY.
+type MMKernelPropertyAction string
 
 const (
 	MMKernelPropertyActionAdd    MMKernelPropertyAction = "add"    // 	A new kernel device has been added.
 	MMKernelPropertyActionRemove MMKernelPropertyAction = "remove" // An existing kernel device has been removed.
 )
 
-type MMSignalPropertyType uint32 // SignalProperty Type
+// SignalProperty Type
+type MMSignalPropertyType uint32
 
 //go:generate stringer -type=MMSignalPropertyType -trimprefix=MMSignalPropertyType
 const (

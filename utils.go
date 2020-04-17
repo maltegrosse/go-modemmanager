@@ -42,7 +42,6 @@ package modemmanager
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"net"
@@ -56,26 +55,34 @@ const (
 	dbusMethodManagedObjects = "org.freedesktop.DBus.ObjectManager.GetManagedObjects"
 )
 
+// Pair represents two interface values (left and right side)
 type Pair struct {
 	a, b interface{}
 }
 
+// get left value
 func (p Pair) GetLeft() interface{} {
 	return p.a
 }
+
+// get right value
 func (p Pair) GetRight() interface{} {
 	return p.b
 }
+
+// set left value
 func (p Pair) SetLeft(left interface{}) {
 	p.a = left
 }
+
+// set right value
 func (p Pair) SetRight(right interface{}) {
 	p.b = right
 }
 func (p Pair) String() string {
 	return fmt.Sprint(p.a) + " : " + fmt.Sprint(p.b)
 }
-func (p Pair) PairToSlice() []interface{} {
+func (p Pair) pairToSlice() []interface{} {
 	var sl []interface{}
 	sl = append(sl, p.a)
 	sl = append(sl, p.b)
@@ -554,7 +561,7 @@ func (d *dbusBase) isEmpty(object interface{}, fieldName string) bool {
 	return false
 }
 
-func ReturnString(object interface{}) string {
+func returnString(object interface{}) string {
 	var resSlice []string
 	v := reflect.ValueOf(object)
 	st := reflect.TypeOf(object)
@@ -566,77 +573,4 @@ func ReturnString(object interface{}) string {
 		}
 	}
 	return strings.Join(resSlice, ", ")
-}
-
-//
-//func FillStructByMap(obj interface{}, inputMap map[string]interface{})(res interface{}){
-// v := reflect.ValueOf(obj)
-// ps := reflect.ValueOf(&obj)
-// st := reflect.TypeOf(obj)
-// s := ps.Elem()
-//
-// for i := 0; i < v.NumField(); i++ {
-//	 field := st.Field(i)
-//	 fmt.Println(field,s)
-//	 tag := field.Tag.Get("json")
-//	// value := v.Field(i).Interface()
-//	fmt.Println(tag)
-//
-//
-//	 for k, value := range inputMap {
-//		 if k == tag{
-//		//	 f := s.FieldByName(fmt.Sprint(field.Name))
-//		//	 fmt.Println(f.CanSet())
-//			 val := reflect.ValueOf(value)
-//			// v.Field(i).Set(value)
-//			fmt.Println(val, tag)
-//			// fmt.Println(reflect.TypeOf(value))
-//			// fmt.Println(v.Field(i).CanSet())
-//			// fmt.Println(v.Field(i).Kind())
-//		//	 if val.Type() == v.Field(i).Kind()
-//
-//
-//		}
-//	}
-// }
-// fmt.Println(obj)
-//	return
-//}
-func SetField(obj interface{}, name string, value interface{}) error {
-	structValue := reflect.ValueOf(obj).Elem()
-
-	fieldName, err := getFieldNameByTag(obj, name)
-	if err != nil {
-		return err
-	}
-	structFieldValue := structValue.FieldByName(fieldName)
-
-	if !structFieldValue.IsValid() {
-		return fmt.Errorf("no such field: %s in obj", name)
-	}
-
-	if !structFieldValue.CanSet() {
-		return fmt.Errorf("can not set %s field value", name)
-	}
-
-	structFieldType := structFieldValue.Type()
-	val := reflect.ValueOf(value)
-	if structFieldType != val.Type() {
-		return errors.New("provided value type didn't match obj field type")
-	}
-
-	structFieldValue.Set(val)
-	return nil
-}
-func getFieldNameByTag(obj interface{}, name string) (fieldName string, err error) {
-	v := reflect.ValueOf(obj)
-	st := reflect.TypeOf(obj)
-	for i := 0; i < v.NumField(); i++ {
-		field := st.Field(i)
-		tag := field.Tag.Get("json")
-		if tag == name {
-			return field.Name, nil
-		}
-	}
-	return "", errors.New("no field tag found")
 }

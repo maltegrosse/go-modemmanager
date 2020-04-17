@@ -111,6 +111,7 @@ type Call interface {
 	Unsubscribe()
 }
 
+// Returns new Call Interface
 func NewCall(objectPath dbus.ObjectPath) (Call, error) {
 	var ca call
 	return &ca, ca.init(ModemManagerInterface, objectPath)
@@ -127,7 +128,7 @@ type audioFormat struct {
 }
 
 func (af audioFormat) String() string {
-	return ReturnString(af)
+	return returnString(af)
 
 }
 

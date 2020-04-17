@@ -33,7 +33,7 @@ const (
 
 )
 
-// The Location interface allows devices to provide location information to client applications.
+// The ModemLocation interface allows devices to provide location information to client applications.
 // Not all devices can provide this information, or even if they do, they may not be able to provide it while
 // a data session is active.
 // This interface will only be available once the modelo is ready to be registered in the cellular network.
@@ -113,6 +113,7 @@ type ModemLocation interface {
 	GetGpsRefreshRate() (uint32, error)
 }
 
+// Returns new ModemLocation Interface
 func NewModemLocation(objectPath dbus.ObjectPath) (ModemLocation, error) {
 	var lo modemLocation
 	return &lo, lo.init(ModemManagerInterface, objectPath)
@@ -122,6 +123,7 @@ type modemLocation struct {
 	dbusBase
 }
 
+// currentLocation represents all available/activated locations of the modem
 type currentLocation struct {
 	ThreeGppLacCi threeGppLacCiLocation `json:"3gpp-lac-ci"` // Devices supporting this capability return a string in the format "MCC,MNC,LAC,CI,TAC" (without the quotes of course)
 	GpsRaw        gpsRawLocation        `json:"gps-raw"`     // Devices supporting this capability return a D-Bus dictionary (signature "a{sv}") mapping well-known keys to values with defined formats.
@@ -130,7 +132,7 @@ type currentLocation struct {
 }
 
 func (cl currentLocation) String() string {
-	return ReturnString(cl)
+	return returnString(cl)
 
 }
 
@@ -143,7 +145,7 @@ type threeGppLacCiLocation struct {
 }
 
 func (tgp threeGppLacCiLocation) String() string {
-	return ReturnString(tgp)
+	return returnString(tgp)
 }
 
 type gpsRawLocation struct {
@@ -154,7 +156,7 @@ type gpsRawLocation struct {
 }
 
 func (rgps gpsRawLocation) String() string {
-	return ReturnString(rgps)
+	return returnString(rgps)
 
 }
 
@@ -163,7 +165,7 @@ type gpsNmeaLocation struct {
 }
 
 func (ngps gpsNmeaLocation) String() string {
-	return ReturnString(ngps)
+	return returnString(ngps)
 }
 
 type cdmaBsLocation struct {
@@ -172,7 +174,7 @@ type cdmaBsLocation struct {
 }
 
 func (cdma cdmaBsLocation) String() string {
-	return ReturnString(cdma)
+	return returnString(cdma)
 
 }
 

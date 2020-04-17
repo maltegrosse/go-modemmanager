@@ -5,7 +5,7 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-// Paths of methods and properties
+// Paths of methods and properties of ModemVoice
 const (
 	ModemVoiceInterface = ModemInterface + ".Voice"
 
@@ -26,7 +26,7 @@ const (
 	ModemVoicePropertyEmergencyOnly = ModemVoiceInterface + ".EmergencyOnly"
 )
 
-// The Voice interface handles Calls.
+// ModemVoice interface handles Calls.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
 // 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used.
 type ModemVoice interface {
@@ -100,6 +100,7 @@ type ModemVoice interface {
 	Unsubscribe()
 }
 
+// Returns new ModemVoice Interface
 func NewModemVoice(objectPath dbus.ObjectPath) (ModemVoice, error) {
 	var vo modemVoice
 	return &vo, vo.init(ModemManagerInterface, objectPath)

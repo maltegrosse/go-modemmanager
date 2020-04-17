@@ -139,7 +139,7 @@ type Modem interface {
 	// Set the access technologies (e.g. 2G/3G/4G preference) the device is currently allowed to use when connecting to a network.
 	// The given combination should be supported by the modem, as specified in the "SupportedModes" property.
 	// A pair of MMModemMode values, where the first one is a bitmask of allowed modes, and the second one the preferred mode, if any.
-	SetCurrentModes(SupportedModesProperty) error
+	SetCurrentModes(Mode) error
 
 	// Set the radio frequency and technology bands the device is currently allowed to use when connecting to a network.
 	// List of MMModemBand values, to specify the bands to be used.
@@ -231,7 +231,7 @@ type Modem interface {
 
 	// The list of ports in the modem, given as an array of string and unsigned integer pairs.
 	// The string is the port name or path, and the integer is the port type given as a MMModemPortType value.
-	GetPorts() ([]Port, error)
+	GetPorts() ([]port, error)
 
 	// The identity of the device. This will be the IMEI number for GSM devices and the hex-format ESN/MEID for CDMA devices.
 	GetEquipmentIdentifier() (string, error)
@@ -289,6 +289,7 @@ type Modem interface {
 	MarshalJSON() ([]byte, error)
 }
 
+// Returns new Modem Interface
 func NewModem(objectPath dbus.ObjectPath) (Modem, error) {
 	var m modem
 	return &m, m.init(ModemManagerInterface, objectPath)
@@ -299,13 +300,16 @@ type modem struct {
 	sigChan chan *dbus.Signal
 }
 
-type Port struct {
+// Represents the modem port (name and type)
+type port struct {
 	PortName string          // Port Name or Path
 	PortType MMModemPortType // Modem Port Type
 }
+
+// Represents the modem access technology modes
 type Mode struct {
-	AllowedModes  []MMModemMode
-	PreferredMode MMModemMode
+	AllowedModes  []MMModemMode // allowed modes.
+	PreferredMode MMModemMode   // preferred access technology
 }
 
 func (m modem) GetObjectPath() dbus.ObjectPath {
@@ -409,7 +413,7 @@ func (m modem) SetCurrentCapabilities(capabilities []MMModemCapability) error {
 	return err
 }
 
-func (m modem) SetCurrentModes(property SupportedModesProperty) error {
+func (m modem) SetCurrentModes(property Mode) error {
 	// todo: untested
 	var mode MMModemMode
 	var resSlice = []uint32{mode.SliceToBitmask(property.AllowedModes),
@@ -527,7 +531,7 @@ func (m modem) GetPrimaryPort() (string, error) {
 	return m.getStringProperty(ModemPropertyPrimaryPort)
 }
 
-func (m modem) GetPorts() (ports []Port, err error) {
+func (m modem) GetPorts() (ports []port, err error) {
 	res, err := m.getSliceSlicePairProperty(ModemPropertyPorts)
 	if err != nil {
 		return nil, err
@@ -542,7 +546,7 @@ func (m modem) GetPorts() (ports []Port, err error) {
 
 			return nil, errors.New("wrong type != uin32")
 		}
-		ports = append(ports, Port{PortName: newA, PortType: MMModemPortType(newB)})
+		ports = append(ports, port{PortName: newA, PortType: MMModemPortType(newB)})
 	}
 	return
 }
@@ -703,10 +707,4 @@ func (m modem) Unsubscribe() {
 func (m modem) MarshalJSON() ([]byte, error) {
 	// todo: not implemented yet
 	panic("implement me")
-}
-
-// todo duplicate
-type SupportedModesProperty struct {
-	AllowedModes  []MMModemMode // the first one is a bitmask of allowed modes
-	PreferredMode MMModemMode   // the second one the preferred mode, if any
 }
