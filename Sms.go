@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-
 // Paths of methods and properties
 const (
 	SmsInterface = ModemManagerInterface + ".Sms"
@@ -37,6 +36,7 @@ const (
 	SmsPropertyStorage = SmsInterface + ".Storage" // readable   u
 
 )
+
 // The SMS interface Defines operations and properties of a single SMS message.
 type Sms interface {
 	/* METHODS */
@@ -184,10 +184,10 @@ func (ss sms) GetValidity() (map[MMSmsValidityType]interface{}, error) {
 	}
 	var myMap map[MMSmsValidityType]interface{}
 	myMap = make(map[MMSmsValidityType]interface{})
-	result, ok :=res.([]interface{})
+	result, ok := res.([]interface{})
 	if ok {
 		for key, element := range result {
-				myMap[MMSmsValidityType(key)] = element
+			myMap[MMSmsValidityType(key)] = element
 		}
 	}
 	return myMap, nil
@@ -232,7 +232,7 @@ func (ss sms) GetTimestamp() (time.Time, error) {
 	if err != nil {
 		return time.Now(), err
 	}
-	if len(res)<1 {
+	if len(res) < 1 {
 		return time.Now(), errors.New("no timestamp available")
 	}
 	t, err := time.Parse(time.RFC3339Nano, res)
@@ -248,7 +248,7 @@ func (ss sms) GetDischargeTimestamp() (time.Time, error) {
 		return time.Now(), err
 	}
 
-	if len(res)<1 {
+	if len(res) < 1 {
 		return time.Now(), errors.New("no discharge timestamp available")
 	}
 	t, err := time.Parse(time.RFC3339Nano, res)

@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-
 // Paths of methods and properties
 const (
 	ModemTimeInterface = ModemInterface + ".Time"
@@ -18,6 +17,7 @@ const (
 	ModemTimePropertyNetworkTimezone = ModemTimeInterface + ".NetworkTimezone" //  readable   a{sv}
 
 )
+
 // This interface allows clients to receive network time and timezone updates broadcast by mobile networks.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
 // 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used.
@@ -59,6 +59,7 @@ type ModemTimeZone struct {
 	DstOffset   int32 `json:"dst-offset"`   // Amount of offset that is due to DST (daylight saving time), given as a signed integer value (signature "i").
 	LeapSeconds int32 `json:"leap-seconds"` //
 }
+
 func (mtz ModemTimeZone) String() string {
 	return "Offset: " + fmt.Sprint(mtz.Offset) +
 		", DstOffset: " + fmt.Sprint(mtz.DstOffset) +

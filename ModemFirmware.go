@@ -18,6 +18,7 @@ const (
 	ModemFirmwarePropertyUpdateSettings = ModemFirmwareInterface + ".UpdateSettings" // readable   (ua{sv})
 
 )
+
 // This interface provides access to perform different firmware-related operations in the modem,
 // including listing the available firmware images in the module and selecting which of them to use.
 // This interface does not provide direct access to perform firmware updates in the device. Instead, it
@@ -124,7 +125,8 @@ func (fi modemFirmware) List() (properties []FirmwareProperty, err error) {
 					property.UniqueId = tmpValue
 					if tmpValue == tmpString {
 						property.Selected = true
-					} }
+					}
+				}
 			case "gobi-pri-version":
 				tmpValue, ok := element.Value().(string)
 				if ok {

@@ -6,7 +6,6 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-
 // Paths of methods and properties
 const (
 	ModemOmaInterface = ModemInterface + ".Oma"
@@ -23,6 +22,7 @@ const (
 	ModemOmaPropertySessionState                    = ModemOmaInterface + ".SessionState"                    // readable   i
 
 )
+
 // This interface allows clients to handle device management operations as specified by the Open Mobile Alliance (OMA).
 // Device management sessions are either on-demand (client-initiated), or automatically initiated by either the device
 // itself or the network.
@@ -181,8 +181,6 @@ func (om modemOma) Unsubscribe() {
 	om.conn.RemoveSignal(om.sigChan)
 	om.sigChan = nil
 }
-
-
 
 func (om modemOma) MarshalJSON() ([]byte, error) {
 	panic("implement me")

@@ -2,7 +2,6 @@ package modemmanager
 
 import "github.com/godbus/dbus/v5"
 
-
 // Paths of methods and properties
 const (
 	SimInterface = ModemManagerInterface + ".Sim"
@@ -21,6 +20,7 @@ const (
 	SimPropertyEmergencyNumbers   = SimInterface + ".EmergencyNumbers"   // readable   as
 
 )
+
 // The SIM interface handles communication with SIM, USIM, and RUIM (CDMA SIM) cards.
 type Sim interface {
 	/* METHODS */

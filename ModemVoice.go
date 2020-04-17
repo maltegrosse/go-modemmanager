@@ -5,28 +5,27 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-
 // Paths of methods and properties
 const (
 	ModemVoiceInterface = ModemInterface + ".Voice"
 
 	/* Methods */
-	ModemVoiceListCalls = ModemVoiceInterface + ".ListCalls"
+	ModemVoiceListCalls  = ModemVoiceInterface + ".ListCalls"
 	ModemVoiceDeleteCall = ModemVoiceInterface + ".DeleteCall"
 	ModemVoiceCreateCall = ModemVoiceInterface + ".CreateCall"
 
-	ModemVoiceHoldAndAccept = ModemVoiceInterface + ".HoldAndAccept"
-	ModemVoiceHangupAndAccept = ModemVoiceInterface + ".HangupAndAccept"
-	ModemVoiceHangupAll = ModemVoiceInterface + ".HangupAll"
-	ModemVoiceTransfer = ModemVoiceInterface + ".Transfer"
+	ModemVoiceHoldAndAccept    = ModemVoiceInterface + ".HoldAndAccept"
+	ModemVoiceHangupAndAccept  = ModemVoiceInterface + ".HangupAndAccept"
+	ModemVoiceHangupAll        = ModemVoiceInterface + ".HangupAll"
+	ModemVoiceTransfer         = ModemVoiceInterface + ".Transfer"
 	ModemVoiceCallWaitingSetup = ModemVoiceInterface + ".CallWaitingSetup"
 	ModemVoiceCallWaitingQuery = ModemVoiceInterface + ".CallWaitingQuery"
 
 	/* Property */
-	ModemVoicePropertyCalls = ModemVoiceInterface + ".Calls"
+	ModemVoicePropertyCalls         = ModemVoiceInterface + ".Calls"
 	ModemVoicePropertyEmergencyOnly = ModemVoiceInterface + ".EmergencyOnly"
-
 )
+
 // The Voice interface handles Calls.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
 // 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used.
@@ -38,11 +37,11 @@ type ModemVoice interface {
 	// Retrieve all Calls
 	// This method should only be used once and subsequent information retrieved either by listening for
 	// the org.freedesktop.ModemManager1.Modem.Voice::Added signal, or by querying the specific Call object of interest.
-	ListCalls()([]Call, error)
+	ListCalls() ([]Call, error)
 
 	// Delete a Call from the list of calls.
 	// The call will be hangup if it is still active.
-	DeleteCall(Call)error
+	DeleteCall(Call) error
 
 	// Creates a new call object for a new outgoing call.
 	// The 'Number' is the only expected property to set by the user.
@@ -82,11 +81,11 @@ type ModemVoice interface {
 	/* PROPERTIES */
 
 	// The list of calls object paths.
-	GetCalls()([]Call, error)
+	GetCalls() ([]Call, error)
 
 	// A flag indicating whether emergency calls are the only allowed ones.
 	// If this flag is set, users should only attempt voice calls to emergency numbers, as standard voice calls will likely fail.
-	GetEmergencyOnly()(bool, error)
+	GetEmergencyOnly() (bool, error)
 
 	/* SIGNALS */
 
@@ -137,7 +136,7 @@ func (m modemVoice) DeleteCall(c Call) error {
 	return m.call(ModemVoiceDeleteCall, &objPath)
 }
 
-func (m modemVoice) CreateCall(number string, optionalParameters ...Pair) (c Call,err error) {
+func (m modemVoice) CreateCall(number string, optionalParameters ...Pair) (c Call, err error) {
 	type dynMap interface{}
 	var myMap map[string]dynMap
 	myMap = make(map[string]dynMap)
@@ -146,7 +145,7 @@ func (m modemVoice) CreateCall(number string, optionalParameters ...Pair) (c Cal
 		myMap[fmt.Sprint(pair.GetLeft())] = fmt.Sprint(pair.GetRight())
 	}
 	var path dbus.ObjectPath
-	err = m.callWithReturn(&path,ModemVoiceCreateCall, &myMap)
+	err = m.callWithReturn(&path, ModemVoiceCreateCall, &myMap)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +179,6 @@ func (m modemVoice) CallWaitingSetup(enable bool) error {
 func (m modemVoice) CallWaitingQuery(status bool) error {
 	return m.call(ModemVoiceCallWaitingQuery, &status)
 }
-
 
 func (m modemVoice) GetCalls() (c []Call, err error) {
 	callPaths, err := m.getSliceObjectProperty(ModemVoicePropertyCalls)

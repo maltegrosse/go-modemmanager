@@ -2,7 +2,6 @@ package modemmanager
 
 import "github.com/godbus/dbus/v5"
 
-
 // Paths of methods and properties
 const (
 	Modem3gppUssdInterface = Modem3gppInterface + ".Ussd"
@@ -16,6 +15,7 @@ const (
 	Modem3gppUssdPropertyNetworkNotification = Modem3gppUssdInterface + ".NetworkNotification" // readable   s
 	Modem3gppUssdProperty                    = Modem3gppUssdInterface + ".NetworkRequest"      // readable   s
 )
+
 // This interface provides access to actions based on the USSD protocol.
 // This interface will only be available once the modem is ready to be registered in the
 // cellular network. 3GPP devices will require a valid unlocked SIM card before any of the features
@@ -74,7 +74,6 @@ type ussd struct {
 func (mu ussd) GetObjectPath() dbus.ObjectPath {
 	return mu.obj.Path()
 }
-
 
 func (mu ussd) Initiate(command string) (reply string, err error) {
 	err = mu.callWithReturn(&reply, Modem3gppUssdInitiate, command)

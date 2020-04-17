@@ -29,6 +29,7 @@ const (
 	Modem3gppPropertyInitialEpsBearer         = Modem3gppInterface + ".InitialEpsBearer"         // readable   o
 	Modem3gppPropertyInitialEpsBearerSettings = Modem3gppInterface + ".InitialEpsBearerSettings" // readable   a{sv}
 )
+
 // This interface provides access to specific actions that may be performed in modems with 3GPP capabilities.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
 // 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can be used.

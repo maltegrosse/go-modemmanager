@@ -3,10 +3,14 @@ Go-ModemManager
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org) ![Go](https://github.com/maltegrosse/go-modemmanager/workflows/Go/badge.svg) 
 
 Go D-Bus bindings for ModemManager
+
+![](./go-modemmanager.png)
+
+
 Additional information: [ModemManager D-Bus Specs](https://www.freedesktop.org/software/ModemManager/api/1.12.0/ref-dbus.html)
 
 Tested with [ModemManager - Version 1.28.8](https://gitlab.freedesktop.org/mobile-broadband/ModemManager) and Go 1.13
-with a [SolidRun Hummingboard Edge](https://www.solid-run.com/nxp-family/hummingboard/) on `Debian Buster (armv7)` with `kernel 5.4.x` and `libqmi 1.24.6` and a `Quectel EC25` miniPcie modem.
+with a [SolidRun Hummingboard Edge](https://www.solid-run.com/nxp-family/hummingboard/) on `Debian Buster (armv7)` with `Kernel 5.4.x` and `libqmi 1.24.6` and a `Quectel EC25` miniPcie modem.
 
 ## Status
 Work in Progress, some methods/properties/signals needs to be fixed for initial release of version 0.1
@@ -25,7 +29,11 @@ This packages requires Go 1.13 (for the dbus lib). If you installed it and set u
 You can find some examples in the [examples](examples) directory.
 
 ## License
+**[MIT license](http://opensource.org/licenses/mit-license.php)**
 
+Copyright 2020 © Malte Grosse.
 
-- **[MIT license](http://opensource.org/licenses/mit-license.php)**
-- Copyright 2020 © Malte Grosse.
+Other:
+- [ModemManager Logo under GPLv2+](https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/tree/master/data)
+
+- [GoLang Logo under Creative Commons Attribution 3.0](https://blog.golang.org/go-brand)

@@ -6,7 +6,6 @@ import (
 	"reflect"
 )
 
-
 // Paths of methods and properties
 const (
 	ModemSimpleInterface = ModemInterface + ".Simple"
@@ -18,6 +17,7 @@ const (
 	/* Property */
 
 )
+
 // The Simple interface allows controlling and querying the status of Modems.
 // This interface will only be available once the modem is ready to be registered in the
 // cellular network. 3GPP devices will require a valid unlocked SIM card before any of the
@@ -62,7 +62,7 @@ type SimpleStatus struct {
 	State                       MMModemState                 `json:"state"`                          // A MMModemState value specifying the overall state of the modem, given as an unsigned integer value (signature "u")
 	SignalQuality               uint32                       `json:"signal-quality"`                 // Signal quality value, given only when registered, as an unsigned integer value (signature "u").
 	CurrentBands                []MMModemBand                `json:"current-bands"`                  // List of MMModemBand values, given only when registered, as a list of unsigned integer values (signature "au").
-	AccessTechnology            MMModemAccessTechnology    `json:"access-technologies"`              // A MMModemAccessTechnology value, given only when registered, as an unsigned integer value (signature "u").
+	AccessTechnology            MMModemAccessTechnology      `json:"access-technologies"`            // A MMModemAccessTechnology value, given only when registered, as an unsigned integer value (signature "u").
 	M3GppRegistrationState      MMModem3gppRegistrationState `json:"m3gpp-registration-state"`       // A MMModem3gppRegistrationState value specifying the state of the registration, given only when registered in a 3GPP network, as an unsigned integer value (signature "u").
 	M3GppOperatorCode           string                       `json:"m3gpp-operator-code"`            // Operator MCC-MNC, given only when registered in a 3GPP network, as a string value (signature "s").
 	M3GppOperatorName           string                       `json:"m3gpp-operator-name"`            // Operator name, given only when registered in a 3GPP network, as a string value (signature "s").
@@ -107,7 +107,6 @@ func (ms modemSimple) Connect(properties SimpleProperties) (Bearer, error) {
 func (ms modemSimple) Disconnect(bearer Bearer) error {
 	return ms.call(ModemSimpleDisconnect, bearer.GetObjectPath())
 }
-
 
 func (ms modemSimple) GetStatus() (status SimpleStatus, err error) {
 	type dynMap interface{}

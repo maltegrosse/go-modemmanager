@@ -32,6 +32,7 @@ const (
 	ModemLocationPropertyGpsRefreshRate        = ModemLocationInterface + ".GpsRefreshRate"        // readable   u
 
 )
+
 // The Location interface allows devices to provide location information to client applications.
 // Not all devices can provide this information, or even if they do, they may not be able to provide it while
 // a data session is active.

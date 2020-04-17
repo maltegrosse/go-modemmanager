@@ -23,6 +23,7 @@ const (
 	ModemCdmaPropertyEvdoRegistrationState   = ModemCdmaInterface + ".EvdoRegistrationState"   //  readable   u
 
 )
+
 // This interface provides access to specific actions that may be performed in modems with CDMA capabilities.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
 // Mixed 3GPP+3GPP2 devices will require a valid unlocked SIM card before any of the features in the interface can be used.
@@ -74,6 +75,7 @@ type ModemCdma interface {
 	GetEvdoRegistrationState() (MMModemCdmaRegistrationState, error)
 }
 
+// Create new ModemCdma
 func NewModemCdma(objectPath dbus.ObjectPath) (ModemCdma, error) {
 	var mc modemCdma
 	return &mc, mc.init(ModemManagerInterface, objectPath)

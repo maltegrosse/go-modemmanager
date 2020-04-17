@@ -5,7 +5,6 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-
 // Paths of methods and properties
 const (
 	ModemMessagingInterface = ModemInterface + ".Messaging"
@@ -20,6 +19,7 @@ const (
 	ModemMessagingPropertySupportedStorages = ModemMessagingInterface + ".SupportedStorages"
 	ModemMessagingPropertyDefaultStorage    = ModemMessagingInterface + ".DefaultStorage"
 )
+
 // The Messaging interface handles sending SMS messages and notification of new incoming messages.
 // This interface will only be available once the modem is ready to be registered in the cellular network.
 // 3GPP devices will require a valid unlocked SIM card before any of the features in the interface can
@@ -122,7 +122,7 @@ func (me modemMessaging) CreateSms(number string, text string, optionalParameter
 		myMap[fmt.Sprint(pair.GetLeft())] = fmt.Sprint(pair.GetRight())
 	}
 	var path dbus.ObjectPath
-	err := me.callWithReturn(&path,ModemMessagingCreate, &myMap)
+	err := me.callWithReturn(&path, ModemMessagingCreate, &myMap)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (me modemMessaging) CreateMms(number string, data []byte, optionalParameter
 		myMap[fmt.Sprint(pair.GetLeft())] = fmt.Sprint(pair.GetRight())
 	}
 	var path dbus.ObjectPath
-	err := me.callWithReturn(&path,ModemMessagingCreate, &myMap)
+	err := me.callWithReturn(&path, ModemMessagingCreate, &myMap)
 	if err != nil {
 		return nil, err
 	}
@@ -209,4 +209,5 @@ func (me modemMessaging) Unsubscribe() {
 
 func (me modemMessaging) MarshalJSON() ([]byte, error) {
 	// todo: implement
-	panic("not implemented") }
+	panic("not implemented")
+}
