@@ -8,7 +8,8 @@ import (
 )
 
 func main() {
-
+	// testing in QMI mode
+	// SIM needs to be unlocked!
 	mmgr, err := modemmanager.NewModemManager()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -218,7 +219,7 @@ func main() {
 		}
 		fmt.Println("Device: ", dev)
 
-		drivers, err := modem.GetDriver()
+		drivers, err := modem.GetDrivers()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -499,12 +500,13 @@ func main() {
 		}
 		fmt.Println("ModemFirmware for: ", modemFirmware.GetObjectPath())
 
-		// functionality untested as my modem returns empty results
-		usedFirmware, err := modemFirmware.List()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		fmt.Println("ModemFirmware: ", usedFirmware)
+		// functionality untested in qmi mode as my modem returns empty results
+		// not available in AT mode
+		//usedFirmware, err := modemFirmware.List()
+		//if err != nil {
+		//	log.Fatal(err.Error())
+		//}
+		//fmt.Println("ModemFirmware: ", usedFirmware)
 
 		updateSettings, err := modemFirmware.GetUpdateSettings()
 		if err != nil {
@@ -587,7 +589,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("ModemLocation at: ", modemOma.GetObjectPath())
+		fmt.Println("ModemLocation at: ", modemLocation.GetObjectPath())
 
 		mlCap, err := modemLocation.GetCapabilities()
 		if err != nil {
@@ -851,15 +853,26 @@ func main() {
 		//}
 
 		fmt.Println("### END Messaging ####")
-
-		enableVoiceTest := false
-		if enableVoiceTest {
-			fmt.Println("### START Voice ####")
-			voice, err := modem.GetVoice()
+		fmt.Println("### START Voice ####")
+		voice, err := modem.GetVoice()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println(" voice at", voice.GetObjectPath())
+		calls, err := voice.GetCalls()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println(" found ", len(calls), " call(s)")
+		for _, call := range calls {
+			callJson, err := call.MarshalJSON()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println(" voice at", voice.GetObjectPath())
+			fmt.Println(string(callJson))
+		}
+		enableVoiceTest := false
+		if enableVoiceTest {
 
 			call, err := voice.CreateCall("0173xxxx")
 			if err != nil {

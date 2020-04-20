@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/godbus/dbus/v5"
 	"reflect"
@@ -68,8 +69,6 @@ type Modem interface {
 
 	// Returns object path
 	GetObjectPath() dbus.ObjectPath
-
-	// todo: add GetInterfacePath
 
 	// Returns ModemSimple Interface
 	GetSimpleModem() (ModemSimple, error)
@@ -149,14 +148,6 @@ type Modem interface {
 	// to enable either start mm in debug mode (ModemManager --debug) or with ModemManager --with-at-command-via-dbus
 	Command(cmd string, timeout uint32) (string, error)
 
-	// StateChanged (i old,	i new,	u reason);
-	// The modem's state (see "State") changed.
-	// i old: A MMModemState value, specifying the new state.
-	// i new: A MMModemState value, specifying the new state.
-	// u reason: A MMModemStateChangeReason value, specifying the reason for this state change.
-	Subscribe() <-chan *dbus.Signal
-	Unsubscribe()
-
 	/* PROPERTIES */
 
 	// The path of the SIM object available in this device, if any.
@@ -221,7 +212,7 @@ type Modem interface {
 	GetDevice() (string, error)
 
 	// The Operating System device drivers handling communication with the modem hardware.
-	GetDriver() ([]string, error)
+	GetDrivers() ([]string, error)
 
 	// The name of the plugin handling this modem.
 	GetPlugin() (string, error)
@@ -287,6 +278,16 @@ type Modem interface {
 	GetSupportedIpFamilies() ([]MMBearerIpFamily, error)
 
 	MarshalJSON() ([]byte, error)
+
+	/* SIGNALS */
+
+	// StateChanged (i old,	i new,	u reason);
+	// The modem's state (see "State") changed.
+	// i old: A MMModemState value, specifying the new state.
+	// i new: A MMModemState value, specifying the new state.
+	// u reason: A MMModemStateChangeReason value, specifying the reason for this state change.
+	Subscribe() <-chan *dbus.Signal
+	Unsubscribe()
 }
 
 // NewModem returns new Modem Interface
@@ -306,16 +307,31 @@ type port struct {
 	PortType MMModemPortType // Modem Port Type
 }
 
+// MarshalJSON returns a byte array
+func (po port) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"PortName":  po.PortName,
+		"PortType ": po.PortType,
+	})
+}
+
 // Mode represents the modem access technology modes
 type Mode struct {
 	AllowedModes  []MMModemMode // allowed modes.
 	PreferredMode MMModemMode   // preferred access technology
 }
 
+// MarshalJSON returns a byte array
+func (mo Mode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"AllowedModes":   mo.AllowedModes,
+		"PreferredMode ": mo.PreferredMode,
+	})
+}
+
 func (m modem) GetObjectPath() dbus.ObjectPath {
 	return m.obj.Path()
 }
-
 func (m modem) GetSimpleModem() (ModemSimple, error) {
 	return NewModemSimple(m.obj.Path())
 }
@@ -348,7 +364,6 @@ func (m modem) GetLocation() (ModemLocation, error) {
 func (m modem) GetMessaging() (ModemMessaging, error) {
 	return NewModemMessaging(m.obj.Path())
 }
-
 func (m modem) GetVoice() (ModemVoice, error) {
 	return NewModemVoice(m.obj.Path())
 }
@@ -364,7 +379,7 @@ func (m modem) Disable() error {
 }
 
 func (m modem) CreateBearer(property BearerProperty) (Bearer, error) {
-	// untested
+	// todo: untested
 	v := reflect.ValueOf(property)
 	st := reflect.TypeOf(property)
 	type dynMap interface{}
@@ -519,7 +534,7 @@ func (m modem) GetDevice() (string, error) {
 	return m.getStringProperty(ModemPropertyDevice)
 }
 
-func (m modem) GetDriver() ([]string, error) {
+func (m modem) GetDrivers() ([]string, error) {
 	return m.getSliceStringProperty(ModemPropertyDrivers)
 }
 
@@ -687,7 +702,7 @@ func (m modem) GetSupportedIpFamilies() ([]MMBearerIpFamily, error) {
 }
 
 func (m modem) Subscribe() <-chan *dbus.Signal {
-	// todo: fix all subscribe methods
+	// todo: untested
 	if m.sigChan != nil {
 		return m.sigChan
 	}
@@ -705,6 +720,199 @@ func (m modem) Unsubscribe() {
 }
 
 func (m modem) MarshalJSON() ([]byte, error) {
-	// todo: not implemented yet
-	panic("implement me")
+	sim, err := m.GetSim()
+	if err != nil {
+		return nil, err
+	}
+	simJson, err := sim.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	var bearersJson [][]byte
+	bearers, err := m.GetBearers()
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range bearers {
+		tmpB, err := x.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		bearersJson = append(bearersJson, tmpB)
+	}
+	supportedCapabilities, err := m.GetSupportedCapabilities()
+	if err != nil {
+		return nil, err
+	}
+	currentCapabilities, err := m.GetCurrentCapabilities()
+	if err != nil {
+		return nil, err
+	}
+	maxBearers, err := m.GetMaxBearers()
+	if err != nil {
+		return nil, err
+	}
+	maxActiveBearers, err := m.GetMaxActiveBearers()
+	if err != nil {
+		return nil, err
+	}
+	manufacturer, err := m.GetManufacturer()
+	if err != nil {
+		return nil, err
+	}
+	model, err := m.GetModel()
+	if err != nil {
+		return nil, err
+	}
+	revision, err := m.GetRevision()
+	if err != nil {
+		return nil, err
+	}
+	carrierConfiguration, err := m.GetCarrierConfiguration()
+	if err != nil {
+		return nil, err
+	}
+	carrierConfigurationRevision, err := m.GetCarrierConfigurationRevision()
+	if err != nil {
+		return nil, err
+	}
+	hardwareRevision, err := m.GetHardwareRevision()
+	if err != nil {
+		return nil, err
+	}
+	deviceIdentifier, err := m.GetDeviceIdentifier()
+	if err != nil {
+		return nil, err
+	}
+	device, err := m.GetDevice()
+	if err != nil {
+		return nil, err
+	}
+	drivers, err := m.GetDrivers()
+	if err != nil {
+		return nil, err
+	}
+	plugin, err := m.GetPlugin()
+	if err != nil {
+		return nil, err
+	}
+	primaryPort, err := m.GetPrimaryPort()
+	if err != nil {
+		return nil, err
+	}
+	var portJson [][]byte
+	ports, err := m.GetPorts()
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range ports {
+		tmpB, err := x.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		portJson = append(portJson, tmpB)
+	}
+	equipmentIdentifier, err := m.GetEquipmentIdentifier()
+	if err != nil {
+		return nil, err
+	}
+	unlockRequired, err := m.GetUnlockRequired()
+	if err != nil {
+		return nil, err
+	}
+	unlockRetries, err := m.GetUnlockRetries()
+	if err != nil {
+		return nil, err
+	}
+	state, err := m.GetState()
+	if err != nil {
+		return nil, err
+	}
+	stateFailedReason, err := m.GetStateFailedReason()
+	if err != nil {
+		return nil, err
+	}
+	accessTechnologies, err := m.GetAccessTechnologies()
+	if err != nil {
+		return nil, err
+	}
+	signalQuality, recent, err := m.GetSignalQuality()
+	if err != nil {
+		return nil, err
+	}
+	ownNumbers, err := m.GetOwnNumbers()
+	if err != nil {
+		return nil, err
+	}
+	powerState, err := m.GetPowerState()
+	if err != nil {
+		return nil, err
+	}
+	var sModesJson [][]byte
+	supportedModes, err := m.GetSupportedModes()
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range supportedModes {
+		tmpB, err := x.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		sModesJson = append(sModesJson, tmpB)
+	}
+	currentModes, err := m.GetCurrentModes()
+	if err != nil {
+		return nil, err
+	}
+	currentModesJson, err := currentModes.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	supportedBands, err := m.GetSupportedBands()
+	if err != nil {
+		return nil, err
+	}
+	currentBands, err := m.GetCurrentBands()
+	if err != nil {
+		return nil, err
+	}
+	supportedIpFamilies, err := m.GetSupportedIpFamilies()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"Sim":                          simJson,
+		"Bearers":                      bearersJson,
+		"SupportedCapabilities":        supportedCapabilities,
+		"CurrentCapabilities":          currentCapabilities,
+		"MaxBearers":                   maxBearers,
+		"MaxActiveBearers":             maxActiveBearers,
+		"Manufacturer":                 manufacturer,
+		"Model":                        model,
+		"Revision":                     revision,
+		"CarrierConfiguration":         carrierConfiguration,
+		"CarrierConfigurationRevision": carrierConfigurationRevision,
+		"HardwareRevision":             hardwareRevision,
+		"DeviceIdentifier":             deviceIdentifier,
+		"Device":                       device,
+		"Drivers":                      drivers,
+		"Plugin":                       plugin,
+		"PrimaryPort":                  primaryPort,
+		"Ports":                        portJson,
+		"EquipmentIdentifier":          equipmentIdentifier,
+		"UnlockRequired":               unlockRequired,
+		"UnlockRetries":                unlockRetries,
+		"State":                        state,
+		"StateFailedReason":            stateFailedReason,
+		"AccessTechnologies":           accessTechnologies,
+		"SignalQuality":                signalQuality,
+		"SignalQualityRecent":          recent,
+		"OwnNumbers":                   ownNumbers,
+		"PowerState":                   powerState,
+		"SupportedModes":               sModesJson,
+		"CurrentModes":                 currentModesJson,
+		"SupportedBands":               supportedBands,
+		"CurrentBands":                 currentBands,
+		"SupportedIpFamilies":          supportedIpFamilies,
+	})
 }

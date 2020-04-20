@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
@@ -126,6 +127,16 @@ type networkScanResult struct {
 	Recent       bool
 }
 
+// MarshalJSON returns a byte array
+func (nsr networkScanResult) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Networks":      fmt.Sprint(nsr.Networks),
+		"LastScan ":     nsr.LastScan,
+		"ScanDuration ": nsr.ScanDuration,
+		"Recent ":       nsr.Recent,
+	})
+}
+
 func (nsr networkScanResult) String() string {
 	return "Networks: " + fmt.Sprint(nsr.Networks) +
 		", LastScan: " + fmt.Sprint(nsr.LastScan) +
@@ -144,6 +155,19 @@ type network3Gpp struct {
 	AccessTechnology MMModemAccessTechnology        `json:"access-technology"` // A MMModemAccessTechnology value representing the generic access technology used by this mobile network, given as an unsigned integer (signature "u").
 }
 
+// MarshalJSON returns a byte array
+func (n network3Gpp) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Status":           fmt.Sprint(n.Status),
+		"OperatorLong ":    n.OperatorLong,
+		"OperatorShort ":   n.OperatorShort,
+		"OperatorCode ":    n.OperatorCode,
+		"Mcc ":             n.Mcc,
+		"Mnc ":             n.Mnc,
+		"AccessTechnology": fmt.Sprint(n.AccessTechnology),
+	})
+}
+
 func (n network3Gpp) String() string {
 	return "Status: " + fmt.Sprint(n.Status) +
 		", OperatorLong: " + n.OperatorLong +
@@ -158,6 +182,15 @@ type rawPcoData struct {
 	SessionId uint32 // The session ID associated with the PCO, given as an unsigned integer value (signature "u").
 	Complete  bool   // The flag that indicates whether the PCO data contains the complete PCO structure received from the network, given as a boolean value (signature"b").
 	RawData   []byte // The raw  PCO data, given as an array of bytes (signature "ay").
+}
+
+// MarshalJSON returns a byte array
+func (r rawPcoData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"SessionId": r.SessionId,
+		"Complete ": r.Complete,
+		"RawData ":  r.RawData,
+	})
 }
 
 func (m modem3gpp) GetObjectPath() dbus.ObjectPath {
@@ -425,5 +458,59 @@ func (m modem3gpp) GetInitialEpsBearerSettings() (property BearerProperty, err e
 }
 
 func (m modem3gpp) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+	imei, err := m.GetImei()
+	if err != nil {
+		return nil, err
+	}
+	operatorCode, err := m.GetOperatorCode()
+	if err != nil {
+		return nil, err
+	}
+	operatorName, err := m.GetOperatorName()
+	if err != nil {
+		return nil, err
+	}
+	enabledFacilityLocks, err := m.GetEnabledFacilityLocks()
+	if err != nil {
+		return nil, err
+	}
+	epsUeModeOperation, err := m.GetEpsUeModeOperation()
+	if err != nil {
+		return nil, err
+	}
+	pco, err := m.GetPco()
+	if err != nil {
+		return nil, err
+	}
+	initialEpsBearerJson := []byte("")
+	initialEpsBearer, err := m.GetInitialEpsBearer()
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		initialEpsBearerJson, err = initialEpsBearer.MarshalJSON()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+	initialEpsBearerSettingsJson := []byte("")
+	initialEpsBearerSettings, err := m.GetInitialEpsBearerSettings()
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		initialEpsBearerSettingsJson, err = initialEpsBearerSettings.MarshalJSON()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+
+	return json.Marshal(map[string]interface{}{
+		"Imei":                     imei,
+		"OperatorCode":             operatorCode,
+		"OperatorName":             operatorName,
+		"EnabledFacilityLocks":     enabledFacilityLocks,
+		"EpsUeModeOperation":       epsUeModeOperation,
+		"Pco":                      pco,
+		"InitialEpsBearer":         initialEpsBearerJson,
+		"InitialEpsBearerSettings": initialEpsBearerSettingsJson,
+	})
 }

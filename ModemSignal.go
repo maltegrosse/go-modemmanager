@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"reflect"
@@ -80,6 +81,21 @@ type signalProperty struct {
 	Rsrq float64              `json:"rsrq"`          // The LTE RSRP (Reference Signal Received Power), in dBm, given as a floating point value (Only applicable for type LTE).
 	Rsrp float64              `json:"rsrp"`          // The LTE RSRP (Reference Signal Received Power), in dBm, given as a floating point value (Only applicable for type LTE).
 	Snr  float64              `json:"snr"`           // The LTE S/R ratio, in dB, given as a floating point value (Only applicable for type LTE).
+}
+
+// MarshalJSON returns a byte array
+func (sp signalProperty) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Type": fmt.Sprint(sp.Type),
+		"Rssi": sp.Rssi,
+		"Ecio": sp.Ecio,
+		"Sinr": sp.Sinr,
+		"Io":   sp.Io,
+		"Rscp": sp.Rscp,
+		"Rsrq": sp.Rsrq,
+		"Rsrp": sp.Rsrp,
+		"Snr":  sp.Snr,
+	})
 }
 
 func (sp signalProperty) String() string {
@@ -268,5 +284,24 @@ func (si modemSignal) GetCurrentSignals() (sp []signalProperty, err error) {
 }
 
 func (si modemSignal) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+	rate, err := si.GetRate()
+	if err != nil {
+		return nil, err
+	}
+	var currentSignalsJson [][]byte
+	currentSignals, err := si.GetCurrentSignals()
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range currentSignals {
+		tmpB, err := x.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		currentSignalsJson = append(currentSignalsJson, tmpB)
+	}
+	return json.Marshal(map[string]interface{}{
+		"Rate":           rate,
+		"CurrentSignals": currentSignalsJson,
+	})
 }

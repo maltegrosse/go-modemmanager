@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 )
@@ -191,7 +192,7 @@ func (me modemMessaging) GetDefaultStorage() (storage MMSmsStorage, err error) {
 }
 
 func (me modemMessaging) Subscribe() <-chan *dbus.Signal {
-	// todo: fix signal
+	// todo: untested
 	if me.sigChan != nil {
 		return me.sigChan
 	}
@@ -209,6 +210,30 @@ func (me modemMessaging) Unsubscribe() {
 }
 
 func (me modemMessaging) MarshalJSON() ([]byte, error) {
-	// todo: implement
-	panic("not implemented")
+	messages, err := me.GetMessages()
+	if err != nil {
+		return nil, err
+	}
+	var messagesJson [][]byte
+	for _, x := range messages {
+		tmpB, err := x.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		messagesJson = append(messagesJson, tmpB)
+	}
+	supportedStorages, err := me.GetSupportedStorages()
+	if err != nil {
+		return nil, err
+	}
+	defaultStorage, err := me.GetDefaultStorage()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"Messages":          messagesJson,
+		"SupportedStorages": supportedStorages,
+		"DefaultStorage":    defaultStorage,
+	})
+
 }

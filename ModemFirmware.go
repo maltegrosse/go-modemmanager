@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
@@ -72,6 +73,19 @@ type firmwareProperty struct {
 	Selected          bool                `json:"selected"`             // Shows if certain firmware is selected
 }
 
+// MarshalJSON returns a byte array
+func (fp firmwareProperty) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"ImageType":         fmt.Sprint(fp.ImageType),
+		"UniqueId":          fp.UniqueId,
+		"GobiPriVersion":    fp.GobiPriVersion,
+		"GobiPriInfo":       fp.GobiPriInfo,
+		"GobiBootVersion":   fp.GobiBootVersion,
+		"GobiPriUniqueId":   fp.GobiPriUniqueId,
+		"GobiModemUniqueId": fp.GobiModemUniqueId,
+		"Selected":          fp.Selected,
+	})
+}
 func (fp firmwareProperty) String() string {
 	return "ImageType: " + fmt.Sprint(fp.ImageType) +
 		", UniqueId: " + fp.UniqueId +
@@ -89,6 +103,16 @@ type updateSettingsProperty struct {
 	DeviceIds     []string                      `json:"device-ids"`     // (Required) This property exposes the list of device IDs associated to a given device, from most specific to least specific. (signature 'as'). E.g. a list containing: "USB\VID_413C&PID_81D7&REV_0001", "USB\VID_413C&PID_81D7" and "USB\VID_413C"
 	Version       string                        `json:"version"`        // (Required) This property exposes the current firmware version string of the module. If the module uses separate version numbers for firmware version and carrier configuration, this version string will be a combination of both, and so it may be different to the version string showed in the "Revision" property. (signature 's')
 	FastbootAt    string                        `json:"fastboot-at"`    // only if update method fastboot: (Required) This property exposes the AT command that should be sent to the module to trigger a reset into fastboot mode (signature 's')
+}
+
+// MarshalJSON returns a byte array
+func (us updateSettingsProperty) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"UpdateMethods": fmt.Sprint(us.UpdateMethods),
+		"DeviceIds":     us.DeviceIds,
+		"Version":       us.Version,
+		"FastbootAt":    us.FastbootAt,
+	})
 }
 
 func (us updateSettingsProperty) String() string {
@@ -200,9 +224,18 @@ func (fi modemFirmware) GetUpdateSettings() (property updateSettingsProperty, er
 
 	}
 	return
-
 }
 
 func (fi modemFirmware) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+	updateSettings, err := fi.GetUpdateSettings()
+	if err != nil {
+		return nil, err
+	}
+	updateSettingsJson, err := updateSettings.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"UpdateSettings": updateSettingsJson,
+	})
 }

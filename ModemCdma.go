@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"github.com/godbus/dbus/v5"
 	"reflect"
 )
@@ -42,14 +43,6 @@ type ModemCdma interface {
 	// Some modems will reboot after this call is made.
 	ActivateManual(property CdmaProperty) error
 
-	// The device activation state changed.
-	// 		u activation_state: Current activation state, given as a MMModemCdmaActivationState.
-	// 		u activation_error: Carrier-specific error code, given as a MMCdmaActivationError.
-	// 		a{sv} status_changes:Properties that have changed as a result of this activation state change, including "mdn" and "min". The dictionary may be empty if the changed properties are unknown.
-	Subscribe() <-chan *dbus.Signal
-	Unsubscribe()
-	MarshalJSON() ([]byte, error)
-
 	/* PROPERTIES */
 
 	// A MMModemCdmaActivationState value specifying the state of the activation in the 3GPP2 network.
@@ -73,6 +66,17 @@ type ModemCdma interface {
 
 	// A MMModemCdmaRegistratiCdmaProperty onState value specifying the EVDO registration state.
 	GetEvdoRegistrationState() (MMModemCdmaRegistrationState, error)
+
+	MarshalJSON() ([]byte, error)
+
+	/* SIGNALS */
+
+	// The device activation state changed.
+	// 		u activation_state: Current activation state, given as a MMModemCdmaActivationState.
+	// 		u activation_error: Carrier-specific error code, given as a MMCdmaActivationError.
+	// 		a{sv} status_changes:Properties that have changed as a result of this activation state change, including "mdn" and "min". The dictionary may be empty if the changed properties are unknown.
+	Subscribe() <-chan *dbus.Signal
+	Unsubscribe()
 }
 
 // NewModemCdma returns new ModemCdma Interface
@@ -97,6 +101,18 @@ type CdmaProperty struct {
 	Prl      []byte `json:"prl"`        // The Preferred Roaming List, given as an array of maximum 16384 bytes.
 }
 
+// MarshalJSON returns a byte array
+func (cdma CdmaProperty) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Spc":      cdma.Spc,
+		"Sid":      cdma.Sid,
+		"Mdn":      cdma.Mdn,
+		"Min":      cdma.Min,
+		"MnHaKey":  cdma.MnHaKey,
+		"MnAaaKey": cdma.MnAaaKey,
+		"Prl":      cdma.Prl,
+	})
+}
 func (cdma CdmaProperty) String() string {
 	return returnString(cdma)
 }
@@ -170,6 +186,7 @@ func (mc modemCdma) GetEvdoRegistrationState() (MMModemCdmaRegistrationState, er
 }
 
 func (mc modemCdma) Subscribe() <-chan *dbus.Signal {
+	// todo: untested
 	if mc.sigChan != nil {
 		return mc.sigChan
 	}
@@ -187,5 +204,41 @@ func (mc modemCdma) Unsubscribe() {
 }
 
 func (mc modemCdma) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+	activationState, err := mc.GetActivationState()
+	if err != nil {
+		return nil, err
+	}
+	meid, err := mc.GetMeid()
+	if err != nil {
+		return nil, err
+	}
+	esn, err := mc.GetEsn()
+	if err != nil {
+		return nil, err
+	}
+	sid, err := mc.GetSid()
+	if err != nil {
+		return nil, err
+	}
+	nid, err := mc.GetNid()
+	if err != nil {
+		return nil, err
+	}
+	cdma1xRegistrationState, err := mc.GetCdma1xRegistrationState()
+	if err != nil {
+		return nil, err
+	}
+	evdoRegistrationState, err := mc.GetEvdoRegistrationState()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"ActivationState":         activationState,
+		"Meid":                    meid,
+		"Esn":                     esn,
+		"Sid":                     sid,
+		"Nid":                     nid,
+		"Cdma1xRegistrationState": cdma1xRegistrationState,
+		"EvdoRegistrationState":   evdoRegistrationState,
+	})
 }

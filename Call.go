@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"github.com/godbus/dbus/v5"
 )
 
@@ -96,7 +97,7 @@ type Call interface {
 	GetAudioFormat() (audioFormat, error)
 
 	/* SIGNALS */
-	// todo implement signals
+
 	// DtmfReceived (s dtmf);
 	//Emitted when a DTMF tone is received (only on supported modem)
 	//	s dtmf:DTMF tone identifier [0-9A-D*#].
@@ -127,6 +128,14 @@ type audioFormat struct {
 	Rate       uint32 `json:"rate"`       // The sampling rate as an unsigned integer. For example, 8000 for 8000hz.
 }
 
+// MarshalJSON returns a byte array
+func (af audioFormat) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Encoding":   af.Encoding,
+		"Resolution": af.Resolution,
+		"Rate":       af.Rate,
+	})
+}
 func (af audioFormat) String() string {
 	return returnString(af)
 
@@ -229,13 +238,64 @@ func (ca call) GetAudioFormat() (af audioFormat, err error) {
 }
 
 func (ca call) Subscribe() <-chan *dbus.Signal {
-	panic("implement me")
+	// todo: untested
+	if ca.sigChan != nil {
+		return ca.sigChan
+	}
+
+	ca.subscribeNamespace(ModemManagerObjectPath)
+	ca.sigChan = make(chan *dbus.Signal, 10)
+	ca.conn.Signal(ca.sigChan)
+
+	return ca.sigChan
 }
 
 func (ca call) Unsubscribe() {
-	panic("implement me")
+	ca.conn.RemoveSignal(ca.sigChan)
+	ca.sigChan = nil
 }
 
 func (ca call) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+
+	state, err := ca.GetState()
+	if err != nil {
+		return nil, err
+	}
+	stateReason, err := ca.GetStateReason()
+	if err != nil {
+		return nil, err
+	}
+	direction, err := ca.GetDirection()
+	if err != nil {
+		return nil, err
+	}
+	number, err := ca.GetNumber()
+	if err != nil {
+		return nil, err
+	}
+	multiparty, err := ca.GetMultiparty()
+	if err != nil {
+		return nil, err
+	}
+	audioPort, err := ca.GetAudioPort()
+	if err != nil {
+		return nil, err
+	}
+	audioFormat, err := ca.GetAudioFormat()
+	if err != nil {
+		return nil, err
+	}
+	audioFormatJson, err := audioFormat.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"State":       state,
+		"StateReason": stateReason,
+		"Direction":   direction,
+		"Number":      number,
+		"Multiparty":  multiparty,
+		"AudioPort":   audioPort,
+		"AudioFormat": audioFormatJson,
+	})
 }

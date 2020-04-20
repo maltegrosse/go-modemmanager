@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
@@ -51,13 +52,6 @@ type ModemOma interface {
 	// Cancels the current on-going device management session.
 	CancelSession() error
 
-	// The session state changed.
-	//		i old_session_state: Previous session state, given as a MMOmaSessionState.
-	//		i new_session_state: Current session state, given as a MMOmaSessionState.
-	//		u session_state_failed_reason: Reason of failure, given as a MMOmaSessionStateFailedReason, if session_state is MM_OMA_SESSION_STATE_FAILED.
-	Subscribe() <-chan *dbus.Signal
-	Unsubscribe()
-
 	/* PROPERTIES */
 
 	// Bitmask of MMModemOmaFeature flags, specifying which device management features are enabled or disabled.
@@ -73,6 +67,15 @@ type ModemOma interface {
 
 	// State of the current on-going device management session, given as a MMOmaSessionState.
 	GetSessionState() (MMOmaSessionState, error)
+
+	/* SIGNALS */
+
+	// The session state changed.
+	//		i old_session_state: Previous session state, given as a MMOmaSessionState.
+	//		i new_session_state: Current session state, given as a MMOmaSessionState.
+	//		u session_state_failed_reason: Reason of failure, given as a MMOmaSessionStateFailedReason, if session_state is MM_OMA_SESSION_STATE_FAILED.
+	Subscribe() <-chan *dbus.Signal
+	Unsubscribe()
 }
 
 // NewModemOma returns new ModemOma Interface
@@ -88,6 +91,14 @@ type modemOma struct {
 type modemOmaInitiatedSession struct {
 	SessionType MMOmaSessionType `json:"session-type"` // network-initiated session type
 	SessionId   uint32           `json:"session-id"`   // network-initiated session id
+}
+
+// MarshalJSON returns a byte array
+func (mois modemOmaInitiatedSession) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"SessionType": fmt.Sprint(mois.SessionType),
+		"SessionId":   mois.SessionId,
+	})
 }
 
 func (mois modemOmaInitiatedSession) String() string {
@@ -167,6 +178,7 @@ func (om modemOma) GetSessionState() (MMOmaSessionState, error) {
 }
 
 func (om modemOma) Subscribe() <-chan *dbus.Signal {
+	// todo: untested
 	if om.sigChan != nil {
 		return om.sigChan
 	}
@@ -184,5 +196,33 @@ func (om modemOma) Unsubscribe() {
 }
 
 func (om modemOma) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+	features, err := om.GetFeatures()
+	if err != nil {
+		return nil, err
+	}
+	var pendingNetworkInitiatedSessionsJson [][]byte
+	pendingNetworkInitiatedSessions, err := om.GetPendingNetworkInitiatedSessions()
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range pendingNetworkInitiatedSessions {
+		tmpB, err := x.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		pendingNetworkInitiatedSessionsJson = append(pendingNetworkInitiatedSessionsJson, tmpB)
+	}
+	sessionType, err := om.GetSessionType()
+	if err != nil {
+		return nil, err
+	}
+	sessionState, err := om.GetSessionState()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"Features":                        features,
+		"PendingNetworkInitiatedSessions": pendingNetworkInitiatedSessionsJson,
+		"SessionType":                     sessionType,
+		"SessionState":                    sessionState})
 }

@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 )
@@ -75,6 +76,16 @@ type EventProperties struct {
 	Uid       string                 `json:"uid"`       // The unique ID of the physical device, given as a string value (signature "s"). This parameter is OPTIONAL, if not given the sysfs path of the physical device will be used. This parameter must be the same for all devices exposed by the same physical device.
 }
 
+// MarshalJSON returns a byte array
+func (ep EventProperties) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Action":    ep.Action,
+		"Name ":     ep.Name,
+		"Subsystem": ep.Subsystem,
+		"Uid":       ep.Uid,
+	})
+}
+
 func (mm modemManager) GetModems() (modems []Modem, err error) {
 	fmt.Println("####->", ModemManagerInterface, ModemManagerObjectPath)
 	devPaths, err := mm.getManagedObjects(ModemManagerInterface, ModemManagerObjectPath)
@@ -103,7 +114,7 @@ func (mm modemManager) SetLogging(level MMLoggingLevel) error {
 }
 
 func (mm modemManager) ReportKernelEvent(properties EventProperties) error {
-	// untested
+	// todo: untested
 	v := reflect.ValueOf(properties)
 	st := reflect.TypeOf(properties)
 	type dynMap interface{}
@@ -122,7 +133,7 @@ func (mm modemManager) ReportKernelEvent(properties EventProperties) error {
 }
 
 func (mm modemManager) InhibitDevice(uid string, inhibit bool) error {
-	// untested
+	// todo: untested
 	err := mm.call(ModemManagerInhibitDevice, &uid, &inhibit)
 	return err
 }
@@ -133,6 +144,11 @@ func (mm modemManager) GetVersion() (string, error) {
 }
 
 func (mm modemManager) MarshalJSON() ([]byte, error) {
-	// todo: not implemented yet
-	panic("implement me")
+	version, err := mm.GetVersion()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"Version": version,
+	})
 }

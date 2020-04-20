@@ -1,6 +1,9 @@
 package modemmanager
 
-import "github.com/godbus/dbus/v5"
+import (
+	"encoding/json"
+	"github.com/godbus/dbus/v5"
+)
 
 // Paths of methods and properties
 const (
@@ -116,5 +119,31 @@ func (sm sim) GetEmergencyNumbers() ([]string, error) {
 }
 
 func (sm sim) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+	simIdentifier, err := sm.GetSimIdentifier()
+	if err != nil {
+		return nil, err
+	}
+	imsi, err := sm.GetImsi()
+	if err != nil {
+		return nil, err
+	}
+	operatorIdentifier, err := sm.GetOperatorIdentifier()
+	if err != nil {
+		return nil, err
+	}
+	operatorName, err := sm.GetOperatorName()
+	if err != nil {
+		return nil, err
+	}
+	emergencyNumbers, err := sm.GetEmergencyNumbers()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"SimIdentifier":      simIdentifier,
+		"Imsi":               imsi,
+		"OperatorIdentifier": operatorIdentifier,
+		"OperatorName":       operatorName,
+		"EmergencyNumbers":   emergencyNumbers,
+	})
 }

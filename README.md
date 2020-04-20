@@ -9,18 +9,14 @@ Go D-Bus bindings for ModemManager
 
 Additional information: [ModemManager D-Bus Specs](https://www.freedesktop.org/software/ModemManager/api/1.12.0/ref-dbus.html)
 
-Tested with [ModemManager - Version 1.28.8](https://gitlab.freedesktop.org/mobile-broadband/ModemManager) and Go 1.13
-with a [SolidRun Hummingboard Edge](https://www.solid-run.com/nxp-family/hummingboard/) on `Debian Buster (armv7)` with `Kernel 5.4.x` and `libqmi 1.24.6` and a `Quectel EC25` miniPcie modem.
+Tested with [ModemManager - Version 1.28.8](https://gitlab.freedesktop.org/mobile-broadband/ModemManager), Go 1.13, on `Debian Buster (armv7)` with `Kernel 5.4.x` and `libqmi 1.24.6`.
+
+Test hardware:  [SolidRun Hummingboard Edge](https://www.solid-run.com/nxp-family/hummingboard/)   and a `Quectel EC25 - EC25EFA` mini pcie modem.
+
 
 ## Status
-Work in Progress, some methods/properties/signals needs to be fixed for initial release of version 0.1
-
-## Todo
 Some methods/properties are untested as they are not supported by my modem/lack of how to use them. See `todo` tags in the code.
 
-- Implement MarshallJson methods
-- implement signal methods
-- tidy up the code
 
 ## Installation
 
@@ -31,6 +27,29 @@ This packages requires Go 1.13 (for the dbus lib). If you installed it and set u
 ## Usage
 
 You can find some examples in the [examples](examples) directory.
+
+## Limitations
+Not all interfaces, methods and properties are supported in QMI or AT mode. In addition, not all methods and properties are supported by every modem.
+A brief overview of the availability of each interface by using Quectel EC-25:
+
+| Interface     | QMI   | AT    |
+|---------------|-------|-------|
+| ModemManager1 | true  | true  |
+| Modem         | true  | true  |
+| Simple        | true  | true  |
+| Modem3gpp     | true  | true  |
+| Ussd          | false | true  |
+| ModemCdma     | false | false |
+| Messaging     | true  | false |
+| Location      | true  | true  |
+| Time          | true  | true  |
+| Firmware      | true  | true  |
+| Signal        | true  | false |
+| Oma           | false | false |
+| Bearer        | true  | true  |
+| Sim           | true  | true  |
+| SMS           | true  | true  |
+| Call          | true  | true  |
 
 ## License
 **[MIT license](http://opensource.org/licenses/mit-license.php)**

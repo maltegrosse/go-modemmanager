@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 )
@@ -123,6 +124,20 @@ type bearerIpConfig struct {
 	IpFamily MMBearerIpFamily `json:"ip-family"` // The IpFamily, either ipv4 or ipv6
 }
 
+// MarshalJSON returns a byte array
+func (bc bearerIpConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Method":     fmt.Sprint(bc.Method),
+		"Address":    bc.Address,
+		"Prefix":     bc.Prefix,
+		"Dns1: ":     bc.Dns1,
+		"Dns2: ":     bc.Dns2,
+		"Dns3: ":     bc.Dns3,
+		"Gateway: ":  bc.Gateway,
+		"Mtu":        bc.Mtu,
+		"IpFamily: ": fmt.Sprint(bc.IpFamily)})
+}
+
 func (bc bearerIpConfig) String() string {
 	return "Method: " + fmt.Sprint(bc.Method) +
 		", Address: " + bc.Address +
@@ -147,6 +162,20 @@ type BearerProperty struct {
 	Number       string                `json:"number"`        // Telephone number to dial, given as a string value (signature "s"). Required in POTS.
 }
 
+// MarshalJSON returns a byte array
+func (bp BearerProperty) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"APN":          bp.APN,
+		"IPType":       fmt.Sprint(bp.IPType),
+		"AllowedAuth":  fmt.Sprint(bp.AllowedAuth),
+		"User":         bp.User,
+		"Password":     bp.Password,
+		"AllowRoaming": bp.AllowRoaming,
+		"RMProtocol":   fmt.Sprint(bp.RMProtocol),
+		"Number":       bp.Number,
+	})
+}
+
 func (bp BearerProperty) String() string {
 	return "APN: " + bp.APN +
 		", IPType: " + fmt.Sprint(bp.IPType) +
@@ -165,6 +194,14 @@ type bearerStats struct {
 	Duration uint32 `json:"duration"` // Duration of the connection, in seconds, given as an unsigned integer value (signature "u").
 }
 
+// MarshalJSON returns a byte array
+func (bs bearerStats) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"RxBytes":  bs.RxBytes,
+		"TxBytes":  bs.TxBytes,
+		"Duration": bs.Duration,
+	})
+}
 func (bs bearerStats) String() string {
 	return "RxBytes: " + fmt.Sprint(bs.RxBytes) +
 		", TxBytes: " + fmt.Sprint(bs.TxBytes) +
@@ -395,5 +432,69 @@ func (be bearer) GetProperties() (bp BearerProperty, err error) {
 	return
 }
 func (be bearer) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+
+	bInterface, err := be.GetInterface()
+	if err != nil {
+		return nil, err
+	}
+	connected, err := be.GetConnected()
+	if err != nil {
+		return nil, err
+	}
+	suspended, err := be.GetSuspended()
+	if err != nil {
+		return nil, err
+	}
+	ip4Config, err := be.GetIp4Config()
+	if err != nil {
+		return nil, err
+	}
+	ip4ConfigJson, err := ip4Config.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	ip6Config, err := be.GetIp6Config()
+	if err != nil {
+		return nil, err
+	}
+	ip6ConfigJson, err := ip6Config.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	stats, err := be.GetStats()
+	if err != nil {
+		return nil, err
+	}
+	statsJson, err := stats.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	ipTimeout, err := be.GetIpTimeout()
+	if err != nil {
+		return nil, err
+	}
+	bearerType, err := be.GetBearerType()
+	if err != nil {
+		return nil, err
+	}
+	property, err := be.GetProperties()
+	if err != nil {
+		return nil, err
+	}
+	propertyJson, err := property.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(map[string]interface{}{
+		"Interface":  bInterface,
+		"Connected":  connected,
+		"Suspended":  suspended,
+		"Ip4Config":  ip4ConfigJson,
+		"Ip6Config":  ip6ConfigJson,
+		"Stats":      statsJson,
+		"IpTimeout":  ipTimeout,
+		"BearerType": bearerType,
+		"Properties": propertyJson,
+	})
 }

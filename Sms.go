@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/godbus/dbus/v5"
 	"time"
@@ -276,5 +277,91 @@ func (ss sms) GetStorage() (MMSmsStorage, error) {
 }
 
 func (ss sms) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+	state, err := ss.GetState()
+	if err != nil {
+		return nil, err
+	}
+	pduType, err := ss.GetPduType()
+	if err != nil {
+		return nil, err
+	}
+	number, err := ss.GetNumber()
+	if err != nil {
+		return nil, err
+	}
+	text, err := ss.GetText()
+	if err != nil {
+		return nil, err
+	}
+	data, err := ss.GetData()
+	if err != nil {
+		return nil, err
+	}
+	smsc, err := ss.GetSMSC()
+	if err != nil {
+		return nil, err
+	}
+	validity, err := ss.GetValidity()
+	if err != nil {
+		return nil, err
+	}
+	class, err := ss.GetClass()
+	if err != nil {
+		return nil, err
+	}
+	teleserviceId, err := ss.GetTeleserviceId()
+	if err != nil {
+		return nil, err
+	}
+	serviceCategory, err := ss.GetServiceCategory()
+	if err != nil {
+		return nil, err
+	}
+	deliveryReportRequest, err := ss.GetDeliveryReportRequest()
+	if err != nil {
+		return nil, err
+	}
+	messageReference, err := ss.GetMessageReference()
+	if err != nil {
+		return nil, err
+	}
+	// either discharge or timestamp is set
+	var timestamp time.Time
+	var dischargeTimestamp time.Time
+	timestamp, err = ss.GetTimestamp()
+	if err != nil {
+		dischargeTimestamp, _ = ss.GetDischargeTimestamp()
+	}
+	dischargeTimestamp, err = ss.GetDischargeTimestamp()
+	if err != nil {
+		timestamp, _ = ss.GetTimestamp()
+	}
+
+	deliveryState, err := ss.GetDeliveryState()
+	if err != nil {
+		return nil, err
+	}
+	storage, err := ss.GetStorage()
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(map[string]interface{}{
+		"State":                 state,
+		"PduType":               pduType,
+		"Number":                number,
+		"Text":                  text,
+		"Data":                  data,
+		"Smsc":                  smsc,
+		"Validity":              validity,
+		"Class":                 class,
+		"TeleserviceId":         teleserviceId,
+		"ServiceCategory":       serviceCategory,
+		"DeliveryReportRequest": deliveryReportRequest,
+		"MessageReference":      messageReference,
+		"Timestamp":             timestamp,
+		"DischargeTimestamp":    dischargeTimestamp,
+		"DeliveryState":         deliveryState,
+		"Storage":               storage,
+	})
 }

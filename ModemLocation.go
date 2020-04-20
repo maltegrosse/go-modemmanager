@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/godbus/dbus/v5"
 	"strings"
@@ -131,6 +132,32 @@ type currentLocation struct {
 	CdmaBs        cdmaBsLocation        `json:"cdma-bs"`     // Devices supporting this capability return a D-Bus dictionary (signature "a{sv}") mapping well-known keys to values with defined formats.
 }
 
+// MarshalJSON returns a byte array
+func (cl currentLocation) MarshalJSON() ([]byte, error) {
+	threeGppLacCiJson, err := cl.ThreeGppLacCi.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	gpsRawJson, err := cl.GpsRaw.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	gpsNmeaJson, err := cl.GpsNmea.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	cdmaBsJson, err := cl.CdmaBs.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"ThreeGppLacCi ": threeGppLacCiJson,
+		"GpsRaw ":        gpsRawJson,
+		"GpsNmea ":       gpsNmeaJson,
+		"CdmaBs ":        cdmaBsJson,
+	})
+}
+
 func (cl currentLocation) String() string {
 	return returnString(cl)
 
@@ -142,6 +169,17 @@ type threeGppLacCiLocation struct {
 	Lac string `json:"LAC"` // This is the two-byte Location Area Code of the GSM/UMTS base station with which the mobile is registered, in upper-case hexadecimal format without leading zeros, as specified in 3GPP TS 27.007. E.g. "84CD".
 	Ci  string `json:"CI"`  // This is the two- or four-byte Cell Identifier with which the mobile is registered, in upper-case hexadecimal format without leading zeros, as specified in 3GPP TS 27.007. e.g. "2BAF" or "D30156".
 	Tac string `json:"TAC"` // 	This is the two-byte Location Area Code of the LTE base station with which the mobile is registered, in upper-case hexadecimal format without leading zeros, as specified in 3GPP TS 27.007. E.g. "6FFE".
+}
+
+// MarshalJSON returns a byte array
+func (tgp threeGppLacCiLocation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Mcc": tgp.Mcc,
+		"Mnc": tgp.Mnc,
+		"Lac": tgp.Lac,
+		"Ci":  tgp.Ci,
+		"Tac": tgp.Tac,
+	})
 }
 
 func (tgp threeGppLacCiLocation) String() string {
@@ -160,8 +198,25 @@ func (rgps gpsRawLocation) String() string {
 
 }
 
+// MarshalJSON returns a byte array
+func (rgps gpsRawLocation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"UtcTime":   rgps.UtcTime,
+		"Latitude":  rgps.Latitude,
+		"Longitude": rgps.Longitude,
+		"Altitude":  rgps.Altitude,
+	})
+}
+
 type gpsNmeaLocation struct {
 	NmeaSentences []string `json:"nmea-sentances"` // Devices supporting this capability return a string containing one or more NMEA sentences (D-Bus signature 's'). The manager will cache the most recent NMEA sentence of each type for a period of time not less than 30 seconds. When reporting multiple NMEA sentences, sentences shall be separated by an ASCII Carriage Return and Line Feed (<CR><LF>) sequence. The manager may discard any cached sentences older than 30 seconds.  This allows clients to read the latest positioning data as soon as possible after they start, even if the device is not providing frequent location data updates.
+}
+
+// MarshalJSON returns a byte array
+func (ngps gpsNmeaLocation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"NmeaSentences": ngps.NmeaSentences,
+	})
 }
 
 func (ngps gpsNmeaLocation) String() string {
@@ -171,6 +226,14 @@ func (ngps gpsNmeaLocation) String() string {
 type cdmaBsLocation struct {
 	Latitude  float64 `json:"latitude"`  // (Required) Latitude in Decimal Degrees (positive numbers mean N quadrasphere, negative mean S quadrasphere), given as a double value (signature "d"). e.g. 38.889722, meaning 38d 53' 22" N.
 	Longitude float64 `json:"longitude"` // (Required) Longitude in Decimal Degrees (positive numbers mean E quadrasphere, negative mean W quadrasphere), given as a double value (signature "d"). e.g. -77.008889, meaning 77d 0' 32" W.
+}
+
+// MarshalJSON returns a byte array
+func (cdma cdmaBsLocation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Latitude":  cdma.Latitude,
+		"Longitude": cdma.Longitude,
+	})
 }
 
 func (cdma cdmaBsLocation) String() string {
@@ -367,5 +430,51 @@ func (lo modemLocation) GetGpsRefreshRate() (uint32, error) {
 	return lo.getUint32Property(ModemLocationPropertyGpsRefreshRate)
 }
 func (lo modemLocation) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+	capabilities, err := lo.GetCapabilities()
+	if err != nil {
+		return nil, err
+	}
+	supportedAssistanceData, err := lo.GetSupportedAssistanceData()
+	if err != nil {
+		return nil, err
+	}
+	enabledLocationSources, err := lo.GetEnabledLocationSources()
+	if err != nil {
+		return nil, err
+	}
+	signalsLocation, err := lo.GetSignalsLocation()
+	if err != nil {
+		return nil, err
+	}
+	location, err := lo.GetLocation()
+	if err != nil {
+		return nil, err
+	}
+	locationJson, err := location.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	suplServer, err := lo.GetSuplServer()
+	if err != nil {
+		return nil, err
+	}
+	assistanceDataServers, err := lo.GetAssistanceDataServers()
+	if err != nil {
+		return nil, err
+	}
+	gpsRefreshRate, err := lo.GetGpsRefreshRate()
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(map[string]interface{}{
+		"Capabilities":            capabilities,
+		"SupportedAssistanceData": supportedAssistanceData,
+		"EnabledLocationSources":  enabledLocationSources,
+		"SignalsLocation":         signalsLocation,
+		"Location":                locationJson,
+		"SuplServer":              suplServer,
+		"AssistanceDataServers":   assistanceDataServers,
+		"GpsRefreshRate":          gpsRefreshRate,
+	})
 }

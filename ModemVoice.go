@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 )
@@ -201,13 +202,42 @@ func (m modemVoice) GetEmergencyOnly() (bool, error) {
 }
 
 func (m modemVoice) Subscribe() <-chan *dbus.Signal {
-	panic("implement me")
+	// todo: untested
+	if m.sigChan != nil {
+		return m.sigChan
+	}
+
+	m.subscribeNamespace(ModemManagerObjectPath)
+	m.sigChan = make(chan *dbus.Signal, 10)
+	m.conn.Signal(m.sigChan)
+
+	return m.sigChan
 }
 
 func (m modemVoice) Unsubscribe() {
-	panic("implement me")
+	m.conn.RemoveSignal(m.sigChan)
+	m.sigChan = nil
 }
 
 func (m modemVoice) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+	var callsJson [][]byte
+	calls, err := m.GetCalls()
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range calls {
+		tmpB, err := x.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		callsJson = append(callsJson, tmpB)
+	}
+	emergencyOnly, err := m.GetEmergencyOnly()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"Calls":         callsJson,
+		"EmergencyOnly": emergencyOnly,
+	})
 }

@@ -1,6 +1,9 @@
 package modemmanager
 
-import "github.com/godbus/dbus/v5"
+import (
+	"encoding/json"
+	"github.com/godbus/dbus/v5"
+)
 
 // Paths of methods and properties
 const (
@@ -107,6 +110,21 @@ func (mu ussd) GetNetworkRequest() (string, error) {
 }
 
 func (mu ussd) MarshalJSON() ([]byte, error) {
-	// todo: implement
-	panic("implement me")
+	state, err := mu.GetState()
+	if err != nil {
+		return nil, err
+	}
+	networkNotification, err := mu.GetNetworkNotification()
+	if err != nil {
+		return nil, err
+	}
+	networkRequest, err := mu.GetNetworkRequest()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"State":               state,
+		"NetworkNotification": networkNotification,
+		"NetworkRequest":      networkRequest,
+	})
 }

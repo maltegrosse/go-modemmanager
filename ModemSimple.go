@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"reflect"
@@ -42,7 +43,6 @@ type ModemSimple interface {
 
 	// Get the general modem status.
 	GetStatus() (simpleStatus, error)
-	MarshalJSON() ([]byte, error)
 }
 
 // SimpleProperties defines all available properties
@@ -58,6 +58,21 @@ type SimpleProperties struct {
 	AllowedRoaming bool                  `json:"allow-roaming"` // FALSE to allow only connections to home networks, given as a boolean value (signature "b").
 	RmProtocol     MMModemCdmaRmProtocol `json:"rm-protocol"`   // For CDMA devices, the protocol of the Rm interface, given as a MMModemCdmaRmProtocol value (signature "u").
 
+}
+
+// MarshalJSON returns a byte array
+func (sp SimpleProperties) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Pin":            sp.Pin,
+		"OperatorId":     sp.OperatorId,
+		"Apn":            sp.Apn,
+		"IpType":         fmt.Sprint(sp.IpType),
+		"AllowedAuth":    fmt.Sprint(sp.AllowedAuth),
+		"User":           sp.User,
+		"Password":       sp.Password,
+		"Number":         sp.Number,
+		"AllowedRoaming": sp.AllowedRoaming,
+		"RmProtocol":     fmt.Sprint(sp.RmProtocol)})
 }
 
 func (sp SimpleProperties) String() string {
@@ -81,6 +96,23 @@ type simpleStatus struct {
 
 func (ss simpleStatus) String() string {
 	return returnString(ss)
+}
+
+// MarshalJSON returns a byte array
+func (ss simpleStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"State":                       fmt.Sprint(ss.State),
+		"SignalQuality":               ss.SignalQuality,
+		"CurrentBands":                fmt.Sprint(ss.CurrentBands),
+		"AccessTechnology":            fmt.Sprint(ss.AccessTechnology),
+		"M3GppRegistrationState":      fmt.Sprint(ss.M3GppRegistrationState),
+		"M3GppOperatorCode":           ss.M3GppOperatorCode,
+		"M3GppOperatorName":           ss.M3GppOperatorName,
+		"CdmaCdma1xRegistrationState": fmt.Sprint(ss.CdmaCdma1xRegistrationState),
+		"CdmaEvdoRegistrationState":   fmt.Sprint(ss.CdmaEvdoRegistrationState),
+		"CdmaSid":                     ss.CdmaSid,
+		"CdmaNid":                     ss.CdmaNid,
+	})
 }
 
 // NewModemSimple returns new ModemSimple Interface
@@ -160,7 +192,7 @@ func (ms modemSimple) GetStatus() (status simpleStatus, err error) {
 			tmpValue, ok := element.(uint32)
 			if ok {
 				status.AccessTechnology = MMModemAccessTechnology(tmpValue)
-				fmt.Println(MMModemAccessTechnology(tmpValue))
+
 			}
 
 		case "m3gpp-registration-state":
@@ -206,9 +238,4 @@ func (ms modemSimple) GetStatus() (status simpleStatus, err error) {
 
 func (ms modemSimple) GetObjectPath() dbus.ObjectPath {
 	return ms.obj.Path()
-}
-
-func (ms modemSimple) MarshalJSON() ([]byte, error) {
-	// todo implement
-	panic("implement me")
 }

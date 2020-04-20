@@ -42,6 +42,7 @@ package modemmanager
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"net"
@@ -87,6 +88,14 @@ func (p Pair) pairToSlice() []interface{} {
 	sl = append(sl, p.a)
 	sl = append(sl, p.b)
 	return sl
+}
+
+// MarshalJSON returns a byte array
+func (p Pair) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Left":   p.GetLeft(),
+		"Right ": p.GetRight(),
+	})
 }
 
 type dbusBase struct {

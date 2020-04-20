@@ -1,6 +1,7 @@
 package modemmanager
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"time"
@@ -33,16 +34,17 @@ type ModemTime interface {
 	// 		OUT s time: If the network time is known, a string containing local date,
 	GetNetworkTime() (time.Time, error)
 
-	// Sent when the network time is updated.
-	//		s time: A string containing date and time in ISO 8601 format.
-	Subscribe() <-chan *dbus.Signal
-	Unsubscribe()
-
 	MarshalJSON() ([]byte, error)
 
 	/* PROPERTIES */
 	// The timezone data provided by the network.
 	GetNetworkTimezone() (modemTimeZone, error)
+
+	/* SIGNALS */
+	// Sent when the network time is updated.
+	//		s time: A string containing date and time in ISO 8601 format.
+	Subscribe() <-chan *dbus.Signal
+	Unsubscribe()
 }
 
 // NewModemTime returns new ModemTime Interface
@@ -61,6 +63,15 @@ type modemTimeZone struct {
 	Offset      int32 `json:"offset"`       // Offset of the timezone from UTC, in minutes (including DST, if applicable), given as a signed integer value (signature "i").
 	DstOffset   int32 `json:"dst-offset"`   // Amount of offset that is due to DST (daylight saving time), given as a signed integer value (signature "i").
 	LeapSeconds int32 `json:"leap-seconds"` // Number of leap seconds included in the network time, given as a signed integer value (signature "i").
+}
+
+// MarshalJSON returns a byte array
+func (mtz modemTimeZone) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Offset":       mtz.Offset,
+		"DstOffset ":   mtz.DstOffset,
+		"LeapSeconds ": mtz.LeapSeconds,
+	})
 }
 
 func (mtz modemTimeZone) String() string {
@@ -114,6 +125,7 @@ func (ti modemTime) GetNetworkTimezone() (mTz modemTimeZone, err error) {
 }
 
 func (ti modemTime) Subscribe() <-chan *dbus.Signal {
+	// todo: untested
 	if ti.sigChan != nil {
 		return ti.sigChan
 	}
@@ -131,5 +143,15 @@ func (ti modemTime) Unsubscribe() {
 }
 
 func (ti modemTime) MarshalJSON() ([]byte, error) {
-	panic("implement me")
+	networkTimezone, err := ti.GetNetworkTimezone()
+	if err != nil {
+		return nil, err
+	}
+	networkTimezoneJson, err := networkTimezone.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]interface{}{
+		"NetworkTimezone": networkTimezoneJson,
+	})
 }
