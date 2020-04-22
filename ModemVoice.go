@@ -9,7 +9,7 @@ import (
 // Paths of methods and properties of ModemVoice
 const (
 	ModemVoiceInterface = ModemInterface + ".Voice"
-
+	ModemVoiceObjectPath = ModemManagerObjectPath + "/Voice"
 	/* Methods */
 	ModemVoiceListCalls  = ModemVoiceInterface + ".ListCalls"
 	ModemVoiceDeleteCall = ModemVoiceInterface + ".DeleteCall"
@@ -25,6 +25,13 @@ const (
 	/* Property */
 	ModemVoicePropertyCalls         = ModemVoiceInterface + ".Calls"
 	ModemVoicePropertyEmergencyOnly = ModemVoiceInterface + ".EmergencyOnly"
+
+	/* Signal */
+	ModemVoiceSignalCallAdded = "CallAdded"
+	ModemVoiceSignalCallDeleted = "CallDeleted"
+
+	
+	
 )
 
 // ModemVoice interface handles Calls.
@@ -90,24 +97,28 @@ type ModemVoice interface {
 
 	/* SIGNALS */
 
-	// todo: signals
+
 	// CallAdded (o path);
 	// Emitted when a call has been added.
 	//		o path:Object path of the new call.
+	SubscribeCallAdded() <-chan *dbus.Signal
 	// CallDeleted (o path);
 	// Emitted when a call has been deleted.
 	// 		o path:Object path of the now deleted Call.
-	Subscribe() <-chan *dbus.Signal
+	SubscribeCallDeleted() <-chan *dbus.Signal
+
 	Unsubscribe()
 }
 
 // NewModemVoice returns new ModemVoice Interface
-func NewModemVoice(objectPath dbus.ObjectPath) (ModemVoice, error) {
+func NewModemVoice(objectPath dbus.ObjectPath, modem Modem) (ModemVoice, error) {
 	var vo modemVoice
+	vo.modem = modem
 	return &vo, vo.init(ModemManagerInterface, objectPath)
 }
 
 type modemVoice struct {
+	modem Modem
 	dbusBase
 	sigChan chan *dbus.Signal
 }
@@ -140,8 +151,7 @@ func (m modemVoice) DeleteCall(c Call) error {
 
 func (m modemVoice) CreateCall(number string, optionalParameters ...Pair) (c Call, err error) {
 	type dynMap interface{}
-	var myMap map[string]dynMap
-	myMap = make(map[string]dynMap)
+	myMap := make(map[string]dynMap)
 	myMap["number"] = number
 	for _, pair := range optionalParameters {
 		myMap[fmt.Sprint(pair.GetLeft())] = fmt.Sprint(pair.GetRight())
@@ -201,18 +211,27 @@ func (m modemVoice) GetEmergencyOnly() (bool, error) {
 	return m.getBoolProperty(ModemVoicePropertyEmergencyOnly)
 }
 
-func (m modemVoice) Subscribe() <-chan *dbus.Signal {
-	// todo: untested
+func (m modemVoice) SubscribeCallAdded() <-chan *dbus.Signal {
 	if m.sigChan != nil {
 		return m.sigChan
 	}
-
-	m.subscribeNamespace(ModemManagerObjectPath)
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemVoiceSignalCallAdded,fmt.Sprint(m.modem.GetObjectPath()))
+	m.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
 	m.sigChan = make(chan *dbus.Signal, 10)
 	m.conn.Signal(m.sigChan)
-
 	return m.sigChan
 }
+func (m modemVoice) SubscribeCallDeleted() <-chan *dbus.Signal {
+	if m.sigChan != nil {
+		return m.sigChan
+	}
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemVoiceSignalCallDeleted,fmt.Sprint(m.modem.GetObjectPath()))
+	m.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
+	m.sigChan = make(chan *dbus.Signal, 10)
+	m.conn.Signal(m.sigChan)
+	return m.sigChan
+}
+
 
 func (m modemVoice) Unsubscribe() {
 	m.conn.RemoveSignal(m.sigChan)

@@ -3,6 +3,7 @@ package modemmanager
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/godbus/dbus/v5"
 	"reflect"
 )
@@ -60,6 +61,8 @@ const (
 	ModemPropertyCurrentBands                 = ModemInterface + ".CurrentBands"                 //          readable   au
 	ModemPropertySupportedIpFamilies          = ModemInterface + ".SupportedIpFamilies"          //         readable   u
 
+	/* Signal */
+	ModemSignalStateChanged = "StateChanged"
 )
 
 // The Modem interface controls the status and actions in a given modem object.
@@ -286,7 +289,18 @@ type Modem interface {
 	// i old: A MMModemState value, specifying the new state.
 	// i new: A MMModemState value, specifying the new state.
 	// u reason: A MMModemStateChangeReason value, specifying the reason for this state change.
-	Subscribe() <-chan *dbus.Signal
+	SubscribeStateChanged() <-chan *dbus.Signal
+
+	// ParseStateChanged returns the parsed dbus signal
+	ParseStateChanged(v *dbus.Signal) (oldState MMModemState, newState MMModemState, reason MMModemStateChangeReason)
+
+	// Listen to changed properties
+	// todo create helper method
+	// returns slice
+	// index 0 = name of the interface on which the properties are defined
+	// index 1 = changed properties with new values as map[string]dbus.Variant
+	// index 2 = invalidated properties: changed properties but the new values are not send with them
+	SubscribePropertiesChanged() <-chan *dbus.Signal
 	Unsubscribe()
 }
 
@@ -365,7 +379,7 @@ func (m modem) GetMessaging() (ModemMessaging, error) {
 	return NewModemMessaging(m.obj.Path())
 }
 func (m modem) GetVoice() (ModemVoice, error) {
-	return NewModemVoice(m.obj.Path())
+	return NewModemVoice(m.obj.Path(), m)
 }
 
 func (m modem) Enable() error {
@@ -383,8 +397,7 @@ func (m modem) CreateBearer(property BearerProperty) (Bearer, error) {
 	v := reflect.ValueOf(property)
 	st := reflect.TypeOf(property)
 	type dynMap interface{}
-	var myMap map[string]dynMap
-	myMap = make(map[string]dynMap)
+	myMap := make(map[string]dynMap)
 	for i := 0; i < v.NumField(); i++ {
 		field := st.Field(i)
 		tag := field.Tag.Get("json")
@@ -701,16 +714,48 @@ func (m modem) GetSupportedIpFamilies() ([]MMBearerIpFamily, error) {
 	return ipFam.BitmaskToSlice(res), nil
 }
 
-func (m modem) Subscribe() <-chan *dbus.Signal {
-	// todo: untested
+func (m modem) SubscribeStateChanged() <-chan *dbus.Signal {
 	if m.sigChan != nil {
 		return m.sigChan
 	}
-
-	m.subscribeNamespace(ModemManagerObjectPath)
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemSignalStateChanged, fmt.Sprint(m.GetObjectPath()))
+	m.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
 	m.sigChan = make(chan *dbus.Signal, 10)
 	m.conn.Signal(m.sigChan)
-
+	return m.sigChan
+}
+func (m modem) ParseStateChanged(v *dbus.Signal) (oldState MMModemState, newState MMModemState, reason MMModemStateChangeReason) {
+	// todo add error handler
+	for idx, val := range v.Body {
+		if idx == 0 {
+			tmp, ok := val.(int32)
+			if ok {
+				oldState = MMModemState(tmp)
+			}
+		}
+		if idx == 1 {
+			tmp, ok := val.(int32)
+			if ok {
+				newState = MMModemState(tmp)
+			}
+		}
+		if idx == 2 {
+			tmp, ok := val.(uint32)
+			if ok {
+				reason = MMModemStateChangeReason(tmp)
+			}
+		}
+	}
+	return
+}
+func (m modem) SubscribePropertiesChanged() <-chan *dbus.Signal {
+	if m.sigChan != nil {
+		return m.sigChan
+	}
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", dbusPropertiesChanged, fmt.Sprint(m.GetObjectPath()))
+	m.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
+	m.sigChan = make(chan *dbus.Signal, 10)
+	m.conn.Signal(m.sigChan)
 	return m.sigChan
 }
 
