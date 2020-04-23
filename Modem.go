@@ -292,15 +292,17 @@ type Modem interface {
 	SubscribeStateChanged() <-chan *dbus.Signal
 
 	// ParseStateChanged returns the parsed dbus signal
-	ParseStateChanged(v *dbus.Signal) (oldState MMModemState, newState MMModemState, reason MMModemStateChangeReason)
+	ParseStateChanged(v *dbus.Signal) (oldState MMModemState, newState MMModemState, reason MMModemStateChangeReason, err error)
 
 	// Listen to changed properties
-	// todo create helper method
-	// returns slice
+	// returns []interface
 	// index 0 = name of the interface on which the properties are defined
 	// index 1 = changed properties with new values as map[string]dbus.Variant
 	// index 2 = invalidated properties: changed properties but the new values are not send with them
 	SubscribePropertiesChanged() <-chan *dbus.Signal
+
+	// ParsePropertiesChanged parses the dbus signal
+	ParsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error)
 	Unsubscribe()
 }
 
@@ -724,28 +726,32 @@ func (m modem) SubscribeStateChanged() <-chan *dbus.Signal {
 	m.conn.Signal(m.sigChan)
 	return m.sigChan
 }
-func (m modem) ParseStateChanged(v *dbus.Signal) (oldState MMModemState, newState MMModemState, reason MMModemStateChangeReason) {
-	// todo add error handler
-	for idx, val := range v.Body {
-		if idx == 0 {
-			tmp, ok := val.(int32)
-			if ok {
-				oldState = MMModemState(tmp)
-			}
-		}
-		if idx == 1 {
-			tmp, ok := val.(int32)
-			if ok {
-				newState = MMModemState(tmp)
-			}
-		}
-		if idx == 2 {
-			tmp, ok := val.(uint32)
-			if ok {
-				reason = MMModemStateChangeReason(tmp)
-			}
-		}
+func (m modem) ParseStateChanged(v *dbus.Signal) (oldState MMModemState, newState MMModemState, reason MMModemStateChangeReason, err error) {
+	if len(v.Body) != 3 {
+		err = errors.New("error by parsing property changed signal")
+		return
 	}
+	oState, ok := v.Body[0].(int32)
+	if !ok {
+		err = errors.New("error by parsing old state")
+		return
+	}
+	oldState = MMModemState(oState)
+
+	nState, ok := v.Body[1].(int32)
+	if !ok {
+		err = errors.New("error by parsing new state")
+		return
+	}
+	newState = MMModemState(nState)
+
+	tmpReason, ok := v.Body[2].(uint32)
+	if !ok {
+		err = errors.New("error by parsing reason")
+		return
+	}
+	reason = MMModemStateChangeReason(tmpReason)
+
 	return
 }
 func (m modem) SubscribePropertiesChanged() <-chan *dbus.Signal {
@@ -757,6 +763,9 @@ func (m modem) SubscribePropertiesChanged() <-chan *dbus.Signal {
 	m.sigChan = make(chan *dbus.Signal, 10)
 	m.conn.Signal(m.sigChan)
 	return m.sigChan
+}
+func (m modem) ParsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error) {
+	return m.parsePropertiesChanged(v)
 }
 
 func (m modem) Unsubscribe() {

@@ -1,5 +1,7 @@
 package modemmanager
 
+/* Enums */
+
 // MMModemCapability Flags describing one or more of the general access technology families that a modem supports.
 type MMModemCapability uint32
 
@@ -1177,6 +1179,203 @@ type MMKernelPropertyAction string
 const (
 	MMKernelPropertyActionAdd    MMKernelPropertyAction = "add"    // A new kernel device has been added.
 	MMKernelPropertyActionRemove MMKernelPropertyAction = "remove" // An existing kernel device has been removed.
+)
+
+/* Errors */
+
+// MMCoreError Common errors that may be reported by ModemManager.
+type MMCoreError uint32
+
+//go:generate stringer -type=MMCoreError -trimprefix=MMCoreError
+const (
+	MmCoreErrorFailed       MMCoreError = 0  // Operation failed.
+	MmCoreErrorCancelled    MMCoreError = 1  // Operation was cancelled.
+	MmCoreErrorAborted      MMCoreError = 2  // Operation was aborted.
+	MmCoreErrorUnsupported  MMCoreError = 3  // Operation is not supported.
+	MmCoreErrorNoPlugins    MMCoreError = 4  // Cannot operate without valid plugins.
+	MmCoreErrorUnauthorized MMCoreError = 5  // Authorization is required to perform the operation.
+	MmCoreErrorInvalidArgs  MMCoreError = 6  // Invalid arguments given.
+	MmCoreErrorInProgress   MMCoreError = 7  // Operation is already in progress.
+	MmCoreErrorWrongState   MMCoreError = 8  // Operation cannot be executed in the current state.
+	MmCoreErrorConnected    MMCoreError = 9  // Operation cannot be executed while being connected.
+	MmCoreErrorTooMany      MMCoreError = 10 // Too many items.
+	MmCoreErrorNotFound     MMCoreError = 11 // Item not found.
+	MmCoreErrorRetry        MMCoreError = 12 // Operation cannot yet be performed, retry later.
+	MmCoreErrorExists       MMCoreError = 13 // Item already exists.
+)
+
+// MMMobileEquipmentError Enumeration of Mobile Equipment errors, as defined in 3GPP TS 07.07 version 7.8.0.
+type MMMobileEquipmentError uint32
+
+//go:generate stringer -type=MMMobileEquipmentError -trimprefix=MMMobileEquipmentError
+const (
+	/* General errors */
+	MmMobileEquipmentErrorPhoneFailure          MMMobileEquipmentError = 0   // Phone failure.
+	MmMobileEquipmentErrorNoConnection          MMMobileEquipmentError = 1   // No connection to phone.
+	MmMobileEquipmentErrorLinkReserved          MMMobileEquipmentError = 2   // Phone-adaptor link reserved.
+	MmMobileEquipmentErrorNotAllowed            MMMobileEquipmentError = 3   // Operation not allowed.
+	MmMobileEquipmentErrorNotSupported          MMMobileEquipmentError = 4   // Operation not supported.
+	MmMobileEquipmentErrorPhSimPin              MMMobileEquipmentError = 5   // PH-SIM PIN required.
+	MmMobileEquipmentErrorPhFsimPin             MMMobileEquipmentError = 6   // PH-FSIM PIN required.
+	MmMobileEquipmentErrorPhFsimPuk             MMMobileEquipmentError = 7   // PH-FSIM PUK required.
+	MmMobileEquipmentErrorSimNotInserted        MMMobileEquipmentError = 10  // SIM not inserted.
+	MmMobileEquipmentErrorSimPin                MMMobileEquipmentError = 11  // SIM PIN required.
+	MmMobileEquipmentErrorSimPuk                MMMobileEquipmentError = 12  // SIM PUK required.
+	MmMobileEquipmentErrorSimFailure            MMMobileEquipmentError = 13  // SIM failure.
+	MmMobileEquipmentErrorSimBusy               MMMobileEquipmentError = 14  // SIM busy.
+	MmMobileEquipmentErrorSimWrong              MMMobileEquipmentError = 15  // SIM wrong.
+	MmMobileEquipmentErrorIncorrectPassword     MMMobileEquipmentError = 16  // Incorrect password.
+	MmMobileEquipmentErrorSimPin2               MMMobileEquipmentError = 17  // SIM PIN2 required.
+	MmMobileEquipmentErrorSimPuk2               MMMobileEquipmentError = 18  // SIM PUK2 required.
+	MmMobileEquipmentErrorMemoryFull            MMMobileEquipmentError = 20  // Memory full.
+	MmMobileEquipmentErrorInvalidIndex          MMMobileEquipmentError = 21  // Invalid index.
+	MmMobileEquipmentErrorNotFound              MMMobileEquipmentError = 22  // Not found.
+	MmMobileEquipmentErrorMemoryFailure         MMMobileEquipmentError = 23  // Memory failure.
+	MmMobileEquipmentErrorTextTooLong           MMMobileEquipmentError = 24  // Text string too long.
+	MmMobileEquipmentErrorInvalidChars          MMMobileEquipmentError = 25  // Invalid characters in text string.
+	MmMobileEquipmentErrorDialStringTooLong     MMMobileEquipmentError = 26  // Dial string too long.
+	MmMobileEquipmentErrorDialStringInvalid     MMMobileEquipmentError = 27  // Invalid characters in dial string.
+	MmMobileEquipmentErrorNoNetwork             MMMobileEquipmentError = 30  // No network service.
+	MmMobileEquipmentErrorNetworkTimeout        MMMobileEquipmentError = 31  // Network timeout.
+	MmMobileEquipmentErrorNetworkNotAllowed     MMMobileEquipmentError = 32  // Network not allowed - Emergency calls only.
+	MmMobileEquipmentErrorNetworkPin            MMMobileEquipmentError = 40  // Network personalisation PIN required.
+	MmMobileEquipmentErrorNetworkPuk            MMMobileEquipmentError = 41  // Network personalisation PUK required.
+	MmMobileEquipmentErrorNetworkSubsetPin      MMMobileEquipmentError = 42  // Network subset personalisation PIN required.
+	MmMobileEquipmentErrorNetworkSubsetPuk      MMMobileEquipmentError = 43  // Network subset personalisation PUK required.
+	MmMobileEquipmentErrorServicePin            MMMobileEquipmentError = 44  // Service provider personalisation PIN required.
+	MmMobileEquipmentErrorServicePuk            MMMobileEquipmentError = 45  // Service provider personalisation PUK required.
+	MmMobileEquipmentErrorCorpPin               MMMobileEquipmentError = 46  // Corporate personalisation PIN required.
+	MmMobileEquipmentErrorCorpPuk               MMMobileEquipmentError = 47  // Corporate personalisation PUK required.
+	MmMobileEquipmentErrorHiddenKeyRequired     MMMobileEquipmentError = 48  // Hidden key required. Since: 1.8.
+	MmMobileEquipmentErrorEapMethodNotSupported MMMobileEquipmentError = 49  // EAP method not supported. Since: 1.8.
+	MmMobileEquipmentErrorIncorrectParameters   MMMobileEquipmentError = 50  // Incorrect parameters. Since: 1.8.
+	MmMobileEquipmentErrorUnknown               MMMobileEquipmentError = 100 // Unknown.
+	/* GPRS related errors */
+	MmMobileEquipmentErrorGprsImsiUnknownInHlr                     MMMobileEquipmentError = 102 // IMSI unknown in HLR.
+	MmMobileEquipmentErrorGprsIllegalMs                            MMMobileEquipmentError = 103 // IMSI unknown in VLR.
+	MmMobileEquipmentErrorGprsImsiUnknownInVlr                     MMMobileEquipmentError = 104 // Illegal MS.
+	MmMobileEquipmentErrorGprsIllegalMe                            MMMobileEquipmentError = 106 // Illegal ME.
+	MmMobileEquipmentErrorGprsServiceNotAllowed                    MMMobileEquipmentError = 107 // GPRS service not allowed.
+	MmMobileEquipmentErrorGprsAndNonGprsServicesNotAllowed         MMMobileEquipmentError = 108 // GPRS and non-GPRS services not allowed. Since: 1.8.
+	MmMobileEquipmentErrorGprsPlmnNotAllowed                       MMMobileEquipmentError = 111 // PLMN not allowed.
+	MmMobileEquipmentErrorGprsLocationNotAllowed                   MMMobileEquipmentError = 112 // Location area not allowed.
+	MmMobileEquipmentErrorGprsRoamingNotAllowed                    MMMobileEquipmentError = 113 // Roaming not allowed in this location area.
+	MmMobileEquipmentErrorGprsNoCellsInLocationArea                MMMobileEquipmentError = 115 // No cells in this location area.
+	MmMobileEquipmentErrorGprsNetworkFailure                       MMMobileEquipmentError = 117 // Network failure.
+	MmMobileEquipmentErrorGprsCongestion                           MMMobileEquipmentError = 122 // Congestion.
+	MmMobileEquipmentErrorGprsNotAuthorizedForCsg                  MMMobileEquipmentError = 125 // GPRS not authorized for CSG. Since: 1.8.
+	MmMobileEquipmentErrorGprsInsufficientResources                MMMobileEquipmentError = 126 // Insufficient resources. Since 1.4.
+	MmMobileEquipmentErrorGprsMissingOrUnknownApn                  MMMobileEquipmentError = 127 // Missing or unknown APN. Since 1.4.
+	MmMobileEquipmentErrorGprsUnknownPdpAddressOrType              MMMobileEquipmentError = 128 // Unknown PDP address or type. Since: 1.8.
+	MmMobileEquipmentErrorGprsUserAuthenticationFailed             MMMobileEquipmentError = 129 // User authentication failed. Since 1.4.
+	MmMobileEquipmentErrorGprsActivationRejectedByGgsnOrGw         MMMobileEquipmentError = 130 // Activation rejected by GGSN or gateway. Since: 1.8.
+	MmMobileEquipmentErrorGprsActivationRejectedUnspecified        MMMobileEquipmentError = 131 // Activation rejected (reason unspecified). Since: 1.8.
+	MmMobileEquipmentErrorGprsServiceOptionNotSupported            MMMobileEquipmentError = 132 // Service option not supported.
+	MmMobileEquipmentErrorGprsServiceOptionNotSubscribed           MMMobileEquipmentError = 133 // Requested service option not subscribed.
+	MmMobileEquipmentErrorGprsServiceOptionOutOfOrder              MMMobileEquipmentError = 134 // Service option temporarily out of order.
+	MmMobileEquipmentErrorGprsFeatureNotSupported                  MMMobileEquipmentError = 140 // Feature not supported. Since: 1.8.
+	MmMobileEquipmentErrorGprsSemanticErrorInTftOperation          MMMobileEquipmentError = 141 // Semantic error in TFT operation. Since: 1.8.
+	MmMobileEquipmentErrorGprsSyntacticalErrorInTftOperation       MMMobileEquipmentError = 142 // Syntactical error in TFT operation. Since: 1.8.
+	MmMobileEquipmentErrorGprsUnknownPdpContext                    MMMobileEquipmentError = 143 // Unknown PDP context. Since: 1.8.
+	MmMobileEquipmentErrorGprsSemanticErrorsInPacketFilter         MMMobileEquipmentError = 144 // Semantic errors in packet filter. Since: 1.8.
+	MmMobileEquipmentErrorGprsSyntacticalErrorInPacketFilter       MMMobileEquipmentError = 145 // Syntactical error in packet filter. Since: 1.8.
+	MmMobileEquipmentErrorGprsPdpContextWithoutTftAlreadyActivated MMMobileEquipmentError = 146 // PDP context witout TFT already activated. Since: 1.8.
+	MmMobileEquipmentErrorGprsUnknown                              MMMobileEquipmentError = 148 // Unspecified GPRS error.
+	MmMobileEquipmentErrorGprsPdpAuthFailure                       MMMobileEquipmentError = 149 // PDP authentication failure.
+	MmMobileEquipmentErrorGprsInvalidMobileClass                   MMMobileEquipmentError = 150 // Invalid mobile class.
+	MmMobileEquipmentErrorGprsLastPdnDisconnectionNotAllowedLegacy MMMobileEquipmentError = 151 // Last PDN disconnection not allowed (legacy value defined before 3GPP Rel-11). Since: 1.14.
+	MmMobileEquipmentErrorGprsLastPdnDisconnectionNotAllowed       MMMobileEquipmentError = 171 // Last PDN disconnection not allowed. Since: 1.8.
+	MmMobileEquipmentErrorGprsSemanticallyIncorrectMessage         MMMobileEquipmentError = 172 // Semantically incorrect message. Since: 1.8.
+	MmMobileEquipmentErrorGprsMandatoryIeError                     MMMobileEquipmentError = 173 // Mandatory IE error. Since: 1.8.
+	MmMobileEquipmentErrorGprsIeNotImplemented                     MMMobileEquipmentError = 174 // IE not implemented. Since: 1.8.
+	MmMobileEquipmentErrorGprsConditionalIeError                   MMMobileEquipmentError = 175 // Conditional IE error. Since: 1.8.
+	MmMobileEquipmentErrorGprsUnspecifiedProtocolError             MMMobileEquipmentError = 176 // Unspecified protocol error. Since: 1.8.
+	MmMobileEquipmentErrorGprsOperatorDeterminedBarring            MMMobileEquipmentError = 177 // Operator determined barring. Since: 1.8.
+	MmMobileEquipmentErrorGprsMaximumNumberOfPdpContextsReached    MMMobileEquipmentError = 178 // Maximum number of PDP contexts reached. Since: 1.8.
+	MmMobileEquipmentErrorGprsRequestedApnNotSupported             MMMobileEquipmentError = 179 // Requested APN not supported. Since: 1.8.
+	MmMobileEquipmentErrorGprsRequestRejectedBcmViolation          MMMobileEquipmentError = 180 // Request rejected (BCM violation). Since: 1.8.
+
+)
+
+// MMConnectionError Connection errors that may be reported by ModemManager.
+type MMConnectionError uint32
+
+//go:generate stringer -type=MMConnectionError -trimprefix=MMConnectionError
+const (
+	MmConnectionErrorUnknown    MMConnectionError = 0 // Unknown connection error.
+	MmConnectionErrorNoCarrier  MMConnectionError = 1 // No carrier.
+	MmConnectionErrorNoDialtone MMConnectionError = 2 // No dialtone.
+	MmConnectionErrorBusy       MMConnectionError = 3 // Busy.
+	MmConnectionErrorNoAnswer   MMConnectionError = 4 // No answer.
+
+)
+
+// MMSerialError Serial errors that may be reported by ModemManager.
+type MMSerialError uint32
+
+//go:generate stringer -type=MMSerialError -trimprefix=MMSerialError
+const (
+	MmSerialErrorUnknown            MMSerialError = 0 // Unknown serial error.
+	MmSerialErrorOpenFailed         MMSerialError = 1 // Could not open the serial device.
+	MmSerialErrorSendFailed         MMSerialError = 2 // Could not write to the serial device.
+	MmSerialErrorResponseTimeout    MMSerialError = 3 // A response was not received on time.
+	MmSerialErrorOpenFailedNoDevice MMSerialError = 4 // Could not open the serial port, no device.
+	MmSerialErrorFlashFailed        MMSerialError = 5 // Could not flash the device.
+	MmSerialErrorNotOpen            MMSerialError = 6 // The serial port is not open.
+	MmSerialErrorParseFailed        MMSerialError = 7 // The serial port specific parsing failed.
+	MmSerialErrorFrameNotFound      MMSerialError = 8 // The serial port reported that the frame marker wasn't found (e.g. for QCDM). Since 1.6.
+
+)
+
+// MMMessageError Enumeration of message errors, as defined in 3GPP TS 27.005 version 10 section 3.2.5.
+type MMMessageError uint32
+
+//go:generate stringer -type=MMMessageError -trimprefix=MMMessageError
+const (
+	/* 0 -> 127 per 3GPP TS 24.011 [6] clause E.2 */
+	/* 128 -> 255 per 3GPP TS 23.040 [3] clause 9.2.3.22 */
+	MmMessageErrorMeFailure            MMMessageError = 300 // ME failure.
+	MmMessageErrorSmsServiceReserved   MMMessageError = 301 // SMS service reserved.
+	MmMessageErrorNotAllowed           MMMessageError = 302 // Operation not allowed.
+	MmMessageErrorNotSupported         MMMessageError = 303 // Operation not supported.
+	MmMessageErrorInvalidPduParameter  MMMessageError = 304 // Invalid PDU mode parameter.
+	MmMessageErrorInvalidTextParameter MMMessageError = 305 // Invalid text mode parameter.
+	MmMessageErrorSimNotInserted       MMMessageError = 310 // SIM not inserted.
+	MmMessageErrorSimPin               MMMessageError = 311 // SIM PIN required.
+	MmMessageErrorPhSimPin             MMMessageError = 312 // PH-SIM PIN required.
+	MmMessageErrorSimFailure           MMMessageError = 313 // SIM failure.
+	MmMessageErrorSimBusy              MMMessageError = 314 // SIM busy.
+	MmMessageErrorSimWrong             MMMessageError = 315 // SIM wrong.
+	MmMessageErrorSimPuk               MMMessageError = 316 // SIM PUK required.
+	MmMessageErrorSimPin2              MMMessageError = 317 // SIM PIN2 required.
+	MmMessageErrorSimPuk2              MMMessageError = 318 // SIM PUK2 required.
+	MmMessageErrorMemoryFailure        MMMessageError = 320 // Memory failure.
+	MmMessageErrorInvalidIndex         MMMessageError = 321 // Invalid index.
+	MmMessageErrorMemoryFull           MMMessageError = 322 // Memory full.
+	MmMessageErrorSmscAddressUnknown   MMMessageError = 330 // SMSC address unknown.
+	MmMessageErrorNoNetwork            MMMessageError = 331 // No network.
+	MmMessageErrorNetworkTimeout       MMMessageError = 332 // Network timeout.
+	MmMessageErrorNoCnmaAckExpected    MMMessageError = 340 // No CNMA Acknowledgement expected.
+	MmMessageErrorUnknown              MMMessageError = 500 // Unknown error.
+
+)
+
+// MMCdmaActivationError CDMA Activation errors
+type MMCdmaActivationError uint32
+
+//go:generate stringer -type=MMCdmaActivationError -trimprefix=MmCdmaActivationError
+const (
+	MmCdmaActivationErrorNone                         MMCdmaActivationError = 0 // No error.
+	MmCdmaActivationErrorUnknown                      MMCdmaActivationError = 1 // An error occurred.
+	MmCdmaActivationErrorRoaming                      MMCdmaActivationError = 2 // Device cannot activate while roaming.
+	MmCdmaActivationErrorWrongRadioInterface          MMCdmaActivationError = 3 // Device cannot activate on this network type (eg EVDO vs 1xRTT).
+	MmCdmaActivationErrorCouldNotConnect              MMCdmaActivationError = 4 // Device could not connect to the network for activation.
+	MmCdmaActivationErrorSecurityAuthenticationFailed MMCdmaActivationError = 5 // Device could not authenticate to the network for activation.
+	MmCdmaActivationErrorProvisioningFailed           MMCdmaActivationError = 6 // Later stages of device provisioning failed.
+	MmCdmaActivationErrorNoSignal                     MMCdmaActivationError = 7 // No signal available.
+	MmCdmaActivationErrorTimedOut                     MMCdmaActivationError = 8 // Activation timed out.
+	MmCdmaActivationErrorStartFailed                  MMCdmaActivationError = 9 // API call for initial activation failed.
+
 )
 
 // MMSignalPropertyType SignalProperty Type

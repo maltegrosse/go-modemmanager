@@ -11,12 +11,15 @@ Additional information: [ModemManager D-Bus Specs](https://www.freedesktop.org/s
 
 Tested with [ModemManager - Version 1.28.8](https://gitlab.freedesktop.org/mobile-broadband/ModemManager), Go 1.13, on `Debian Buster (armv7)` with `Kernel 5.4.x` and `libqmi 1.24.6`.
 
-Test hardware:  [SolidRun Hummingboard Edge](https://www.solid-run.com/nxp-family/hummingboard/)   and a `Quectel EC25 - EC25EFA` mini pcie modem.
+Test hardware: [SolidRun Hummingboard Edge](https://www.solid-run.com/nxp-family/hummingboard/)   and a `Quectel EC25 - EC25EFA` mini pcie modem.
 
+## Notes
+ ModemManager works great together with GeoClue. A dbus wrapper can be found [here](https://github.com/maltegrosse/go-geoclue2).
+
+A NetworkManager dbus wrapper in golang can be found [here](https://github.com/Wifx/gonetworkmanager).
 
 ## Status
 Some methods/properties are untested as they are not supported by my modem/lack of how to use them. See `todo` tags in the code.
-
 
 ## Installation
 

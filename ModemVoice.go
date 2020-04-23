@@ -2,13 +2,14 @@ package modemmanager
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 )
 
 // Paths of methods and properties of ModemVoice
 const (
-	ModemVoiceInterface = ModemInterface + ".Voice"
+	ModemVoiceInterface  = ModemInterface + ".Voice"
 	ModemVoiceObjectPath = ModemManagerObjectPath + "/Voice"
 	/* Methods */
 	ModemVoiceListCalls  = ModemVoiceInterface + ".ListCalls"
@@ -27,11 +28,8 @@ const (
 	ModemVoicePropertyEmergencyOnly = ModemVoiceInterface + ".EmergencyOnly"
 
 	/* Signal */
-	ModemVoiceSignalCallAdded = "CallAdded"
+	ModemVoiceSignalCallAdded   = "CallAdded"
 	ModemVoiceSignalCallDeleted = "CallDeleted"
-
-	
-	
 )
 
 // ModemVoice interface handles Calls.
@@ -97,7 +95,6 @@ type ModemVoice interface {
 
 	/* SIGNALS */
 
-
 	// CallAdded (o path);
 	// Emitted when a call has been added.
 	//		o path:Object path of the new call.
@@ -107,18 +104,20 @@ type ModemVoice interface {
 	// 		o path:Object path of the now deleted Call.
 	SubscribeCallDeleted() <-chan *dbus.Signal
 
+	ParseCallAdded(v *dbus.Signal) (Call, error)
+
 	Unsubscribe()
 }
 
 // NewModemVoice returns new ModemVoice Interface
-func NewModemVoice(objectPath dbus.ObjectPath, modem Modem) (ModemVoice, error) {
+func NewModemVoice(objectPath dbus.ObjectPath, modem modem) (ModemVoice, error) {
 	var vo modemVoice
 	vo.modem = modem
 	return &vo, vo.init(ModemManagerInterface, objectPath)
 }
 
 type modemVoice struct {
-	modem Modem
+	modem modem
 	dbusBase
 	sigChan chan *dbus.Signal
 }
@@ -215,7 +214,7 @@ func (m modemVoice) SubscribeCallAdded() <-chan *dbus.Signal {
 	if m.sigChan != nil {
 		return m.sigChan
 	}
-	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemVoiceSignalCallAdded,fmt.Sprint(m.modem.GetObjectPath()))
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemVoiceSignalCallAdded, fmt.Sprint(m.modem.GetObjectPath()))
 	m.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
 	m.sigChan = make(chan *dbus.Signal, 10)
 	m.conn.Signal(m.sigChan)
@@ -225,13 +224,27 @@ func (m modemVoice) SubscribeCallDeleted() <-chan *dbus.Signal {
 	if m.sigChan != nil {
 		return m.sigChan
 	}
-	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemVoiceSignalCallDeleted,fmt.Sprint(m.modem.GetObjectPath()))
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemVoiceSignalCallDeleted, fmt.Sprint(m.modem.GetObjectPath()))
 	m.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
 	m.sigChan = make(chan *dbus.Signal, 10)
 	m.conn.Signal(m.sigChan)
 	return m.sigChan
 }
 
+func (m modemVoice) ParseCallAdded(v *dbus.Signal) (call Call, err error) {
+	// todo untested
+	if len(v.Body) != 1 {
+		err = errors.New("error by parsing activation changed signal")
+		return
+	}
+	path, ok := v.Body[0].(dbus.ObjectPath)
+	if !ok {
+		err = errors.New("error by parsing object path")
+		return
+	}
+
+	return NewCall(path)
+}
 
 func (m modemVoice) Unsubscribe() {
 	m.conn.RemoveSignal(m.sigChan)

@@ -2,6 +2,8 @@ package modemmanager
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/godbus/dbus/v5"
 )
 
@@ -27,6 +29,9 @@ const (
 	CallPropertyAudioPort   = CallInterface + ".AudioPort"   // readable   s
 	CallPropertyAudioFormat = CallInterface + ".AudioFormat" // readable   a{sv}
 
+	/* Signal */
+	CallSignalDtmfReceived = "DtmfReceived"
+	CallSignalStateChanged = "StateChanged"
 )
 
 // The Call interface Defines operations and properties of a single Call.
@@ -101,6 +106,10 @@ type Call interface {
 	// DtmfReceived (s dtmf);
 	//Emitted when a DTMF tone is received (only on supported modem)
 	//	s dtmf:DTMF tone identifier [0-9A-D*#].
+	SubscribeDtmfReceived() <-chan *dbus.Signal
+
+	ParseDtmfReceived(v *dbus.Signal) (string, error)
+
 	// StateChanged (i old,
 	//              i new,
 	//              u reason);
@@ -108,7 +117,21 @@ type Call interface {
 	// 		i old: Old state MMCallState
 	// 		i new: New state MMCallState
 	// 		u reason: A MMCallStateReason value, specifying the reason for this state change.
-	Subscribe() <-chan *dbus.Signal
+	SubscribeStateChanged() <-chan *dbus.Signal
+
+	// ParseStateChanged returns the parsed dbus signal
+	ParseStateChanged(v *dbus.Signal) (oldState MMCallState, newState MMCallState, reason MMCallStateReason, err error)
+
+	// Listen to changed properties
+	// returns []interface
+	// index 0 = name of the interface on which the properties are defined
+	// index 1 = changed properties with new values as map[string]dbus.Variant
+	// index 2 = invalidated properties: changed properties but the new values are not send with them
+	SubscribePropertiesChanged() <-chan *dbus.Signal
+
+	// ParsePropertiesChanged parses the dbus signal
+	ParsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error)
+
 	Unsubscribe()
 }
 
@@ -122,6 +145,7 @@ type call struct {
 	dbusBase
 	sigChan chan *dbus.Signal
 }
+
 type audioFormat struct {
 	Encoding   string `json:"encoding"`   // The audio encoding format. For example, "pcm" for PCM audio.
 	Resolution string `json:"resolution"` // The sampling precision and its encoding format. For example, "s16le" for signed 16-bit little-endian samples
@@ -237,17 +261,83 @@ func (ca call) GetAudioFormat() (af audioFormat, err error) {
 	return
 }
 
-func (ca call) Subscribe() <-chan *dbus.Signal {
-	// todo: untested
+func (ca call) SubscribeDtmfReceived() <-chan *dbus.Signal {
 	if ca.sigChan != nil {
 		return ca.sigChan
 	}
-
-	ca.subscribeNamespace(ModemManagerObjectPath)
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", CallSignalStateChanged, fmt.Sprint(ca.GetObjectPath()))
+	ca.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
 	ca.sigChan = make(chan *dbus.Signal, 10)
 	ca.conn.Signal(ca.sigChan)
-
 	return ca.sigChan
+}
+
+func (ca call) ParseDtmfReceived(v *dbus.Signal) (dtmf string, err error) {
+	if len(v.Body) != 1 {
+		err = errors.New("error by parsing dtmf received signal")
+		return
+	}
+	dtmf, ok := v.Body[0].(string)
+	if !ok {
+		err = errors.New("error by parsing dtmf")
+		return
+	}
+	return
+
+}
+
+func (ca call) SubscribeStateChanged() <-chan *dbus.Signal {
+	if ca.sigChan != nil {
+		return ca.sigChan
+	}
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", CallSignalStateChanged, fmt.Sprint(ca.GetObjectPath()))
+	ca.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
+	ca.sigChan = make(chan *dbus.Signal, 10)
+	ca.conn.Signal(ca.sigChan)
+	return ca.sigChan
+}
+
+func (ca call) ParseStateChanged(v *dbus.Signal) (oldState MMCallState, newState MMCallState, reason MMCallStateReason, err error) {
+	if len(v.Body) != 3 {
+		err = errors.New("error by parsing property changed signal")
+		return
+	}
+	oState, ok := v.Body[0].(int32)
+	if !ok {
+		err = errors.New("error by parsing old state")
+		return
+	}
+	oldState = MMCallState(oState)
+
+	nState, ok := v.Body[1].(int32)
+	if !ok {
+		err = errors.New("error by parsing new state")
+		return
+	}
+	newState = MMCallState(nState)
+
+	tmpReason, ok := v.Body[2].(uint32)
+	if !ok {
+		err = errors.New("error by parsing reason")
+		return
+	}
+	reason = MMCallStateReason(tmpReason)
+	return
+}
+
+func (ca call) SubscribePropertiesChanged() <-chan *dbus.Signal {
+	if ca.sigChan != nil {
+		return ca.sigChan
+	}
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", dbusPropertiesChanged, fmt.Sprint(ca.GetObjectPath()))
+	ca.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
+	ca.sigChan = make(chan *dbus.Signal, 10)
+	ca.conn.Signal(ca.sigChan)
+	return ca.sigChan
+}
+
+func (ca call) ParsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error) {
+	return ca.parsePropertiesChanged(v)
 }
 
 func (ca call) Unsubscribe() {

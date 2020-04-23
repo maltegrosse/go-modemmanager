@@ -3,6 +3,7 @@ package modemmanager
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/godbus/dbus/v5"
 	"time"
 )
@@ -120,6 +121,19 @@ type Sms interface {
 	GetStorage() (MMSmsStorage, error)
 
 	MarshalJSON() ([]byte, error)
+
+	/* SIGNALS */
+
+	// Listen to changed properties
+	// returns []interface
+	// index 0 = name of the interface on which the properties are defined
+	// index 1 = changed properties with new values as map[string]dbus.Variant
+	// index 2 = invalidated properties: changed properties but the new values are not send with them
+	SubscribePropertiesChanged() <-chan *dbus.Signal
+
+	// ParsePropertiesChanged parses the dbus signal
+	ParsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error)
+	Unsubscribe()
 }
 
 // NewSms returns new Sms Interface
@@ -130,6 +144,7 @@ func NewSms(objectPath dbus.ObjectPath) (Sms, error) {
 
 type sms struct {
 	dbusBase
+	sigChan chan *dbus.Signal
 }
 
 func (ss sms) GetObjectPath() dbus.ObjectPath {
@@ -274,6 +289,25 @@ func (ss sms) GetStorage() (MMSmsStorage, error) {
 		return MmSmsStorageUnknown, err
 	}
 	return MMSmsStorage(res), nil
+}
+
+func (ss sms) SubscribePropertiesChanged() <-chan *dbus.Signal {
+	if ss.sigChan != nil {
+		return ss.sigChan
+	}
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", dbusPropertiesChanged, fmt.Sprint(ss.GetObjectPath()))
+	ss.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
+	ss.sigChan = make(chan *dbus.Signal, 10)
+	ss.conn.Signal(ss.sigChan)
+	return ss.sigChan
+}
+func (ss sms) ParsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error) {
+	return ss.parsePropertiesChanged(v)
+}
+
+func (ss sms) Unsubscribe() {
+	ss.conn.RemoveSignal(ss.sigChan)
+	ss.sigChan = nil
 }
 
 func (ss sms) MarshalJSON() ([]byte, error) {

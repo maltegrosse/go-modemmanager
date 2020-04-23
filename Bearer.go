@@ -99,6 +99,19 @@ type Bearer interface {
 
 	// List of properties used when creating the bearer.
 	GetProperties() (BearerProperty, error)
+
+	/* SIGNALS */
+
+	// Listen to changed properties
+	// returns []interface
+	// index 0 = name of the interface on which the properties are defined
+	// index 1 = changed properties with new values as map[string]dbus.Variant
+	// index 2 = invalidated properties: changed properties but the new values are not send with them
+	SubscribePropertiesChanged() <-chan *dbus.Signal
+
+	// ParsePropertiesChanged parses the dbus signal
+	ParsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error)
+	Unsubscribe()
 }
 
 // NewBearer returns new Bearer Interface
@@ -109,6 +122,7 @@ func NewBearer(objectPath dbus.ObjectPath) (Bearer, error) {
 
 type bearer struct {
 	dbusBase
+	sigChan chan *dbus.Signal
 }
 
 // bearerIpConfig represents all available ip configuration properties
@@ -431,6 +445,26 @@ func (be bearer) GetProperties() (bp BearerProperty, err error) {
 	}
 	return
 }
+
+func (be bearer) SubscribePropertiesChanged() <-chan *dbus.Signal {
+	if be.sigChan != nil {
+		return be.sigChan
+	}
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", dbusPropertiesChanged, fmt.Sprint(be.GetObjectPath()))
+	be.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
+	be.sigChan = make(chan *dbus.Signal, 10)
+	be.conn.Signal(be.sigChan)
+	return be.sigChan
+}
+func (be bearer) ParsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error) {
+	return be.parsePropertiesChanged(v)
+}
+
+func (be bearer) Unsubscribe() {
+	be.conn.RemoveSignal(be.sigChan)
+	be.sigChan = nil
+}
+
 func (be bearer) MarshalJSON() ([]byte, error) {
 
 	bInterface, err := be.GetInterface()

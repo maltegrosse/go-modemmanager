@@ -2,6 +2,7 @@ package modemmanager
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/godbus/dbus/v5"
 )
 
@@ -67,6 +68,19 @@ type Sim interface {
 	GetEmergencyNumbers() ([]string, error)
 
 	MarshalJSON() ([]byte, error)
+
+	/* SIGNALS */
+
+	// Listen to changed properties
+	// returns []interface
+	// index 0 = name of the interface on which the properties are defined
+	// index 1 = changed properties with new values as map[string]dbus.Variant
+	// index 2 = invalidated properties: changed properties but the new values are not send with them
+	SubscribePropertiesChanged() <-chan *dbus.Signal
+
+	// ParsePropertiesChanged parses the dbus signal
+	ParsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error)
+	Unsubscribe()
 }
 
 // NewSim returns new Sim Interface
@@ -77,6 +91,7 @@ func NewSim(objectPath dbus.ObjectPath) (Sim, error) {
 
 type sim struct {
 	dbusBase
+	sigChan chan *dbus.Signal
 }
 
 func (sm sim) GetObjectPath() dbus.ObjectPath {
@@ -116,6 +131,25 @@ func (sm sim) GetOperatorName() (string, error) {
 
 func (sm sim) GetEmergencyNumbers() ([]string, error) {
 	return sm.getSliceStringProperty(SimPropertyEmergencyNumbers)
+}
+
+func (sm sim) SubscribePropertiesChanged() <-chan *dbus.Signal {
+	if sm.sigChan != nil {
+		return sm.sigChan
+	}
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", dbusPropertiesChanged, fmt.Sprint(sm.GetObjectPath()))
+	sm.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
+	sm.sigChan = make(chan *dbus.Signal, 10)
+	sm.conn.Signal(sm.sigChan)
+	return sm.sigChan
+}
+func (sm sim) ParsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error) {
+	return sm.parsePropertiesChanged(v)
+}
+
+func (sm sim) Unsubscribe() {
+	sm.conn.RemoveSignal(sm.sigChan)
+	sm.sigChan = nil
 }
 
 func (sm sim) MarshalJSON() ([]byte, error) {

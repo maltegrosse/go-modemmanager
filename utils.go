@@ -25,6 +25,7 @@ package modemmanager
 import (
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"net"
@@ -36,7 +37,7 @@ import (
 const (
 	dbusMethodAddMatch       = "org.freedesktop.DBus.AddMatch"
 	dbusMethodManagedObjects = "org.freedesktop.DBus.ObjectManager.GetManagedObjects"
-	dbusPropertiesChanged = "PropertiesChanged"
+	dbusPropertiesChanged    = "PropertiesChanged"
 )
 
 // Pair represents two interface values (left and right side)
@@ -120,6 +121,28 @@ func (d *dbusBase) subscribe(iface, member string) {
 func (d *dbusBase) subscribeNamespace(namespace string) {
 	rule := fmt.Sprintf("type='signal',path_namespace='%s'", namespace)
 	d.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
+}
+func (d *dbusBase) parsePropertiesChanged(v *dbus.Signal) (interfaceName string, changedProperties map[string]dbus.Variant, invalidatedProperties []string, err error) {
+	if len(v.Body) != 3 {
+		err = errors.New("error by parsing property changed signal")
+		return
+	}
+	interfaceName, ok := v.Body[0].(string)
+	if !ok {
+		err = errors.New("error by parsing interface name")
+		return
+	}
+	changedProperties, ok = v.Body[1].(map[string]dbus.Variant)
+	if !ok {
+		err = errors.New("error by parsing changed properties map name")
+		return
+	}
+	invalidatedProperties, ok = v.Body[2].([]string)
+	if !ok {
+		err = errors.New("error by parsing invalidated properties")
+		return
+	}
+	return
 }
 
 func (d *dbusBase) getProperty(iface string) (interface{}, error) {
@@ -552,8 +575,6 @@ func (d *dbusBase) isEmpty(object interface{}, fieldName string) bool {
 	}
 	return false
 }
-
-
 
 func returnString(object interface{}) string {
 	var resSlice []string

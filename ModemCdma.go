@@ -2,6 +2,8 @@ package modemmanager
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/godbus/dbus/v5"
 	"reflect"
 )
@@ -23,6 +25,8 @@ const (
 	ModemCdmaPropertyCdma1xRegistrationState = ModemCdmaInterface + ".Cdma1xRegistrationState" // readable   u
 	ModemCdmaPropertyEvdoRegistrationState   = ModemCdmaInterface + ".EvdoRegistrationState"   //  readable   u
 
+	/* Signal */
+	ModemCdmaSignalActivationStateChanged = "ActivationStateChanged"
 )
 
 // ModemCdma interface provides access to specific actions that may be performed in modems with CDMA capabilities.
@@ -75,7 +79,10 @@ type ModemCdma interface {
 	// 		u activation_state: Current activation state, given as a MMModemCdmaActivationState.
 	// 		u activation_error: Carrier-specific error code, given as a MMCdmaActivationError.
 	// 		a{sv} status_changes:Properties that have changed as a result of this activation state change, including "mdn" and "min". The dictionary may be empty if the changed properties are unknown.
-	Subscribe() <-chan *dbus.Signal
+	SubscribeActivationStateChanged() <-chan *dbus.Signal
+	// ParsePropertiesChanged parses the dbus signal
+	ParseActivationStateChanged(v *dbus.Signal) (activationState MMModemCdmaActivationState, activationError MMCdmaActivationError, changedProperties map[string]dbus.Variant, err error)
+
 	Unsubscribe()
 }
 
@@ -185,17 +192,42 @@ func (mc modemCdma) GetEvdoRegistrationState() (MMModemCdmaRegistrationState, er
 	return MMModemCdmaRegistrationState(res), nil
 }
 
-func (mc modemCdma) Subscribe() <-chan *dbus.Signal {
-	// todo: untested
+func (mc modemCdma) SubscribeActivationStateChanged() <-chan *dbus.Signal {
 	if mc.sigChan != nil {
 		return mc.sigChan
 	}
-
-	mc.subscribeNamespace(ModemManagerObjectPath)
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemCdmaSignalActivationStateChanged, fmt.Sprint(mc.GetObjectPath()))
+	mc.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
 	mc.sigChan = make(chan *dbus.Signal, 10)
 	mc.conn.Signal(mc.sigChan)
-
 	return mc.sigChan
+}
+
+func (mc modemCdma) ParseActivationStateChanged(v *dbus.Signal) (activationState MMModemCdmaActivationState, activationError MMCdmaActivationError, changedProperties map[string]dbus.Variant, err error) {
+	if len(v.Body) != 3 {
+		err = errors.New("error by parsing activation changed signal")
+		return
+	}
+	aState, ok := v.Body[0].(uint32)
+	if !ok {
+		err = errors.New("error by parsing activation state")
+		return
+	}
+	activationState = MMModemCdmaActivationState(aState)
+
+	eState, ok := v.Body[1].(uint32)
+	if !ok {
+		err = errors.New("error by parsing activation error state")
+		return
+	}
+	activationError = MMCdmaActivationError(eState)
+
+	changedProperties, ok = v.Body[2].(map[string]dbus.Variant)
+	if !ok {
+		err = errors.New("error by parsing changed")
+		return
+	}
+	return
 }
 
 func (mc modemCdma) Unsubscribe() {

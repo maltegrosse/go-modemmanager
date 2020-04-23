@@ -2,6 +2,7 @@ package modemmanager
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 	"time"
@@ -17,6 +18,8 @@ const (
 	/* Property */
 	ModemTimePropertyNetworkTimezone = ModemTimeInterface + ".NetworkTimezone" //  readable   a{sv}
 
+	/* Signal */
+	ModemTimeSignalNetworkTimeChanged = "NetworkTimeChanged"
 )
 
 // ModemTime interface allows clients to receive network time and timezone updates broadcast by mobile networks.
@@ -43,7 +46,10 @@ type ModemTime interface {
 	/* SIGNALS */
 	// Sent when the network time is updated.
 	//		s time: A string containing date and time in ISO 8601 format.
-	Subscribe() <-chan *dbus.Signal
+	SubscribeNetworkTimeChanged() <-chan *dbus.Signal
+
+	ParseNetworkTimeChanged(v *dbus.Signal) (networkTime time.Time, err error)
+
 	Unsubscribe()
 }
 
@@ -124,17 +130,29 @@ func (ti modemTime) GetNetworkTimezone() (mTz modemTimeZone, err error) {
 	return
 }
 
-func (ti modemTime) Subscribe() <-chan *dbus.Signal {
-	// todo: untested
+func (ti modemTime) SubscribeNetworkTimeChanged() <-chan *dbus.Signal {
 	if ti.sigChan != nil {
 		return ti.sigChan
 	}
-
-	ti.subscribeNamespace(ModemManagerObjectPath)
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemTimeSignalNetworkTimeChanged, fmt.Sprint(ti.GetObjectPath()))
+	ti.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
 	ti.sigChan = make(chan *dbus.Signal, 10)
 	ti.conn.Signal(ti.sigChan)
-
 	return ti.sigChan
+}
+
+func (ti modemTime) ParseNetworkTimeChanged(v *dbus.Signal) (networkTime time.Time, err error) {
+	// todo: untested
+	if len(v.Body) != 1 {
+		err = errors.New("error by parsing network time changed signal")
+		return
+	}
+	tmpTime, ok := v.Body[0].(string)
+	if !ok {
+		err = errors.New("error by parsing time string")
+		return
+	}
+	return time.Parse(time.RFC3339Nano, tmpTime)
 }
 
 func (ti modemTime) Unsubscribe() {

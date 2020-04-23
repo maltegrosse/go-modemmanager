@@ -152,186 +152,186 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("SupportedCapabilities: ", supportedCapabilites)
+		fmt.Println(" - SupportedCapabilities: ", supportedCapabilites)
 		currentCapabilites, err := modem.GetCurrentCapabilities()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("CurrentCapabilities: ", currentCapabilites)
+		fmt.Println(" - CurrentCapabilities: ", currentCapabilites)
 
 		maxBearers, err := modem.GetMaxBearers()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Max Bearers:", maxBearers)
+		fmt.Println(" - Max Bearers:", maxBearers)
 
 		maxActiveBearers, err := modem.GetMaxActiveBearers()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Max Active Bearers:", maxActiveBearers)
+		fmt.Println(" - Max Active Bearers:", maxActiveBearers)
 
 		manu, err := modem.GetManufacturer()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Manufacturer: ", manu)
+		fmt.Println(" - Manufacturer: ", manu)
 
 		model, err := modem.GetModel()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Model: ", model)
+		fmt.Println(" - Model: ", model)
 
 		rev, err := modem.GetRevision()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Revision: ", rev)
+		fmt.Println(" - Revision: ", rev)
 
 		cConf, err := modem.GetCarrierConfiguration()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Carrier Config: ", cConf)
+		fmt.Println(" - Carrier Config: ", cConf)
 
 		cConfRev, err := modem.GetCarrierConfigurationRevision()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Carrier Config Rev: ", cConfRev)
+		fmt.Println(" - Carrier Config Rev: ", cConfRev)
 
 		hRev, err := modem.GetHardwareRevision()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Hardware Rev: ", hRev)
+		fmt.Println(" - Hardware Rev: ", hRev)
 
 		deviceIdent, err := modem.GetDeviceIdentifier()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Device Ident: ", deviceIdent)
+		fmt.Println(" - Device Ident: ", deviceIdent)
 
 		dev, err := modem.GetDevice()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Device: ", dev)
+		fmt.Println(" - Device: ", dev)
 
 		drivers, err := modem.GetDrivers()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Drivers: ", drivers)
+		fmt.Println(" - Drivers: ", drivers)
 
 		plugin, err := modem.GetPlugin()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Plugin: ", plugin)
+		fmt.Println(" - Plugin: ", plugin)
 
 		pPort, err := modem.GetPrimaryPort()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Primary Port: ", pPort)
+		fmt.Println(" - Primary Port: ", pPort)
 
 		ports, err := modem.GetPorts()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Ports: ", ports)
+		fmt.Println(" - Ports: ", ports)
 
 		eIdent, err := modem.GetEquipmentIdentifier()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Equipment Ident: ", eIdent)
+		fmt.Println(" - Equipment Ident: ", eIdent)
 
 		unlockReq, err := modem.GetUnlockRequired()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("UnlockRequired: ", unlockReq)
+		fmt.Println(" - UnlockRequired: ", unlockReq)
 
 		capabilities, err := modem.GetCurrentCapabilities()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Current Capabilities: ", capabilities)
+		fmt.Println(" - Current Capabilities: ", capabilities)
 
 		unlockRetries, err := modem.GetUnlockRetries()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("UnlockRetries: ", unlockRetries)
+		fmt.Println(" - UnlockRetries: ", unlockRetries)
 
 		state, err := modem.GetState()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("State: ", state)
+		fmt.Println(" - State: ", state)
 
 		fstate, err := modem.GetStateFailedReason()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("FailedState: ", fstate)
+		fmt.Println(" - FailedState: ", fstate)
 
 		tecs, err := modem.GetAccessTechnologies()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("AccessTechnologies: ", tecs)
+		fmt.Println(" - AccessTechnologies: ", tecs)
 
 		signalQuality, recent, err := modem.GetSignalQuality()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("SignalQuality: ", signalQuality, recent)
+		fmt.Println(" - SignalQuality: ", signalQuality, recent)
 
 		numbers, err := modem.GetOwnNumbers()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Numbers: ", numbers)
+		fmt.Println(" - Numbers: ", numbers)
 
 		pState, err := modem.GetPowerState()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("PowerState: ", pState)
+		fmt.Println(" - PowerState: ", pState)
 
 		sModes, err := modem.GetSupportedModes()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("SupportedModes: ", sModes)
+		fmt.Println(" - SupportedModes: ", sModes)
 
 		cModes, err := modem.GetCurrentModes()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("CurrentModes: ", cModes)
+		fmt.Println(" - CurrentModes: ", cModes)
 
 		sbands, err := modem.GetSupportedBands()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("SupportedBands: ", sbands)
+		fmt.Println(" - SupportedBands: ", sbands)
 
 		cbands, err := modem.GetCurrentBands()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("CurrentBands: ", cbands)
+		fmt.Println(" - CurrentBands: ", cbands)
 
 		ipFams, err := modem.GetSupportedIpFamilies()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("SupportedIpFamilies: ", ipFams)
+		fmt.Println(" - SupportedIpFamilies: ", ipFams)
 
 		/*// listen to modem updates, e.g SignalQuality
 		c := modem.Subscribe()
@@ -364,7 +364,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("SimpleStatus: ", status)
+		fmt.Println(" - SimpleStatus: ", status)
 		/*
 			err = modemSimple.Disconnect(bearers[0])
 			if err != nil {
@@ -407,66 +407,66 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Imei: ", imei)
+		fmt.Println(" - Imei: ", imei)
 
 		regState, err := modem3gpp.GetRegistrationState()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("RegistrationState: ", regState)
+		fmt.Println(" - RegistrationState: ", regState)
 
 		opCode, err := modem3gpp.GetOperatorCode()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("OperatorCode: ", opCode)
+		fmt.Println(" - OperatorCode: ", opCode)
 
 		mcc, err := modem3gpp.GetMcc()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Mcc: ", mcc)
+		fmt.Println(" - Mcc: ", mcc)
 
 		mnc, err := modem3gpp.GetMnc()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Mnc: ", mnc)
+		fmt.Println(" - Mnc: ", mnc)
 
 		opName, err := modem3gpp.GetOperatorName()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("OperatorName: ", opName)
+		fmt.Println(" - OperatorName: ", opName)
 
 		facLocks, err := modem3gpp.GetEnabledFacilityLocks()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("EnabledFacilityLocks: ", facLocks)
+		fmt.Println(" - EnabledFacilityLocks: ", facLocks)
 
 		epsMode, err := modem3gpp.GetEpsUeModeOperation()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("EpsUeModeOperation: ", epsMode)
+		fmt.Println(" - EpsUeModeOperation: ", epsMode)
 
 		pco, err := modem3gpp.GetPco()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Pco: ", pco)
+		fmt.Println(" - Pco: ", pco)
 
 		// ussd untested as not available via qmi
 		ussd, err := modem3gpp.GetUssd()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Ussd for: ", ussd.GetObjectPath())
+		fmt.Println(" - Ussd for: ", ussd.GetObjectPath())
 
 		fmt.Println("### END 3GPP ####")
-		// cdma untested as not available via qmi
 
+		// cdma untested as not available via qmi
 		mCdma, err := modem.GetCdma()
 		if err != nil {
 			log.Fatal(err.Error())
@@ -484,13 +484,13 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Current Network Time: ", modemNTime)
+		fmt.Println(" - Current Network Time: ", modemNTime)
 
 		modemNTimeZone, err := modemTime.GetNetworkTimezone()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Current Network Time Zone: ", modemNTimeZone)
+		fmt.Println(" - Current Network Time Zone: ", modemNTimeZone)
 		fmt.Println("### END Time ####")
 
 		fmt.Println("### START Firmware ####")
@@ -533,49 +533,49 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Signal Rate: ", mSignalRate)
+		fmt.Println(" - Signal Rate: ", mSignalRate)
 
 		mSignalCdma, err := modemSignal.GetCdma()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Signal Cdma: ", mSignalCdma)
+		fmt.Println(" - Signal Cdma: ", mSignalCdma)
 
 		mSignalEvdo, err := modemSignal.GetEvdo()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Signal Evdo: ", mSignalEvdo)
+		fmt.Println(" - Signal Evdo: ", mSignalEvdo)
 
 		mSignalGsm, err := modemSignal.GetGsm()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Signal Gsm: ", mSignalGsm)
+		fmt.Println(" - Signal Gsm: ", mSignalGsm)
 
 		mSignalUmts, err := modemSignal.GetUmts()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Signal Umts: ", mSignalUmts)
+		fmt.Println(" - Signal Umts: ", mSignalUmts)
 
 		mSignalLte, err := modemSignal.GetLte()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Signal Lte: ", mSignalLte)
+		fmt.Println(" - Signal Lte: ", mSignalLte)
 
 		currentSignal, err := modemSignal.GetCurrentSignals()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Current Signal: ", currentSignal)
+		fmt.Println(" - Current Signal: ", currentSignal)
 
 		err = modemSignal.Setup(0)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Set Signal rate to 0 sec, disabled...")
+		fmt.Println(" - Set Signal rate to 0 sec, disabled...")
 		fmt.Println("### END Signal ####")
 		// OMA untested as not available via qmi
 		modemOma, err := modem.GetOma()
@@ -595,7 +595,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Capabilities: ", mlCap)
+		fmt.Println(" - Capabilities: ", mlCap)
 
 		var tmpLocCap []modemmanager.MMModemLocationSource
 		tmpLocCap = append(tmpLocCap, modemmanager.MmModemLocationSource3gppLacCi)
@@ -608,13 +608,13 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Location 3gppLacCi: ", mloc.ThreeGppLacCi)
+		fmt.Println(" - 3gppLacCi: ", mloc.ThreeGppLacCi)
 
 		mlocEnabledSources, err := modemLocation.GetEnabledLocationSources()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("Location Enabled Sources: ", mlocEnabledSources)
+		fmt.Println(" - Enabled Sources: ", mlocEnabledSources)
 
 		if gpsAvailable {
 			//tmpLocCap = append(tmpLocCap, go_modemmanager.MmModemLocationSourceGpsRaw)
@@ -635,65 +635,65 @@ func main() {
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Wait four seconds until gps signal is ready")
+			fmt.Println(" - Wait four seconds until gps signal is ready")
 			time.Sleep(4 * time.Second)
 
 			mlocEnabledSources, err := modemLocation.GetEnabledLocationSources()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Location Enabled Sources: ", mlocEnabledSources)
+			fmt.Println(" - Location Enabled Sources: ", mlocEnabledSources)
 
 			err = modemLocation.SetGpsRefreshRate(1)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Location Set Refresh rate to 1 sec: ")
+			fmt.Println(" - Location Set Refresh rate to 1 sec: ")
 
-			fmt.Println("Wait four seconds until gps signal is ready")
+			fmt.Println(" - Wait four seconds until gps signal is ready")
 			time.Sleep(4 * time.Second)
 			mloc, err = modemLocation.GetCurrentLocation()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
 			// use e.g. github.com/adrianmo/go-nmea to parse
-			fmt.Println("Location GpsNmea: ", mloc.GpsNmea)
+			fmt.Println(" - Location GpsNmea: ", mloc.GpsNmea)
 
 			mlocsdata, err := modemLocation.GetSupportedAssistanceData()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Location SupportedAssistanceData: ", mlocsdata)
+			fmt.Println(" - Location SupportedAssistanceData: ", mlocsdata)
 
 			mlocssignal, err := modemLocation.GetSignalsLocation()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Location SignalsLocation: ", mlocssignal)
+			fmt.Println(" - Location SignalsLocation: ", mlocssignal)
 
 			mloc2, err := modemLocation.GetLocation()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Location Property: ", mloc2)
+			fmt.Println(" - Location Property: ", mloc2)
 
 			mlocSuplS, err := modemLocation.GetSuplServer()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Location SuplServer: ", mlocSuplS)
+			fmt.Println(" - Location SuplServer: ", mlocSuplS)
 
 			mlocAssDs, err := modemLocation.GetAssistanceDataServers()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Location AssistanceDataServers: ", mlocAssDs)
+			fmt.Println(" - Location AssistanceDataServers: ", mlocAssDs)
 
 			mlocrefreshr, err := modemLocation.GetGpsRefreshRate()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println("Location GpsRefreshRate: ", mlocrefreshr)
+			fmt.Println(" - Location GpsRefreshRate: ", mlocrefreshr)
 
 		}
 		fmt.Println("### END Location ####")
@@ -723,13 +723,13 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("SMS Supported Storages ", messSS)
+		fmt.Println(" - SMS Supported Storages ", messSS)
 
 		messDS, err := messaging.GetDefaultStorage()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Println("SMS Default Storage ", messDS)
+		fmt.Println(" - SMS Default Storage ", messDS)
 
 		for _, sms := range smss {
 			fmt.Println(" SMS at ", sms.GetObjectPath())

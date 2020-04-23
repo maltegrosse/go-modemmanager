@@ -2,6 +2,7 @@ package modemmanager
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/godbus/dbus/v5"
 )
@@ -19,6 +20,10 @@ const (
 	ModemMessagingPropertyMessages          = ModemMessagingInterface + ".Messages"
 	ModemMessagingPropertySupportedStorages = ModemMessagingInterface + ".SupportedStorages"
 	ModemMessagingPropertyDefaultStorage    = ModemMessagingInterface + ".DefaultStorage"
+
+	/* Signal */
+	ModemMessagingSignalAdded   = "Added"
+	ModemMessagingSignalDeleted = "Deleted"
 )
 
 // The ModemMessaging interface handles sending SMS messages and notification of new incoming messages.
@@ -69,11 +74,15 @@ type ModemMessaging interface {
 	// 		o path: Object path of the new SMS.
 	// 		b received: TRUE if the message was received from the network, as opposed to being added locally.
 	//
+	SubscribeAdded() <-chan *dbus.Signal
+
+	ParseAdded(v *dbus.Signal) (Sms, bool, error)
+
 	// Deleted (o path);
 	// Emitted when a message has been deleted.
 	// 		o path: Object path of the now deleted SMS.
+	SubscribeDeleted() <-chan *dbus.Signal
 
-	Subscribe() <-chan *dbus.Signal
 	Unsubscribe()
 }
 
@@ -191,16 +200,48 @@ func (me modemMessaging) GetDefaultStorage() (storage MMSmsStorage, err error) {
 	return MMSmsStorage(s), nil
 }
 
-func (me modemMessaging) Subscribe() <-chan *dbus.Signal {
-	// todo: untested
+func (me modemMessaging) SubscribeAdded() <-chan *dbus.Signal {
 	if me.sigChan != nil {
 		return me.sigChan
 	}
-
-	me.subscribeNamespace(ModemManagerObjectPath)
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemMessagingSignalAdded, fmt.Sprint(me.GetObjectPath()))
+	me.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
 	me.sigChan = make(chan *dbus.Signal, 10)
 	me.conn.Signal(me.sigChan)
+	return me.sigChan
+}
 
+func (me modemMessaging) ParseAdded(v *dbus.Signal) (sms Sms, received bool, err error) {
+	// todo untested
+	if len(v.Body) != 2 {
+		err = errors.New("error by parsing added signal")
+		return
+	}
+	path, ok := v.Body[0].(dbus.ObjectPath)
+	if !ok {
+		err = errors.New("error by parsing object path")
+		return
+	}
+	sms, err = NewSms(path)
+	if err != nil {
+		return
+	}
+	received, ok = v.Body[1].(bool)
+	if !ok {
+		err = errors.New("error by parsing received")
+		return
+	}
+	return
+}
+
+func (me modemMessaging) SubscribeDeleted() <-chan *dbus.Signal {
+	if me.sigChan != nil {
+		return me.sigChan
+	}
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemMessagingSignalDeleted, fmt.Sprint(me.GetObjectPath()))
+	me.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
+	me.sigChan = make(chan *dbus.Signal, 10)
+	me.conn.Signal(me.sigChan)
 	return me.sigChan
 }
 

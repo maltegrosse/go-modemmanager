@@ -21,7 +21,8 @@ const (
 	ModemOmaPropertyPendingNetworkInitiatedSessions = ModemOmaInterface + ".PendingNetworkInitiatedSessions" // readable   a(uu)
 	ModemOmaPropertySessionType                     = ModemOmaInterface + ".SessionType"                     // readable   u
 	ModemOmaPropertySessionState                    = ModemOmaInterface + ".SessionState"                    // readable   i
-
+	/* Signal */
+	ModemOmaSignalSessionStateChanged = "SessionStateChanged"
 )
 
 // ModemOma allows clients to handle device management operations as specified by the Open Mobile Alliance (OMA).
@@ -74,7 +75,9 @@ type ModemOma interface {
 	//		i old_session_state: Previous session state, given as a MMOmaSessionState.
 	//		i new_session_state: Current session state, given as a MMOmaSessionState.
 	//		u session_state_failed_reason: Reason of failure, given as a MMOmaSessionStateFailedReason, if session_state is MM_OMA_SESSION_STATE_FAILED.
-	Subscribe() <-chan *dbus.Signal
+	SubscribeSessionStateChanged() <-chan *dbus.Signal
+
+	ParseSessionStateChanged(v *dbus.Signal) (oldState MMOmaSessionState, newState MMOmaSessionState, failureReason MMOmaSessionStateFailedReason, err error)
 	Unsubscribe()
 }
 
@@ -88,6 +91,7 @@ type modemOma struct {
 	dbusBase
 	sigChan chan *dbus.Signal
 }
+
 type modemOmaInitiatedSession struct {
 	SessionType MMOmaSessionType `json:"session-type"` // network-initiated session type
 	SessionId   uint32           `json:"session-id"`   // network-initiated session id
@@ -177,17 +181,45 @@ func (om modemOma) GetSessionState() (MMOmaSessionState, error) {
 	return MMOmaSessionState(res), nil
 }
 
-func (om modemOma) Subscribe() <-chan *dbus.Signal {
-	// todo: untested
+func (om modemOma) SubscribeSessionStateChanged() <-chan *dbus.Signal {
 	if om.sigChan != nil {
 		return om.sigChan
 	}
-
-	om.subscribeNamespace(ModemManagerObjectPath)
+	rule := fmt.Sprintf("type='signal', member='%s',path_namespace='%s'", ModemOmaSignalSessionStateChanged, fmt.Sprint(om.GetObjectPath()))
+	om.conn.BusObject().Call(dbusMethodAddMatch, 0, rule)
 	om.sigChan = make(chan *dbus.Signal, 10)
 	om.conn.Signal(om.sigChan)
-
 	return om.sigChan
+}
+
+func (om modemOma) ParseSessionStateChanged(v *dbus.Signal) (oldState MMOmaSessionState, newState MMOmaSessionState, failureReason MMOmaSessionStateFailedReason, err error) {
+	// todo: untested
+	if len(v.Body) < 2 {
+		err = errors.New("error by parsing session changed signal")
+		return
+	}
+	oState, ok := v.Body[0].(int32)
+	if !ok {
+		err = errors.New("error by parsing old state")
+		return
+	}
+	oldState = MMOmaSessionState(oState)
+	nState, ok := v.Body[1].(int32)
+	if !ok {
+		err = errors.New("error by parsing new state")
+		return
+	}
+	newState = MMOmaSessionState(nState)
+	if len(v.Body) == 3 {
+		rFailure, ok := v.Body[2].(uint32)
+		if !ok {
+			err = errors.New("error by parsing failure reason")
+			return
+		}
+		failureReason = MMOmaSessionStateFailedReason(rFailure)
+
+	}
+	return
 }
 
 func (om modemOma) Unsubscribe() {
