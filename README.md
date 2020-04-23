@@ -1,5 +1,6 @@
 ![Alt Go-ModemManager](./go-modemmanager.png)
-================
+
+[![GoDoc](https://godoc.org/github.com/maltegrosse/go-modemmanager?status.svg)](https://pkg.go.dev/github.com/maltegrosse/go-modemmanager)
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
 ![Go](https://github.com/maltegrosse/go-modemmanager/workflows/Go/badge.svg) 
 [![Go Report Card](https://goreportcard.com/badge/github.com/maltegrosse/go-modemmanager)](https://goreportcard.com/report/github.com/maltegrosse/go-modemmanager)
