@@ -26,7 +26,7 @@ Some methods/properties are untested as they are not supported by my modem/lack 
 
 This packages requires Go 1.13 (for the dbus lib). If you installed it and set up your GOPATH, just run:
 
-`go get -u https://github.com/maltegrosse/go-modemmanager`
+`go get -u github.com/maltegrosse/go-modemmanager`
 
 ## Usage
 
