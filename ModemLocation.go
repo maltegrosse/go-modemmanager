@@ -3,7 +3,7 @@ package modemmanager
 import (
 	"encoding/json"
 	"errors"
-	"github.com/godbus/dbus/v5"
+	"github.com/godbus/dbus"
 	"strings"
 	"time"
 )

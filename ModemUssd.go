@@ -2,7 +2,7 @@ package modemmanager
 
 import (
 	"encoding/json"
-	"github.com/godbus/dbus/v5"
+	"github.com/godbus/dbus"
 )
 
 // Paths of methods and properties
