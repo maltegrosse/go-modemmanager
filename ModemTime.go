@@ -75,8 +75,8 @@ type ModemTimeZone struct {
 func (mtz ModemTimeZone) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
 		"Offset":       mtz.Offset,
-		"DstOffset ":   mtz.DstOffset,
-		"LeapSeconds ": mtz.LeapSeconds,
+		"DstOffset":    mtz.DstOffset,
+		"LeapSeconds":  mtz.LeapSeconds,
 	})
 }
 
