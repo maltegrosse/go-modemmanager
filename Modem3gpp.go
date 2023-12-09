@@ -130,10 +130,10 @@ type NetworkScanResult struct {
 // MarshalJSON returns a byte array
 func (nsr NetworkScanResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
-		"Networks":      fmt.Sprint(nsr.Networks),
-		"LastScan ":     nsr.LastScan,
-		"ScanDuration ": nsr.ScanDuration,
-		"Recent ":       nsr.Recent,
+		"Networks":     fmt.Sprint(nsr.Networks),
+		"LastScan":     nsr.LastScan,
+		"ScanDuration": nsr.ScanDuration,
+		"Recent":       nsr.Recent,
 	})
 }
 
@@ -159,11 +159,11 @@ type Network3Gpp struct {
 func (n Network3Gpp) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
 		"Status":           fmt.Sprint(n.Status),
-		"OperatorLong ":    n.OperatorLong,
-		"OperatorShort ":   n.OperatorShort,
-		"OperatorCode ":    n.OperatorCode,
-		"Mcc ":             n.Mcc,
-		"Mnc ":             n.Mnc,
+		"OperatorLong":     n.OperatorLong,
+		"OperatorShort":    n.OperatorShort,
+		"OperatorCode":     n.OperatorCode,
+		"Mcc":              n.Mcc,
+		"Mnc":              n.Mnc,
 		"AccessTechnology": fmt.Sprint(n.AccessTechnology),
 	})
 }
@@ -188,8 +188,8 @@ type RawPcoData struct {
 func (r RawPcoData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
 		"SessionId": r.SessionId,
-		"Complete ": r.Complete,
-		"RawData ":  r.RawData,
+		"Complete":  r.Complete,
+		"RawData":   r.RawData,
 	})
 }
 

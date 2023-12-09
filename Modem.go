@@ -326,8 +326,8 @@ type Port struct {
 // MarshalJSON returns a byte array
 func (po Port) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
-		"PortName":  po.PortName,
-		"PortType ": po.PortType,
+		"PortName": po.PortName,
+		"PortType": po.PortType,
 	})
 }
 
@@ -340,8 +340,8 @@ type Mode struct {
 // MarshalJSON returns a byte array
 func (mo Mode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
-		"AllowedModes":   mo.AllowedModes,
-		"PreferredMode ": mo.PreferredMode,
+		"AllowedModes":  mo.AllowedModes,
+		"PreferredMode": mo.PreferredMode,
 	})
 }
 

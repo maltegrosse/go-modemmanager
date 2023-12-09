@@ -141,15 +141,15 @@ type BearerIpConfig struct {
 // MarshalJSON returns a byte array
 func (bc BearerIpConfig) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
-		"Method":     fmt.Sprint(bc.Method),
-		"Address":    bc.Address,
-		"Prefix":     bc.Prefix,
-		"Dns1: ":     bc.Dns1,
-		"Dns2: ":     bc.Dns2,
-		"Dns3: ":     bc.Dns3,
-		"Gateway: ":  bc.Gateway,
-		"Mtu":        bc.Mtu,
-		"IpFamily: ": fmt.Sprint(bc.IpFamily)})
+		"Method":    fmt.Sprint(bc.Method),
+		"Address":   bc.Address,
+		"Prefix":    bc.Prefix,
+		"Dns1":      bc.Dns1,
+		"Dns2":      bc.Dns2,
+		"Dns3":      bc.Dns3,
+		"Gateway":   bc.Gateway,
+		"Mtu":       bc.Mtu,
+		"IpFamily":  fmt.Sprint(bc.IpFamily)})
 }
 
 func (bc BearerIpConfig) String() string {

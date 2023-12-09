@@ -151,10 +151,10 @@ func (cl CurrentLocation) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	return json.Marshal(map[string]interface{}{
-		"ThreeGppLacCi ": threeGppLacCiJson,
-		"GpsRaw ":        gpsRawJson,
-		"GpsNmea ":       gpsNmeaJson,
-		"CdmaBs ":        cdmaBsJson,
+		"ThreeGppLacCi": threeGppLacCiJson,
+		"GpsRaw":        gpsRawJson,
+		"GpsNmea":       gpsNmeaJson,
+		"CdmaBs":        cdmaBsJson,
 	})
 }
 
