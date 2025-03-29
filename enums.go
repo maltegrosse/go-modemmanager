@@ -100,10 +100,12 @@ type MMModemStateFailedReason uint32
 
 //go:generate stringer -type=MMModemStateFailedReason -trimprefix=MmModemStateFailedReason
 const (
-	MmModemStateFailedReasonNone       MMModemStateFailedReason = 0 // No error.
-	MmModemStateFailedReasonUnknown    MMModemStateFailedReason = 1 // Unknown error.
-	MmModemStateFailedReasonSimMissing MMModemStateFailedReason = 2 // SIM is required but missing.
-	MmModemStateFailedReasonSimError   MMModemStateFailedReason = 3 // SIM is available, but unusable (e.g. permanently locked).
+	MmModemStateFailedReasonNone                MMModemStateFailedReason = 0 // No error.
+	MmModemStateFailedReasonUnknown             MMModemStateFailedReason = 1 // Unknown error.
+	MmModemStateFailedReasonSimMissing          MMModemStateFailedReason = 2 // SIM is required but missing.
+	MmModemStateFailedReasonSimError            MMModemStateFailedReason = 3 // SIM is available, but unusable (e.g. permanently locked).
+	MmModemStateFailedReasonUnknownCapabilities MMModemStateFailedReason = 4 // Unknown modem capabilities.
+	MmModemStateFailedReasonEsimWithoutProfiles MMModemStateFailedReason = 5 // eSIM is not initialized
 
 )
 

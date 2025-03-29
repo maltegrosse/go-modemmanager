@@ -12,11 +12,13 @@ func _() {
 	_ = x[MmModemStateFailedReasonUnknown-1]
 	_ = x[MmModemStateFailedReasonSimMissing-2]
 	_ = x[MmModemStateFailedReasonSimError-3]
+	_ = x[MmModemStateFailedReasonUnknownCapabilities-4]
+	_ = x[MmModemStateFailedReasonEsimWithoutProfiles-5]
 }
 
-const _MMModemStateFailedReason_name = "NoneUnknownSimMissingSimError"
+const _MMModemStateFailedReason_name = "NoneUnknownSimMissingSimErrorUnknownCapabilitiesEsimWithoutProfiles"
 
-var _MMModemStateFailedReason_index = [...]uint8{0, 4, 11, 21, 29}
+var _MMModemStateFailedReason_index = [...]uint8{0, 4, 11, 21, 29, 48, 67}
 
 func (i MMModemStateFailedReason) String() string {
 	if i >= MMModemStateFailedReason(len(_MMModemStateFailedReason_index)-1) {
